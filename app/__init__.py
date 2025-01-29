@@ -1,13 +1,12 @@
 from flask import Flask
+from .routes import pedidos_bp  # Importação relativa
+
 
 def create_app():
     app = Flask(__name__)
-
-    # Configurações do app podem ser carregadas aqui
     app.config.from_object('config')
 
-    # Importa e registra as rotas
-    from app.routes import register_routes
-    register_routes(app)
+    # Registrando a rota de pedidos
+    app.register_blueprint(pedidos_bp)
 
     return app

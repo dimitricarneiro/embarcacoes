@@ -1,0 +1,10 @@
+{
+  "empresa_responsavel": "Empresa XYZ",
+  "embarcacoes": ["Embarcação A", "Embarcação B"],
+  "veiculos": ["Caminhão 123", "Carro XYZ"],
+  "servico": "Inspeção de porão",
+  "equipe": [
+    {"nome": "João Silva", "funcao": "Mecânico"},
+    {"nome": "Maria Souza", "funcao": "Supervisor"}
+  ]
+}
