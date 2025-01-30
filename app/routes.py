@@ -120,14 +120,48 @@ def gerenciar_pedidos():
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 def exibir_pedidos():
-    """ Exibe os pedidos em uma página HTML com tabela e paginação """
+    """ Exibe os pedidos em uma página HTML com filtros, busca e paginação """
 
-    # Parâmetros de paginação (padrão: página 1, 10 itens por página)
+    # Captura os filtros opcionais da URL
+    nome_empresa = request.args.get("nome_empresa", "").strip()
+    cnpj_empresa = request.args.get("cnpj_empresa", "").strip()
+    status = request.args.get("status", "").strip()
+    data_inicio = request.args.get("data_inicio", "").strip()
+    data_termino = request.args.get("data_termino", "").strip()
+
+    # Configuração da paginação (mantendo a lógica original)
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
 
-    # Buscar pedidos paginados do banco de dados
-    pedidos_paginados = PedidoAutorizacao.query.order_by(PedidoAutorizacao.data_inicio.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    # Base da query (mantendo a ordenação original)
+    query = PedidoAutorizacao.query.order_by(PedidoAutorizacao.data_inicio.desc())
+
+    # Aplicando filtros se fornecidos
+    if nome_empresa:
+        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
+
+    if cnpj_empresa:
+        query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{cnpj_empresa}%"))
+
+    if status in ["pendente", "aprovado", "rejeitado"]:
+        query = query.filter(PedidoAutorizacao.status == status)
+
+    if data_inicio:
+        try:
+            data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d").date()
+            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio)
+        except ValueError:
+            return jsonify({"error": "Formato inválido para 'data_inicio'. Use 'YYYY-MM-DD'."}), 400
+
+    if data_termino:
+        try:
+            data_termino = datetime.strptime(data_termino, "%Y-%m-%d").date()
+            query = query.filter(PedidoAutorizacao.data_termino <= data_termino)
+        except ValueError:
+            return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
+
+    # Mantendo a paginação original
+    pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
 

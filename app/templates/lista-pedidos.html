@@ -39,44 +39,67 @@
 <body>
     <h1>Lista de Pedidos de Autorização</h1>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Empresa</th>
-                <th>CNPJ</th>
-                <th>Motivo</th>
-                <th>Data Início</th>
-                <th>Data Término</th>
-                <th>Detalhes</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pedido in pedidos.items %}
-            <tr>
-                <td>{{ pedido.id }}</td>
-                <td>{{ pedido.empresa_responsavel }}</td>
-                <td>{{ pedido.cnpj_empresa }}</td>
-                <td>{{ pedido.motivo_solicitacao }}</td>
-                <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
-                <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
-                <td><a href="/pedido/{{ pedido.id }}">Ver Detalhes</a></td>
-				<td><td>
-    {% if pedido.status == "pendente" %}
-        <button onclick="aprovarPedido({{ pedido.id }})">Aprovar</button>
-        <button onclick="rejeitarPedido({{ pedido.id }})" style="background-color: red; color: white;">Rejeitar</button>
-    {% elif pedido.status == "aprovado" %}
-        <span style="color: green;">Aprovado</span>
-    {% elif pedido.status == "rejeitado" %}
-        <span style="color: red;">Rejeitado</span>
-    {% endif %}
-</td>
+<form action="/lista-pedidos" method="GET">
+    <input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
+    <input type="text" name="cnpj_empresa" placeholder="CNPJ" value="{{ request.args.get('cnpj_empresa', '') }}">
+    
+    <select name="status">
+        <option value="">Todos os Status</option>
+        <option value="pendente" {% if request.args.get('status') == 'pendente' %}selected{% endif %}>Pendente</option>
+        <option value="aprovado" {% if request.args.get('status') == 'aprovado' %}selected{% endif %}>Aprovado</option>
+        <option value="rejeitado" {% if request.args.get('status') == 'rejeitado' %}selected{% endif %}>Rejeitado</option>
+    </select>
 
-</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <input type="date" name="data_inicio" placeholder="Data Início" value="{{ request.args.get('data_inicio', '') }}">
+    <input type="date" name="data_termino" placeholder="Data Término" value="{{ request.args.get('data_termino', '') }}">
+
+    <button type="submit">Filtrar</button>
+    <a href="/lista-pedidos"><button type="button">Limpar Filtros</button></a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Empresa</th>
+            <th>CNPJ</th>
+            <th>Motivo</th>
+            <th>Data Início</th>
+            <th>Data Término</th>
+            <th>Status</th>
+            <th>Ações</th>
+            <th>Detalhes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos.items %}
+        <tr>
+            <td>{{ pedido.id }}</td>
+            <td>{{ pedido.empresa_responsavel }}</td>
+            <td>{{ pedido.cnpj_empresa }}</td>
+            <td>{{ pedido.motivo_solicitacao }}</td>
+            <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
+            <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
+            <td>
+                {% if pedido.status == "pendente" %}
+                    <span style="color: orange;">Pendente</span>
+                {% elif pedido.status == "aprovado" %}
+                    <span style="color: green;">Aprovado</span>
+                {% elif pedido.status == "rejeitado" %}
+                    <span style="color: red;">Rejeitado</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if pedido.status == "pendente" %}
+                    <button onclick="aprovarPedido({{ pedido.id }})" style="background-color: green; color: white;">Aprovar</button>
+                    <button onclick="rejeitarPedido({{ pedido.id }})" style="background-color: red; color: white;">Rejeitar</button>
+                {% endif %}
+            </td>
+            <td><a href="/pedido/{{ pedido.id }}">Ver Detalhes</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
     <div class="pagination">
         {% if pedidos.has_prev %}
@@ -97,7 +120,7 @@
 
 <script>
 function aprovarPedido(pedidoId) {
-    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação (provisória)
+    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
     fetch(`/api/pedidos-autorizacao/${pedidoId}/aprovar`, {
         method: "PUT",
@@ -119,7 +142,7 @@ function aprovarPedido(pedidoId) {
 }
 
 function rejeitarPedido(pedidoId) {
-    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação (provisória)
+    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
     fetch(`/api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
         method: "PUT",
@@ -139,7 +162,6 @@ function rejeitarPedido(pedidoId) {
     })
     .catch(error => console.error("Erro:", error));
 }
-
 </script>
 
 </html>
