@@ -64,10 +64,14 @@
 				<td><td>
     {% if pedido.status == "pendente" %}
         <button onclick="aprovarPedido({{ pedido.id }})">Aprovar</button>
-    {% else %}
-        <span>Aprovado</span>
+        <button onclick="rejeitarPedido({{ pedido.id }})" style="background-color: red; color: white;">Rejeitar</button>
+    {% elif pedido.status == "aprovado" %}
+        <span style="color: green;">Aprovado</span>
+    {% elif pedido.status == "rejeitado" %}
+        <span style="color: red;">Rejeitado</span>
     {% endif %}
 </td>
+
 </td>
             </tr>
             {% endfor %}
@@ -113,7 +117,29 @@ function aprovarPedido(pedidoId) {
     })
     .catch(error => console.error("Erro:", error));
 }
-</script>
 
+function rejeitarPedido(pedidoId) {
+    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação (provisória)
+
+    fetch(`/api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Erro: " + data.error);
+        } else {
+            alert("Pedido rejeitado com sucesso!");
+            location.reload(); // 🔹 Atualiza a página automaticamente
+        }
+    })
+    .catch(error => console.error("Erro:", error));
+}
+
+</script>
 
 </html>

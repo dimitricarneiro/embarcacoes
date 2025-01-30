@@ -162,6 +162,30 @@ def aprovar_pedido(pedido_id):
 
     return jsonify({"message": "Pedido aprovado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
 
+@pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/rejeitar', methods=['PUT'])
+def rejeitar_pedido(pedido_id):
+    """ Rejeita um pedido de autorização """
+
+    # 🔹 Verifica se a requisição tem a chave de autorização
+    auth_key = request.headers.get("Authorization")
+    SECRET_KEY = "RFB_SECRET"  # 🔹 Chave secreta provisória para autorização
+
+    if auth_key != SECRET_KEY:
+        return jsonify({"error": "Acesso não autorizado"}), 403
+
+    # 🔹 Busca o pedido no banco
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # 🔹 Verifica se já foi aprovado ou rejeitado
+    if pedido.status != "pendente":
+        return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
+
+    # 🔹 Rejeita o pedido
+    pedido.status = "rejeitado"
+    db.session.commit()
+
+    return jsonify({"message": "Pedido rejeitado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
+
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
 def exibir_formulario():
