@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, render_template
 from datetime import datetime
 from app import db
 from app.models import PedidoAutorizacao
+from flask_login import login_required, current_user
+
 
 pedidos_bp = Blueprint('pedidos', __name__)
 
@@ -173,14 +175,12 @@ def exibir_detalhes_pedido(pedido_id):
     return render_template('detalhes-pedido.html', pedido=pedido)
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def aprovar_pedido(pedido_id):
     """ Aprova um pedido de autorização """
 
-    # 🔹 Verifica se a requisição tem a chave de autorização
-    auth_key = request.headers.get("Authorization")
-    SECRET_KEY = "RFB_SECRET"  # 🔹 Defina uma chave secreta estática
-
-    if auth_key != SECRET_KEY:
+    # 🔹 Verifica se o usuário tem permissão
+    if current_user.role != "RFB":
         return jsonify({"error": "Acesso não autorizado"}), 403
 
     # 🔹 Busca o pedido no banco
@@ -197,14 +197,12 @@ def aprovar_pedido(pedido_id):
     return jsonify({"message": "Pedido aprovado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/rejeitar', methods=['PUT'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def rejeitar_pedido(pedido_id):
     """ Rejeita um pedido de autorização """
 
-    # 🔹 Verifica se a requisição tem a chave de autorização
-    auth_key = request.headers.get("Authorization")
-    SECRET_KEY = "RFB_SECRET"  # 🔹 Chave secreta provisória para autorização
-
-    if auth_key != SECRET_KEY:
+    # 🔹 Verifica se o usuário tem permissão para rejeitar
+    if current_user.role != "RFB":
         return jsonify({"error": "Acesso não autorizado"}), 403
 
     # 🔹 Busca o pedido no banco
