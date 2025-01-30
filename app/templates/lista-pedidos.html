@@ -153,12 +153,12 @@
                         <span class="status status-rejeitado">Rejeitado ❌</span>
                     {% endif %}
                 </td>
-                <td class="actions">
-                    {% if pedido.status == "pendente" %}
-                        <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
-                        <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
-                    {% endif %}
-                </td>
+<td class="actions">
+    {% if pedido.status == "pendente" and current_user.role == "RFB" %}
+        <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
+        <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
+    {% endif %}
+</td>
                 <td>
                     <a class="btn-detalhes" href="/pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
                 </td>

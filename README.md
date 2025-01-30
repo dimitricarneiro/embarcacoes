@@ -2,6 +2,14 @@
 
 Este projeto tem como objetivo gerenciar e controlar embarcações que prestam serviços no porto
 
+---
+
+**Usuários de teste**
+- **Admin**: 123456
+- **usuario**: 123456
+
+---
+
 ## Tecnologias Utilizadas
 
 O projeto foi desenvolvido com as seguintes tecnologias:
