@@ -1,56 +1,75 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedido de Autorização</title>
 </head>
 <body>
-    <h2>Pedido de Autorização</h2>
-    <form id="pedidoForm">
+    <h1>Pedido de Autorização</h1>
+    <form id="pedido-form">
         <label>Nome da Empresa:</label>
-        <input type="text" name="empresa_responsavel" required><br>
+        <input type="text" id="nome_empresa" required><br><br>
 
-        <label>CNPJ da Empresa:</label>
-        <input type="text" name="cnpj_empresa" required><br>
+        <label>CNPJ:</label>
+        <input type="text" id="cnpj_empresa" required><br><br>
 
-        <label>Endereço da Empresa:</label>
-        <input type="text" name="endereco_empresa" required><br>
+        <label>Endereço:</label>
+        <input type="text" id="endereco_empresa" required><br><br>
 
-        <label>Motivo da Solicitação:</label>
-        <textarea name="motivo_solicitacao" required></textarea><br>
+        <label>Motivo:</label>
+        <input type="text" id="motivo_solicitacao" required><br><br>
 
-        <label>Data de Início do Serviço:</label>
-        <input type="date" name="data_inicio" required><br>
+        <label>Data Início:</label>
+        <input type="date" id="data_inicio_servico" required><br><br>
 
-        <label>Data de Término do Serviço:</label>
-        <input type="date" name="data_termino" required><br>
+        <label>Data Término:</label>
+        <input type="date" id="data_termino_servico" required><br><br>
 
-        <label>Horário dos Serviços:</label>
-        <input type="time" name="horario_servico" required><br>
+        <label>Horário:</label>
+        <input type="text" id="horario_servicos" required><br><br>
 
-        <button type="submit">Enviar Pedido</button>
+        <label>Número do Certificado de Livre Prática:</label>
+        <input type="text" id="num_certificado_livre_pratica" required><br><br>
+
+        <button type="button" onclick="enviarPedido()">Enviar Pedido</button>
     </form>
 
+    <p id="mensagem"></p>
+
     <script>
-        document.getElementById("pedidoForm").addEventListener("submit", function(event) {
-            event.preventDefault();
+        function enviarPedido() {
+            const pedido = {
+                nome_empresa: document.getElementById("nome_empresa").value,
+                cnpj_empresa: document.getElementById("cnpj_empresa").value,
+                endereco_empresa: document.getElementById("endereco_empresa").value,
+                motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+                data_inicio_servico: document.getElementById("data_inicio_servico").value,
+                data_termino_servico: document.getElementById("data_termino_servico").value,
+                horario_servicos: document.getElementById("horario_servicos").value,
+                num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
+                observacoes: "Nenhuma",  // Você pode adicionar um campo no formulário para observações
+                embarcacoes: [],
+                equipamentos: [],
+                pessoas: []
+            };
 
-            const formData = new FormData(event.target);
-            const jsonData = {};
-            formData.forEach((value, key) => {
-                jsonData[key] = value;
-            });
-
-            fetch("http://127.0.0.1:5000/api/pedidos-autorizacao", {
+            fetch('/api/pedidos-autorizacao', {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(jsonData)
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(pedido)
             })
             .then(response => response.json())
-            .then(data => alert("Pedido criado com sucesso! ID: " + data.id))
-            .catch(error => console.error("Erro:", error));
-        });
+            .then(data => {
+                document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
+            })
+            .catch(error => {
+                document.getElementById("mensagem").innerText = "Erro ao criar o pedido.";
+                console.error("Erro:", error);
+            });
+        }
     </script>
 </body>
 </html>

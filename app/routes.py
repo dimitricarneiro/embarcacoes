@@ -25,15 +25,20 @@ def gerenciar_pedidos():
             if field not in data:
                 return jsonify({"error": f"Campo obrigatório '{field}' está faltando"}), 400
 
-        # Simulação de ID único do pedido
-        pedido_id = len(pedidos) + 1
-        data["id_autorizacao"] = pedido_id
-        pedidos.append(data)
+        # **Correção:** Gerar um ID único antes de adicionar o pedido
+        pedido_id = len(pedidos) + 1  # ID começa a partir de 1 e é sequencial
+        data["id_autorizacao"] = pedido_id  # Adiciona o ID ao pedido
+        
+        pedidos.append(data)  # Armazena o pedido na lista em memória
 
-        return jsonify({"message": "Pedido de autorização criado com sucesso!", "id_autorizacao": pedido_id}), 201
+        return jsonify({
+            "message": "Pedido de autorização criado com sucesso!",
+            "id_autorizacao": pedido_id  # Retorna o ID correto
+        }), 201
 
     elif request.method == 'GET':
         return jsonify({"pedidos": pedidos}), 200  # Retorna todos os pedidos cadastrados
+
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
 def exibir_formulario():
