@@ -1,10 +1,57 @@
 {
-  "empresa_responsavel": "Empresa XYZ",
-  "embarcacoes": ["Embarcação A", "Embarcação B"],
-  "veiculos": ["Caminhão 123", "Carro XYZ"],
-  "servico": "Inspeção de porão",
-  "equipe": [
-    {"nome": "João Silva", "funcao": "Mecânico"},
-    {"nome": "Maria Souza", "funcao": "Supervisor"}
+  "nome_empresa": "Empresa XYZ",
+  "cnpj_empresa": "00.000.000/0000-00",
+  "endereco_empresa": "Rua Exemplo, 123",
+  "motivo_solicitacao": "Inspeção de porão",
+  "data_inicio_servico": "2025-02-01",
+  "data_termino_servico": "2025-02-10",
+  "horario_servicos": "08:00 - 18:00",
+  "num_certificado_livre_pratica": "ABC123",
+  "observacoes": "Serviço sujeito a alteração",
+  "embarcacoes": [
+    {
+      "nome_embarcacao": "Embarcação A",
+      "bandeira_embarcacao": "Brasil",
+      "imo_embarcacao": "1234567",
+      "local_embarque": "Porto A",
+      "local_desembarque": "Porto B",
+      "local_embarque_equipamentos": "Terminal X",
+      "local_desembarque_equipamentos": "Terminal Y"
+    },
+    {
+      "nome_embarcacao": "Embarcação B",
+      "bandeira_embarcacao": "Panamá",
+      "imo_embarcacao": "7654321",
+      "local_embarque": "Porto C",
+      "local_desembarque": "Porto D",
+      "local_embarque_equipamentos": "Terminal Z",
+      "local_desembarque_equipamentos": "Terminal W"
+    }
+  ],
+  "equipamentos": [
+    {
+      "descricao_equipamento": "Caminhão 123",
+      "patrimonio_num_serie_modelo": "CAM-001",
+      "quantidade": 1
+    },
+    {
+      "descricao_equipamento": "Carro XYZ",
+      "patrimonio_num_serie_modelo": "CAR-002",
+      "quantidade": 1
+    }
+  ],
+  "pessoas": [
+    {
+      "nome": "João Silva",
+      "cpf": "123.456.789-00",
+      "funcao": "Mecânico",
+      "isps": 123456
+    },
+    {
+      "nome": "Maria Souza",
+      "cpf": "987.654.321-00",
+      "funcao": "Supervisor",
+      "isps": 654321
+    }
   ]
 }
