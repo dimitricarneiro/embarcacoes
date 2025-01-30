@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Pedidos</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination a {
+            margin: 0 5px;
+            padding: 8px 12px;
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+        .pagination a.disabled {
+            background-color: #ddd;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Pedidos de Autorização</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Empresa</th>
+                <th>CNPJ</th>
+                <th>Motivo</th>
+                <th>Data Início</th>
+                <th>Data Término</th>
+                <th>Detalhes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos.items %}
+            <tr>
+                <td>{{ pedido.id }}</td>
+                <td>{{ pedido.empresa_responsavel }}</td>
+                <td>{{ pedido.cnpj_empresa }}</td>
+                <td>{{ pedido.motivo_solicitacao }}</td>
+                <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
+                <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
+                <td><a href="/pedido/{{ pedido.id }}">Ver Detalhes</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if pedidos.has_prev %}
+            <a href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.prev_num) }}">Anterior</a>
+        {% else %}
+            <a class="disabled">Anterior</a>
+        {% endif %}
+
+        Página {{ pedidos.page }} de {{ pedidos.pages }}
+
+        {% if pedidos.has_next %}
+            <a href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.next_num) }}">Próxima</a>
+        {% else %}
+            <a class="disabled">Próxima</a>
+        {% endif %}
+    </div>
+</body>
+</html>

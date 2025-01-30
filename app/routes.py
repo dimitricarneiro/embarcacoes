@@ -118,6 +118,20 @@ def gerenciar_pedidos():
             "pedidos": pedidos_lista
         }), 200
 
+@pedidos_bp.route('/lista-pedidos', methods=['GET'])
+def exibir_pedidos():
+    """ Exibe os pedidos em uma página HTML com tabela e paginação """
+
+    # Parâmetros de paginação (padrão: página 1, 10 itens por página)
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=10, type=int)
+
+    # Buscar pedidos paginados do banco de dados
+    pedidos_paginados = PedidoAutorizacao.query.order_by(PedidoAutorizacao.data_inicio.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
+
+
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
 def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
