@@ -61,6 +61,14 @@
                 <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
                 <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
                 <td><a href="/pedido/{{ pedido.id }}">Ver Detalhes</a></td>
+				<td><td>
+    {% if pedido.status == "pendente" %}
+        <button onclick="aprovarPedido({{ pedido.id }})">Aprovar</button>
+    {% else %}
+        <span>Aprovado</span>
+    {% endif %}
+</td>
+</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -82,4 +90,30 @@
         {% endif %}
     </div>
 </body>
+
+<script>
+function aprovarPedido(pedidoId) {
+    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação (provisória)
+
+    fetch(`/api/pedidos-autorizacao/${pedidoId}/aprovar`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Erro: " + data.error);
+        } else {
+            alert("Pedido aprovado com sucesso!");
+            location.reload(); // 🔹 Atualiza a página automaticamente
+        }
+    })
+    .catch(error => console.error("Erro:", error));
+}
+</script>
+
+
 </html>

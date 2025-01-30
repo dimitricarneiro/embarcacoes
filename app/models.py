@@ -11,6 +11,7 @@ class PedidoAutorizacao(db.Model):
     data_inicio = db.Column(db.Date, nullable=False)
     data_termino = db.Column(db.Date, nullable=False)
     horario_servico = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.String(20), default="pendente", nullable=False)  # 🔹 Novo campo de status
 
     def __repr__(self):
-        return f"<PedidoAutorizacao {self.id} - {self.empresa_responsavel}>"
+        return f"<PedidoAutorizacao {self.id} - {self.empresa_responsavel} - {self.status}>"
