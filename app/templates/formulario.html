@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Autorização</title>
+</head>
+<body>
+    <h2>Pedido de Autorização</h2>
+    <form id="pedidoForm">
+        <label>Nome da Empresa:</label>
+        <input type="text" name="empresa_responsavel" required><br>
+
+        <label>CNPJ da Empresa:</label>
+        <input type="text" name="cnpj_empresa" required><br>
+
+        <label>Endereço da Empresa:</label>
+        <input type="text" name="endereco_empresa" required><br>
+
+        <label>Motivo da Solicitação:</label>
+        <textarea name="motivo_solicitacao" required></textarea><br>
+
+        <label>Data de Início do Serviço:</label>
+        <input type="date" name="data_inicio" required><br>
+
+        <label>Data de Término do Serviço:</label>
+        <input type="date" name="data_termino" required><br>
+
+        <label>Horário dos Serviços:</label>
+        <input type="time" name="horario_servico" required><br>
+
+        <button type="submit">Enviar Pedido</button>
+    </form>
+
+    <script>
+        document.getElementById("pedidoForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            fetch("http://127.0.0.1:5000/api/pedidos-autorizacao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => response.json())
+            .then(data => alert("Pedido criado com sucesso! ID: " + data.id))
+            .catch(error => console.error("Erro:", error));
+        });
+    </script>
+</body>
+</html>

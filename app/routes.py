@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 
 pedidos_bp = Blueprint('pedidos', __name__)
 
@@ -34,3 +34,8 @@ def gerenciar_pedidos():
 
     elif request.method == 'GET':
         return jsonify({"pedidos": pedidos}), 200  # Retorna todos os pedidos cadastrados
+
+@pedidos_bp.route('/formulario-pedido', methods=['GET'])
+def exibir_formulario():
+    """ Rota que exibe o formulário para preencher o pedido de autorização """
+    return render_template('formulario.html')
