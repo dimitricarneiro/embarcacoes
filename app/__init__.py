@@ -1,13 +1,16 @@
 from flask import Flask
-from .routes import pedidos_bp  # Importação relativa
+from flask_sqlalchemy import SQLAlchemy
+from config import config
+
+db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
+    app.config.from_object(config["development"])  # Usando a configuração de desenvolvimento
 
-    # Carregar configurações do config.py (se necessário)
-    app.config.from_object('config')
+    db.init_app(app)  # Inicializa o banco de dados
 
-    # Registrando a rota de pedidos
+    from app.routes import pedidos_bp
     app.register_blueprint(pedidos_bp)
 
     return app

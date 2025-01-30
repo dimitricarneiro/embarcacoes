@@ -12,3 +12,16 @@ def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 200
     assert response.json == {"message": "Bem-vindo ao Controle de Embarcações!"}
+    
+def test_exibir_formulario_pedido(client):
+    """Teste para verificar se o formulário de pedido é carregado corretamente"""
+    
+    response = client.get("/formulario-pedido")  # Faz uma requisição GET para a rota
+    
+    assert response.status_code == 200  # Verifica se a página carregou corretamente
+    html_content = response.data.decode("utf-8")  # Converte bytes para string
+    
+    assert "<title>Pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
+    assert "<form" in html_content  # Verifica se há um formulário na resposta HTML
+    assert "Enviar Pedido" in html_content  # Verifica se o botão está presente
+
