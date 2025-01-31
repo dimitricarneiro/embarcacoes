@@ -22,6 +22,8 @@ def login():
             login_user(user, remember=remember)
             # ✅ Define a sessão como permanente para que a expiração funcione
             session.permanent = True
+            if user.role == "RFB":
+                return redirect(url_for("pedidos.admin_dashboard"))
             return redirect(url_for("pedidos.exibir_pedidos"))
 
         flash("Credenciais inválidas. Tente novamente.", "error")

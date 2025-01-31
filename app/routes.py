@@ -1,8 +1,44 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, Response
 from datetime import datetime
 from app import db
 from app.models import PedidoAutorizacao
 from flask_login import login_required, current_user
+from app.models import PedidoAutorizacao, Usuario
+from sqlalchemy.sql import func
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from flask import send_file
+import csv
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+import re
+
+def validar_cnpj(cnpj):
+    """ Valida se o CNPJ informado é válido """
+    cnpj = re.sub(r'\D', '', cnpj)  # Remove caracteres não numéricos
+
+    if len(cnpj) != 14 or cnpj in (c * 14 for c in "0123456789"):
+        return False
+
+    def calcular_digito(cnpj, pesos):
+        soma = sum(int(cnpj[i]) * pesos[i] for i in range(len(pesos)))
+        resto = soma % 11
+        return 0 if resto < 2 else 11 - resto
+
+    pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    pesos2 = [6] + pesos1
+
+    if int(cnpj[12]) != calcular_digito(cnpj[:12], pesos1):
+        return False
+    if int(cnpj[13]) != calcular_digito(cnpj[:13], pesos2):
+        return False
+
+    return True
 
 
 pedidos_bp = Blueprint('pedidos', __name__)
@@ -22,6 +58,11 @@ def gerenciar_pedidos():
 
     if request.method == 'POST':
         data = request.get_json()
+        
+        # ✅ Validação do CNPJ antes de continuar
+        cnpj = data.get("cnpj_empresa", "")
+        if not validar_cnpj(cnpj):
+            return jsonify({"error": "CNPJ inválido!"}), 400
 
         # Verificação de campos obrigatórios
         required_fields = [
@@ -227,3 +268,138 @@ def rejeitar_pedido(pedido_id):
 def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
     return render_template('formulario.html')
+
+from flask import render_template
+from flask_login import login_required, current_user
+
+@pedidos_bp.route('/admin')
+@login_required
+def admin_dashboard():
+    """ Painel Administrativo - Somente para usuários RFB """
+
+    # 🔹 Verifica se o usuário é RFB
+    if current_user.role != "RFB":
+        return redirect(url_for("pedidos.exibir_pedidos"))
+
+    # 🔹 Estatísticas gerais
+    total_pedidos = PedidoAutorizacao.query.count()
+    pedidos_aprovados = PedidoAutorizacao.query.filter_by(status="aprovado").count()
+    pedidos_rejeitados = PedidoAutorizacao.query.filter_by(status="rejeitado").count()
+    pedidos_pendentes = PedidoAutorizacao.query.filter_by(status="pendente").count()
+    total_usuarios = Usuario.query.count()
+
+    # 🔹 Contagem de pedidos por dia
+    pedidos_por_dia = (
+        db.session.query(func.date(PedidoAutorizacao.data_inicio), func.count())
+        .group_by(func.date(PedidoAutorizacao.data_inicio))
+        .order_by(func.date(PedidoAutorizacao.data_inicio))
+        .all()
+    )
+
+    # 🔹 Preparar dados para o gráfico
+    datas = [str(p[0]) for p in pedidos_por_dia]
+    pedidos_quantidade = [p[1] for p in pedidos_por_dia]
+
+    return render_template("admin.html", 
+                           total_pedidos=total_pedidos, 
+                           pedidos_aprovados=pedidos_aprovados,
+                           pedidos_rejeitados=pedidos_rejeitados, 
+                           pedidos_pendentes=pedidos_pendentes,
+                           total_usuarios=total_usuarios,
+                           datas=datas, 
+                           pedidos_quantidade=pedidos_quantidade)
+
+@pedidos_bp.route('/admin/exportar-csv')
+@login_required
+def exportar_csv():
+    """ Exporta os pedidos como um arquivo CSV """
+    
+    if current_user.role != "RFB":
+        return redirect(url_for("pedidos.exibir_pedidos"))
+
+    pedidos = PedidoAutorizacao.query.all()
+
+    # Criar resposta CSV
+    response = Response()
+    response.headers["Content-Disposition"] = "attachment; filename=relatorio_pedidos.csv"
+    response.headers["Content-Type"] = "text/csv"
+
+    # Escrever dados no CSV
+    writer = csv.writer(response)
+    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"])
+    
+    for pedido in pedidos:
+        writer.writerow([pedido.id, pedido.empresa_responsavel, pedido.cnpj_empresa, pedido.motivo_solicitacao,
+                         pedido.data_inicio, pedido.data_termino, pedido.status])
+    
+    return response
+
+@pedidos_bp.route('/admin/exportar-pdf')
+@login_required
+def exportar_pdf():
+    """ Exporta os pedidos como um arquivo PDF formatado com sumário estatístico """
+    
+    if current_user.role != "RFB":
+        return redirect(url_for("pedidos.exibir_pedidos"))
+
+    pedidos = PedidoAutorizacao.query.all()
+
+    # 🔹 Estatísticas gerais
+    total_pedidos = len(pedidos)
+    pedidos_aprovados = len([p for p in pedidos if p.status == "aprovado"])
+    pedidos_rejeitados = len([p for p in pedidos if p.status == "rejeitado"])
+    pedidos_pendentes = len([p for p in pedidos if p.status == "pendente"])
+
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    
+    elementos = []
+
+    # 🔹 Título do Relatório
+    styles = getSampleStyleSheet()
+    elementos.append(Paragraph("<b>Relatório de Pedidos</b>", styles['Title']))
+    elementos.append(Spacer(1, 12))  # Adiciona um espaço
+
+    # 🔹 Criar a tabela de pedidos
+    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"]]
+    
+    for pedido in pedidos:
+        dados.append([
+            pedido.id, 
+            pedido.empresa_responsavel, 
+            pedido.cnpj_empresa, 
+            pedido.motivo_solicitacao, 
+            pedido.data_inicio.strftime("%d/%m/%Y"), 
+            pedido.data_termino.strftime("%d/%m/%Y"), 
+            pedido.status
+        ])
+
+    tabela = Table(dados)
+    
+    # 🔹 Estilizar a tabela
+    estilo = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ])
+    
+    tabela.setStyle(estilo)
+    elementos.append(tabela)
+    elementos.append(Spacer(1, 20))  # Adiciona um espaço antes do sumário
+
+    # 🔹 Criar o sumário estatístico
+    elementos.append(Paragraph("<b>Sumário Estatístico</b>", styles['Heading2']))
+    elementos.append(Paragraph(f"Total de Pedidos: {total_pedidos}", styles['Normal']))
+    elementos.append(Paragraph(f"Pedidos Aprovados: {pedidos_aprovados}", styles['Normal']))
+    elementos.append(Paragraph(f"Pedidos Rejeitados: {pedidos_rejeitados}", styles['Normal']))
+    elementos.append(Paragraph(f"Pedidos Pendentes: {pedidos_pendentes}", styles['Normal']))
+
+    # 🔹 Criar o PDF
+    pdf.build(elementos)
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name="relatorio_pedidos.pdf", mimetype="application/pdf")

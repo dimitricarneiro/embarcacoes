@@ -123,7 +123,7 @@
         <input type="text" id="nome_empresa" required>
 
         <label>CNPJ:</label>
-        <input type="text" id="cnpj_empresa" required>
+        <input type="text" id="cnpj_empresa" value="54.265.841/0001-50" required>
 
         <label>Endereço:</label>
         <input type="text" id="endereco_empresa" required>
@@ -149,41 +149,15 @@
     <p id="mensagem"></p>
 </div>
 
-
-    <script>
-        function enviarPedido() {
-            const pedido = {
-                nome_empresa: document.getElementById("nome_empresa").value,
-                cnpj_empresa: document.getElementById("cnpj_empresa").value,
-                endereco_empresa: document.getElementById("endereco_empresa").value,
-                motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-                data_inicio_servico: document.getElementById("data_inicio_servico").value,
-                data_termino_servico: document.getElementById("data_termino_servico").value,
-                horario_servicos: document.getElementById("horario_servicos").value,
-                num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
-                observacoes: "Nenhuma",  // Você pode adicionar um campo no formulário para observações
-                embarcacoes: [],
-                equipamentos: [],
-                pessoas: []
-            };
-
-            fetch('/api/pedidos-autorizacao', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(pedido)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
-            })
-            .catch(error => {
-                document.getElementById("mensagem").innerText = "Erro ao criar o pedido.";
-                console.error("Erro:", error);
-            });
-        }
-    </script>
+<!-- Modal de Expiração de Sessão -->
+<div id="session-modal" class="modal">
+    <div class="modal-content">
+        <h2>Aviso de Sessão</h2>
+        <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
+        <button onclick="continuarSessao()">Continuar Logado</button>
+        <button onclick="sairSessao()">Sair</button>
+    </div>
+</div>
 
 <script>
     let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
@@ -224,14 +198,88 @@
     document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 </script>
 
-<!-- Modal de Expiração de Sessão -->
-<div id="session-modal" class="modal">
-    <div class="modal-content">
-        <h2>Aviso de Sessão</h2>
-        <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
-        <button onclick="continuarSessao()">Continuar Logado</button>
-        <button onclick="sairSessao()">Sair</button>
-    </div>
-</div>
+<script>
+    function validarCNPJ(cnpj) {
+        cnpj = cnpj.replace(/[^\d]+/g, ""); // Remove caracteres não numéricos
+
+        if (cnpj.length !== 14) return false;
+
+        // Elimina CNPJs com todos os números iguais (ex: 00000000000000)
+        if (/^(\d)\1+$/.test(cnpj)) return false;
+
+        let tamanho = cnpj.length - 2;
+        let numeros = cnpj.substring(0, tamanho);
+        let digitos = cnpj.substring(tamanho);
+        let soma = 0;
+        let pos = tamanho - 7;
+
+        for (let i = tamanho; i >= 1; i--) {
+            soma += numeros.charAt(tamanho - i) * pos--;
+            if (pos < 2) pos = 9;
+        }
+
+        let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+        if (resultado !== parseInt(digitos.charAt(0))) return false;
+
+        tamanho += 1;
+        numeros = cnpj.substring(0, tamanho);
+        soma = 0;
+        pos = tamanho - 7;
+
+        for (let i = tamanho; i >= 1; i--) {
+            soma += numeros.charAt(tamanho - i) * pos--;
+            if (pos < 2) pos = 9;
+        }
+
+        resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+        if (resultado !== parseInt(digitos.charAt(1))) return false;
+
+        return true;
+    }
+
+    function enviarPedido() {
+        let cnpj = document.getElementById("cnpj_empresa").value;
+
+        if (!validarCNPJ(cnpj)) {
+            document.getElementById("mensagem").innerText = "CNPJ inválido!";
+            document.getElementById("mensagem").style.color = "red";
+            return;
+        }
+
+        const pedido = {
+            nome_empresa: document.getElementById("nome_empresa").value,
+            cnpj_empresa: cnpj,
+            endereco_empresa: document.getElementById("endereco_empresa").value,
+            motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+            data_inicio_servico: document.getElementById("data_inicio_servico").value,
+            data_termino_servico: document.getElementById("data_termino_servico").value,
+            horario_servicos: document.getElementById("horario_servicos").value,
+            num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
+            observacoes: "Nenhuma",
+            embarcacoes: [],
+            equipamentos: [],
+            pessoas: []
+        };
+
+        fetch('/api/pedidos-autorizacao', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(pedido)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
+            document.getElementById("mensagem").style.color = "green";
+        })
+        .catch(error => {
+            document.getElementById("mensagem").innerText = "Erro ao criar o pedido.";
+            document.getElementById("mensagem").style.color = "red";
+            console.error("Erro:", error);
+        });
+    }
+</script>
+
 </body>
 </html>

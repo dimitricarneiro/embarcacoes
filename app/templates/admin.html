@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px;
+                     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #333; }
+        .stats { display: flex; justify-content: space-around; margin-top: 20px; }
+        .card { background: #007bff; color: white; padding: 15px; border-radius: 8px; text-align: center; width: 45%; }
+        .card h2 { margin: 0; }
+        .logout { text-align: center; margin-top: 20px; }
+        .logout a { text-decoration: none; background-color: red; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold; }
+
+    .export-buttons {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .btn-export {
+        text-decoration: none;
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin: 5px;
+    }
+    .btn-export:hover {
+        background-color: #0056b3;
+    }
+    </style>
+</head>
+<body>
+
+<div class="export-buttons">
+    <a href="{{ url_for('pedidos.exportar_csv') }}" class="btn-export">📄 Exportar CSV</a>
+    <a href="{{ url_for('pedidos.exportar_pdf') }}" class="btn-export">📄 Exportar PDF</a>
+</div>
+
+    <div class="container">
+        <h1>Painel Administrativo</h1>
+        <p>Bem-vindo, {{ current_user.username }}</p>
+
+        <div class="stats">
+            <div class="card">
+                <h2>{{ total_pedidos }}</h2>
+                <p>Total de Pedidos</p>
+            </div>
+            <div class="card">
+                <h2>{{ total_usuarios }}</h2>
+                <p>Total de Usuários</p>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="card" style="background: green;">
+                <h2>{{ pedidos_aprovados }}</h2>
+                <p>Pedidos Aprovados</p>
+            </div>
+            <div class="card" style="background: red;">
+                <h2>{{ pedidos_rejeitados }}</h2>
+                <p>Pedidos Rejeitados</p>
+            </div>
+        </div>
+
+<div class="stats">
+    <h2>Pedidos por dia</h2>
+    <canvas id="graficoLinha"></canvas>
+</div>
+
+<div class="container">
+    <h1>Painel Administrativo</h1>
+    <p>Bem-vindo, {{ current_user.username }}</p>
+
+    <div class="stats">
+        <canvas id="graficoPizza"></canvas>
+    </div>
+
+    <div class="stats">
+        <canvas id="graficoBarras"></canvas>
+    </div>
+
+    <div class="logout">
+        <a href="{{ url_for('auth.logout') }}">🚪 Sair</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Dados vindos do Flask (passados pelo render_template)
+    let pedidosAprovados = {{ pedidos_aprovados }};
+    let pedidosRejeitados = {{ pedidos_rejeitados }};
+    let pedidosPendentes = {{ pedidos_pendentes }};
+    let totalPedidos = {{ total_pedidos }};
+    let totalUsuarios = {{ total_usuarios }};
+
+    // Gráfico de Pizza - Distribuição dos Pedidos
+    const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
+    new Chart(ctxPizza, {
+        type: 'pie',
+        data: {
+            labels: ['Aprovados', 'Rejeitados', 'Pendentes'],
+            datasets: [{
+                data: [pedidosAprovados, pedidosRejeitados, pedidosPendentes],
+                backgroundColor: ['green', 'red', 'orange']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+
+    // Gráfico de Barras - Usuários x Pedidos
+    const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+    new Chart(ctxBarras, {
+        type: 'bar',
+        data: {
+            labels: ['Total de Pedidos', 'Total de Usuários'],
+            datasets: [{
+                label: 'Quantidade',
+                data: [totalPedidos, totalUsuarios],
+                backgroundColor: ['blue', 'purple']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    let datas = {{ datas|tojson }};
+    let pedidosQuantidade = {{ pedidos_quantidade|tojson }};
+
+    // Gráfico de Linha - Pedidos por Dia
+    const ctxLinha = document.getElementById('graficoLinha').getContext('2d');
+    new Chart(ctxLinha, {
+        type: 'line',
+        data: {
+            labels: datas,
+            datasets: [{
+                label: 'Pedidos por Dia',
+                data: pedidosQuantidade,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
