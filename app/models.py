@@ -33,3 +33,19 @@ class PedidoAutorizacao(db.Model):
 
     def __repr__(self):
         return f"<PedidoAutorizacao {self.id} - {self.empresa_responsavel} - {self.status}>"
+
+from datetime import datetime
+
+class Notificacao(db.Model):
+    __tablename__ = "notificacoes"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)  # 🔹 Relacionamento com usuários
+    mensagem = db.Column(db.String(255), nullable=False)  # 🔹 Texto da notificação
+    lida = db.Column(db.Boolean, default=False)  # 🔹 Se a notificação foi lida
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)  # 🔹 Data de criação
+
+    usuario = db.relationship("Usuario", backref=db.backref("notificacoes", lazy=True))  # 🔹 Relacionamento com usuários
+
+    def __repr__(self):
+        return f"<Notificacao {self.id} - Usuário: {self.usuario_id} - {self.mensagem}>"

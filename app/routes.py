@@ -1,22 +1,31 @@
-from flask import Blueprint, request, jsonify, render_template, Response
-from datetime import datetime
-from app import db
-from app.models import PedidoAutorizacao
+# 🔹 Importações do Flask
+from flask import Blueprint, request, jsonify, render_template, Response, send_file
+from app import limiter
+
+# 🔹 Flask-Login (Autenticação)
 from flask_login import login_required, current_user
-from app.models import PedidoAutorizacao, Usuario
-from sqlalchemy.sql import func
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from flask import send_file
+
+# 🔹 Banco de Dados e Modelos
+from app import db
+from app.models import PedidoAutorizacao, Usuario, Notificacao  # ✅ Agora inclui Notificacao
+
+# 🔹 Utilitários
+from datetime import datetime
 import csv
+import re
+
+# 🔹 SQLAlchemy
+from sqlalchemy.sql import func
+
+# 🔹 Bibliotecas para Gerar Relatórios PDF
+from io import BytesIO
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.platypus import Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-import re
+from reportlab.pdfgen import canvas
+
 
 def validar_cnpj(cnpj):
     """ Valida se o CNPJ informado é válido """
@@ -39,6 +48,12 @@ def validar_cnpj(cnpj):
         return False
 
     return True
+
+def criar_notificacao(usuario_id, mensagem):
+    """ Cria uma notificação para um usuário específico """
+    nova_notificacao = Notificacao(usuario_id=usuario_id, mensagem=mensagem)
+    db.session.add(nova_notificacao)
+    db.session.commit()
 
 
 pedidos_bp = Blueprint('pedidos', __name__)
@@ -94,6 +109,12 @@ def gerenciar_pedidos():
 
         db.session.add(novo_pedido)
         db.session.commit()
+        
+        # ✅ Criar notificação para os administradores sobre o novo pedido
+        administradores = Usuario.query.filter_by(role="RFB").all()
+        for admin in administradores:
+            criar_notificacao(admin.id, f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação.")
+
 
         return jsonify({
             "message": "Pedido de autorização criado com sucesso!",
@@ -403,3 +424,30 @@ def exportar_pdf():
     buffer.seek(0)
 
     return send_file(buffer, as_attachment=True, download_name="relatorio_pedidos.pdf", mimetype="application/pdf")
+
+@pedidos_bp.route("/api/notificacoes", methods=["GET"])
+@limiter.limit("30 per minute")  # Permite 30 requisições por minuto só para essa rota
+@login_required
+def listar_notificacoes():
+    """ Retorna notificações não lidas do usuário autenticado """
+    notificacoes = Notificacao.query.filter_by(usuario_id=current_user.id, lida=False).all()
+
+    return jsonify([
+        {"id": n.id, "mensagem": n.mensagem, "data": n.data_criacao.strftime("%d/%m/%Y %H:%M"), "lida": n.lida}
+        for n in notificacoes
+    ])
+
+@pedidos_bp.route('/api/notificacoes/<int:notificacao_id>/marcar-lida', methods=['PUT'])
+@login_required
+def marcar_notificacao_lida(notificacao_id):
+    """ Marca uma notificação como lida """
+    
+    notificacao = Notificacao.query.filter_by(id=notificacao_id, usuario_id=current_user.id).first()
+
+    if not notificacao:
+        return jsonify({"error": "Notificação não encontrada"}), 404
+
+    notificacao.lida = True
+    db.session.commit()
+
+    return jsonify({"message": "Notificação marcada como lida"}), 200

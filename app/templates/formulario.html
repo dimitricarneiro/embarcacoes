@@ -120,16 +120,16 @@
     <h1>Pedido de Autorização</h1>
     <form id="pedido-form">
         <label>Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" required>
+        <input type="text" id="nome_empresa" value="Empresa Teste" required>
 
         <label>CNPJ:</label>
         <input type="text" id="cnpj_empresa" value="54.265.841/0001-50" required>
 
         <label>Endereço:</label>
-        <input type="text" id="endereco_empresa" required>
+        <input type="text" id="endereco_empresa" value="Rua Teste" required>
 
         <label>Motivo:</label>
-        <input type="text" id="motivo_solicitacao" required>
+        <input type="text" id="motivo_solicitacao" value="Inspeção de casco" required>
 
         <label>Data Início:</label>
         <input type="date" id="data_inicio_servico" required>
@@ -138,10 +138,10 @@
         <input type="date" id="data_termino_servico" required>
 
         <label>Horário:</label>
-        <input type="text" id="horario_servicos" required>
+        <input type="text" id="horario_servicos" value="18:00" required>
 
         <label>Número do Certificado de Livre Prática:</label>
-        <input type="text" id="num_certificado_livre_pratica" required>
+        <input type="text" id="num_certificado_livre_pratica" value="12345" required>
 
         <button type="button" onclick="enviarPedido()">Enviar Pedido</button>
     </form>

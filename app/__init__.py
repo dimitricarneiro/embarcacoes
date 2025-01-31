@@ -15,7 +15,7 @@ login_manager.login_view = "auth.login"  # Redireciona usuários não autenticad
 # ✅ Inicializa o Flask-Limiter para controle de tentativas de login
 limiter = Limiter(
     key_func=get_remote_address,  # 🔹 Usa o IP do usuário para limitar requisições
-    default_limits=["5 per minute"]  # 🔹 Limite padrão de 5 tentativas por minuto
+    default_limits=["50 per minute"]  # 🔹 Limite padrão de 50 tentativas por minuto
 )
 
 def create_app():
