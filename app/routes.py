@@ -13,6 +13,7 @@ def home():
     return "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>", 200
 
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def gerenciar_pedidos():
     """ 
     POST: Cria um novo pedido de autorização de serviço 
@@ -121,6 +122,7 @@ def gerenciar_pedidos():
         }), 200
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def exibir_pedidos():
     """ Exibe os pedidos em uma página HTML com filtros, busca e paginação """
 
@@ -168,6 +170,7 @@ def exibir_pedidos():
     return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
 
 @pedidos_bp.route('/pedido/<int:pedido_id>', methods=['GET'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def exibir_detalhes_pedido(pedido_id):
     """ Exibe os detalhes de um pedido específico """
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
@@ -220,6 +223,7 @@ def rejeitar_pedido(pedido_id):
 
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
+@login_required  # 🔹 Agora apenas usuários logados podem acessar
 def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
     return render_template('formulario.html')

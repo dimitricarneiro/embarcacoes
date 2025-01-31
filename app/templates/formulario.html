@@ -54,10 +54,38 @@
         font-weight: bold;
         margin-top: 20px;
     }
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .btn-logout {
+        text-decoration: none;
+        background-color: red;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    .btn-logout:hover {
+        background-color: darkred;
+    }
 </style>
 
 </head>
 <body>
+
+<div class="navbar">
+    <span>Bem-vindo, {{ current_user.username }}</span>
+    <a class="btn-logout" href="{{ url_for('auth.logout') }}">🚪 Sair</a>
+</div>
+
+
 <div class="container">
     <h1>Pedido de Autorização</h1>
     <form id="pedido-form">
