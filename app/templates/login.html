@@ -49,6 +49,11 @@
             <input type="text" name="username" placeholder="Usuário" required>
             <input type="password" name="password" placeholder="Senha" required>
             <button type="submit">Entrar</button>
+			
+			<label>
+			<input type="checkbox" name="remember"> Lembrar-me
+			</label>
+			
         </form>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
