@@ -9,14 +9,16 @@ on:
       - main
   workflow_dispatch:
   workflow_call:
+
 jobs:
   testing:
     runs-on: ubuntu-latest
     strategy:
-          matrix:
-            python-version: ["3.12"]
+      matrix:
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -27,5 +29,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+
+      - name: Criar banco de dados para testes
+        run: |
+          python -c "from app import create_app, db; app = create_app(); db.create_all(app.app_context())"
+
       - name: Run Pytest
         run: python -m pytest
