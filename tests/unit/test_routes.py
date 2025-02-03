@@ -11,7 +11,7 @@ def client():
 def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert response.json == {"message": "Bem-vindo ao Controle de Embarcações!"}
+    assert response.text == "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>"
     
 def test_exibir_formulario_pedido(client):
     """Teste para verificar se o formulário de pedido é carregado corretamente"""
