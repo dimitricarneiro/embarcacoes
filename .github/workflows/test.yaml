@@ -33,7 +33,7 @@ jobs:
       - name: Criar banco de dados para testes
         run: |
           python -c "from app import create_app, db; app = create_app(); \
-          with app.app_context(): db.create_all()"
+          ctx = app.app_context(); ctx.push(); db.create_all(); ctx.pop()"
 
       - name: Run Pytest
         run: python -m pytest
