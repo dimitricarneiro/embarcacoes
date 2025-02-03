@@ -1,4 +1,11 @@
-.coverage
-.idea
+# Ignorar arquivos da pasta instance (Banco de Dados, configurações locais)
+instance/
+
+# Ignorar banco de dados SQLite, caso esteja fora da pasta instance
 database.db
-/instance
+
+# Arquivos de cobertura de testes
+.coverage
+
+# Arquivos do PyCharm ou VS Code
+.idea/
