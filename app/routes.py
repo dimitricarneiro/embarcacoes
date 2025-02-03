@@ -102,9 +102,10 @@ def gerenciar_pedidos():
             cnpj_empresa=data["cnpj_empresa"],
             endereco_empresa=data["endereco_empresa"],
             motivo_solicitacao=data["motivo_solicitacao"],
-            data_inicio=data_inicio,  # ✅ Agora como objeto `date`
-            data_termino=data_termino,  # ✅ Agora como objeto `date`
-            horario_servico=data["horario_servicos"]
+            data_inicio=data_inicio,
+            data_termino=data_termino,
+            horario_servico=data["horario_servicos"],
+            usuario_id=current_user.id
         )
 
         db.session.add(novo_pedido)
@@ -199,10 +200,13 @@ def exibir_pedidos():
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
 
-    # Base da query (mantendo a ordenação original)
-    query = PedidoAutorizacao.query.order_by(PedidoAutorizacao.data_inicio.desc())
+    # Base da query: usuários comuns veem apenas seus pedidos, RFB vê todos
+    if current_user.role == "RFB":
+        query = PedidoAutorizacao.query
+    else:
+        query = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
 
-    # Aplicando filtros se fornecidos
+    # Aplicando filtros opcionais
     if nome_empresa:
         query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
 
@@ -226,7 +230,8 @@ def exibir_pedidos():
         except ValueError:
             return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
 
-    # Mantendo a paginação original
+    # Ordenação e paginação
+    query = query.order_by(PedidoAutorizacao.data_inicio.desc())
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
