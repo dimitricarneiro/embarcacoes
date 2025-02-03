@@ -1,5 +1,5 @@
 # 🔹 Importações do Flask
-from flask import Blueprint, request, jsonify, render_template, Response, send_file
+from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for
 from app import limiter
 
 # 🔹 Flask-Login (Autenticação)
@@ -60,8 +60,11 @@ pedidos_bp = Blueprint('pedidos', __name__)
 
 @pedidos_bp.route('/')
 def home():
-    """Página inicial"""
-    return "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>", 200
+    """Redireciona usuários não logados para a página de login"""
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))  # 🔹 Redireciona para login
+    return redirect(url_for('pedidos.exibir_pedidos'))  # 🔹 Se logado, vai para /lista-pedidos
+
 
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
