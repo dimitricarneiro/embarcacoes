@@ -2,6 +2,7 @@
 .idea
 database.db
 
+<<<<<<< HEAD
 # Ambientes virtuais
 venv/
 .venv/
@@ -14,3 +15,13 @@ __pycache__/
 # Configurações locais
 .env
 instance/
+=======
+# Configurações locais
+.env
+instance/
+
+# Arquivos compilados do Python
+*.pyc
+*.pyo
+__pycache__/
+>>>>>>> 7d1af1a (Atualiza .gitignore)
