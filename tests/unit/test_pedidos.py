@@ -86,7 +86,7 @@ def test_criar_pedido_autorizacao_sem_login(client):
     
     # JSON atualizado para o novo formato do pedido
     novo_pedido = {
-        "nome_empresa": "Cadastro criado pelo test unit",
+        "nome_empresa": "Empresa XYZ",
         "cnpj_empresa": "75.371.927/0001-37",
         "endereco_empresa": "Rua Exemplo, 123",
         "motivo_solicitacao": "Manutenção no motor",
