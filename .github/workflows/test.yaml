@@ -36,23 +36,7 @@ jobs:
           ctx = app.app_context(); ctx.push(); db.create_all(); ctx.pop()"
 
       - name: Criar usuários de teste
-        run: |
-          python -c "from app import create_app, db; app = create_app(); \
-          from app.models import Usuario; \
-          ctx = app.app_context(); ctx.push(); \
-          if not Usuario.query.filter_by(username='admin').first(): \
-              admin = Usuario(username='admin', role='RFB'); \
-              admin.set_password('123456'); \
-              db.session.add(admin); \
-          if not Usuario.query.filter_by(username='usuario').first(): \
-              user1 = Usuario(username='usuario', role='comum'); \
-              user1.set_password('123456'); \
-              db.session.add(user1); \
-          if not Usuario.query.filter_by(username='usuario2').first(): \
-              user2 = Usuario(username='usuario2', role='comum'); \
-              user2.set_password('123456'); \
-              db.session.add(user2); \
-          db.session.commit(); ctx.pop();"
+        run: python criar_usuarios.py
 
       - name: Run Pytest
         run: python -m pytest
