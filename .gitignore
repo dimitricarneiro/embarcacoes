@@ -1,3 +1,44 @@
+<<<<<<< HEAD
 .coverage
 .idea
 database.db
+=======
+# Ambientes virtuais
+venv/
+.venv/
+
+# Arquivos compilados do Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Configurações locais
+.env
+instance/
+
+# Banco de dados SQLite
+*.sqlite3
+
+# Logs e arquivos temporários
+*.log
+logs/
+debug.log
+
+# Cache do Python e de ferramentas
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Arquivos de Build
+dist/
+build/
+
+# Arquivos de IDEs e editores
+.vscode/
+.idea/
+*.swp
+
+# Dependências geradas pelo pip
+pip-wheel-metadata/
+>>>>>>> 46bcc1b (Adiciona .gitignore padrão)
