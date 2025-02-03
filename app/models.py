@@ -32,7 +32,7 @@ class PedidoAutorizacao(db.Model):
     status = db.Column(db.String(20), default="pendente", nullable=False)
 
     # Novo campo para armazenar o usuário que criou o pedido
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
 
     # Relacionamento com o usuário
     usuario = db.relationship("Usuario", backref="pedidos")
@@ -43,7 +43,7 @@ class Notificacao(db.Model):
     __tablename__ = "notificacoes"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)  # 🔹 Relacionamento com usuários
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)  # 🔹 Relacionamento com usuários
     mensagem = db.Column(db.String(255), nullable=False)  # 🔹 Texto da notificação
     lida = db.Column(db.Boolean, default=False)  # 🔹 Se a notificação foi lida
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)  # 🔹 Data de criação
