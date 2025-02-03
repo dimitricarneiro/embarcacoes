@@ -6,6 +6,7 @@ from flask_limiter import Limiter  # ✅ Importando Flask-Limiter
 from flask_limiter.util import get_remote_address
 from flask import Flask, session
 from datetime import timedelta
+import os
 
 db = SQLAlchemy()
 
@@ -19,13 +20,13 @@ limiter = Limiter(
 )
 
 def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'chave-super-secreta'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-    
+    app = Flask(__name__, instance_relative_config=True)  # 🔹 Habilita a pasta /instance
+    app.config['SECRET_KEY'] = 'chave-super-secreta'  # ✅ Define a chave secreta corretamente
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'  # 🔹 Caminho para /instance/
+
     # ✅ Tempo de expiração da sessão
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
-    
+
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)  # ✅ Agora o Flask-Limiter está ativado no app
@@ -36,6 +37,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
     return app
+
 
 from app.models import Usuario
 

@@ -29,10 +29,13 @@ class PedidoAutorizacao(db.Model):
     data_inicio = db.Column(db.Date, nullable=False)
     data_termino = db.Column(db.Date, nullable=False)
     horario_servico = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), default="pendente", nullable=False)  # 🔹 Novo campo de status
+    status = db.Column(db.String(20), default="pendente", nullable=False)
 
-    def __repr__(self):
-        return f"<PedidoAutorizacao {self.id} - {self.empresa_responsavel} - {self.status}>"
+    # Novo campo para armazenar o usuário que criou o pedido
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+
+    # Relacionamento com o usuário
+    usuario = db.relationship("Usuario", backref="pedidos")
 
 from datetime import datetime
 
