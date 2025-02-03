@@ -11,8 +11,9 @@ def client():
 
 def test_home_route(client):
     response = client.get('/')
-    assert response.status_code == 200
-    assert response.text == "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>"
+    assert response.status_code == 302
+    assert "Location" in response.headers  # 🔹 Confirma que há um cabeçalho de redirecionamento
+    assert response.headers["Location"].startswith("/auth/login")
 
 def test_acesso_sem_login_formulario_pedido(client):
     """Teste para verificar que usuários não autenticados são redirecionados (302) ao tentar acessar /formulario-pedido"""
@@ -34,7 +35,7 @@ def test_acesso_com_login_formulario_pedido(client):
     assert response.status_code == 200  # Verifica se a página carregou corretamente
     html_content = response.data.decode("utf-8")  # Converte bytes para string
     
-    assert "<title>Pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
+    assert "<title>Cadastrar pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
     assert "<form" in html_content  # Verifica se há um formulário na resposta HTML
     assert "Enviar Pedido" in html_content  # Verifica se o botão está presente
 

@@ -1,3 +1,4 @@
+[![Run tests](https://github.com/dimitricarneiro/embarcacoes/actions/workflows/test.yaml/badge.svg)](https://github.com/dimitricarneiro/embarcacoes/actions/workflows/test.yaml)
 # Controle de Embarcações
 
 Este projeto tem como objetivo gerenciar e controlar embarcações que prestam serviços no porto

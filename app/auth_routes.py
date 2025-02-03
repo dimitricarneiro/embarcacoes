@@ -8,7 +8,7 @@ from flask import jsonify, session
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute; 10 per hour")  # 🔹 5 tentativas por minuto, 10 por hora
+@limiter.limit("10 per minute; 30 per hour")  # 🔹 10 tentativas por minuto, 30 por hora
 def login():
     """ Página de login """
     if request.method == "POST":
