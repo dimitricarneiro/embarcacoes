@@ -1,5 +1,6 @@
 import pytest
 from app import create_app
+from tests.unit.test_pedidos import login  # 🔹 Importa a função login corretamente
 
 @pytest.fixture
 def client():
@@ -15,7 +16,10 @@ def test_home_route(client):
     
 def test_exibir_formulario_pedido(client):
     """Teste para verificar se o formulário de pedido é carregado corretamente"""
-    
+
+    # 🔹 Primeiro, faz login
+    login(client)
+
     response = client.get("/formulario-pedido")  # Faz uma requisição GET para a rota
     
     assert response.status_code == 200  # Verifica se a página carregou corretamente

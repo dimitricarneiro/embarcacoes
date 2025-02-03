@@ -9,13 +9,35 @@ def client():
     with app.test_client() as client:
         yield client
 
+def login(client):
+    """Função auxiliar para autenticar o usuário de teste"""
+    credenciais = {
+        "username": "usuario",
+        "password": "123456"
+    }
+    response = client.post("/auth/login", data=credenciais, follow_redirects=True)
+
+    print("Headers da resposta de login:", response.headers)  # 🔹 Para depuração
+
+    # 🔹 Mantém a sessão do usuário ativa no cliente de testes
+    with client.session_transaction() as sess:
+        sess.permanent = True  # Força a sessão a ser mantida
+        print("Sessão ativa após login:", sess)  # 🔹 Verifica se a sessão está carregada corretamente
+    
+    assert response.status_code == 200  # Confirma que o login foi bem-sucedido
+    return response
+
+
 def test_criar_pedido_autorizacao(client):
     """Teste para criar um novo pedido de autorização de serviço"""
+    
+    # 🔹 Primeiro, faz login
+    login(client)
     
     # JSON atualizado para o novo formato do pedido
     novo_pedido = {
         "nome_empresa": "Empresa XYZ",
-        "cnpj_empresa": "00.000.000/0000-00",
+        "cnpj_empresa": "75.371.927/0001-37",
         "endereco_empresa": "Rua Exemplo, 123",
         "motivo_solicitacao": "Manutenção no motor",
         "data_inicio_servico": "2025-02-01",
@@ -51,9 +73,12 @@ def test_criar_pedido_autorizacao(client):
         ]
     }
     
+    # 🔹 Agora, faz a requisição para criar o pedido
     response = client.post("/api/pedidos-autorizacao", json=novo_pedido)
     
-    assert response.status_code == 201  # Código HTTP de sucesso para criação
+    # Verificações
+    assert response.status_code == 201  # Código HTTP correto
     assert "id_autorizacao" in response.json  # Verifica se o ID foi retornado
     assert response.json["message"] == "Pedido de autorização criado com sucesso!"
+
 

@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 # 🔹 Banco de Dados e Modelos
 from app import db
-from app.models import PedidoAutorizacao, Usuario, Notificacao  # ✅ Agora inclui Notificacao
+from app.models import PedidoAutorizacao, Usuario, Notificacao
 
 # 🔹 Utilitários
 from datetime import datetime
@@ -64,7 +64,7 @@ def home():
     return "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>", 200
 
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required
 def gerenciar_pedidos():
     """ 
     POST: Cria um novo pedido de autorização de serviço 
@@ -184,7 +184,7 @@ def gerenciar_pedidos():
         }), 200
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required
 def exibir_pedidos():
     """ Exibe os pedidos em uma página HTML com filtros, busca e paginação """
 
@@ -232,7 +232,7 @@ def exibir_pedidos():
     return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
 
 @pedidos_bp.route('/pedido/<int:pedido_id>', methods=['GET'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required 
 def exibir_detalhes_pedido(pedido_id):
     """ Exibe os detalhes de um pedido específico """
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
@@ -240,7 +240,7 @@ def exibir_detalhes_pedido(pedido_id):
     return render_template('detalhes-pedido.html', pedido=pedido)
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required
 def aprovar_pedido(pedido_id):
     """ Aprova um pedido de autorização """
 
