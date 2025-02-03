@@ -1,6 +1,6 @@
 import pytest
 from app import create_app
-from tests.unit.test_pedidos import login  # 🔹 Importa a função login corretamente
+from tests.unit.test_pedidos import login  # 🔹 Importa a função login
 
 @pytest.fixture
 def client():
@@ -13,8 +13,17 @@ def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 200
     assert response.text == "<h1>Bem-vindo ao sistema de pedidos de autorização</h1>"
+
+def test_acesso_sem_login_formulario_pedido(client):
+    """Teste para verificar que usuários não autenticados são redirecionados (302) ao tentar acessar /formulario-pedido"""
+
+    response = client.get("/formulario-pedido", follow_redirects=False)
     
-def test_exibir_formulario_pedido(client):
+    assert response.status_code == 302  # 🔹 Confirma que há um redirecionamento
+    assert "Location" in response.headers  # 🔹 Confirma que há um cabeçalho de redirecionamento
+    assert response.headers["Location"].startswith("/auth/login")
+  
+def test_acesso_com_login_formulario_pedido(client):
     """Teste para verificar se o formulário de pedido é carregado corretamente"""
 
     # 🔹 Primeiro, faz login
