@@ -1,284 +1,263 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar pedido de Autorização</title>
-
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar Pedido de Autorização</title>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 20px;
     }
     .container {
-        max-width: 600px;
-        margin: auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     }
-    h1 {
-        text-align: center;
-        color: #333;
-    }
-    label {
-        font-weight: bold;
-        display: block;
-        margin-top: 10px;
-    }
+    h1 { text-align: center; color: #333; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
     input, select, textarea {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
     }
     button {
-        width: 100%;
-        padding: 10px;
-        margin-top: 20px;
-        border: none;
-        background-color: #007bff;
-        color: white;
-        font-size: 16px;
-        border-radius: 5px;
-        cursor: pointer;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    button:hover {
-        background-color: #0056b3;
-    }
+    button:hover { background-color: #0056b3; }
     #mensagem {
-        text-align: center;
-        font-weight: bold;
-        margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+      margin-top: 20px;
     }
     .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
     }
     .btn-logout {
-        text-decoration: none;
-        background-color: red;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-weight: bold;
+      text-decoration: none;
+      background-color: red;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-weight: bold;
     }
-    .btn-logout:hover {
-        background-color: darkred;
-    }
+    .btn-logout:hover { background-color: darkred; }
     /* Estilização do Modal */
     .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
     }
     .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
     }
-    button {
-        margin: 10px;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover {
-        opacity: 0.8;
-    }
-</style>
-
+    button { margin: 10px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { opacity: 0.8; }
+  </style>
 </head>
 <body>
 
 <div class="navbar">
-    <span>Bem-vindo, {{ current_user.username }}</span>
-    <a class="btn-logout" href="{{ url_for('auth.logout') }}">🚪 Sair</a>
+  <span>Bem-vindo, {{ current_user.username }} / {{ current_user.nome_empresa }} / {{ current_user.cnpj }}</span>
+  <a class="btn-logout" href="{{ url_for('auth.logout') }}">🚪 Sair</a>
 </div>
 
-
 <div class="container">
-    <h1>Cadastrar Pedido de Autorização</h1>
-    <form id="pedido-form">
-        <label>Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" value="Empresa Teste" required>
+  <h1>Cadastrar Pedido de Autorização</h1>
+  <form id="pedido-form">
+    <!-- Campos do pedido principal -->
+	
+	<label>Nome da Empresa:</label>
+	<input type="text" id="nome_empresa" value="{{ current_user.nome_empresa }}" required>
 
-        <label>CNPJ:</label>
-        <input type="text" id="cnpj_empresa" value="54.265.841/0001-50" required>
+	<label>CNPJ:</label>
+	<input type="text" id="cnpj_empresa" value="{{ current_user.cnpj }}" required>
 
-        <label>Endereço:</label>
-        <input type="text" id="endereco_empresa" value="Rua Teste" required>
+    <label>Endereço:</label>
+    <input type="text" id="endereco_empresa" value="Rua Teste" required>
 
-        <label>Motivo:</label>
-        <input type="text" id="motivo_solicitacao" value="Inspeção de casco" required>
+    <label>Motivo:</label>
+    <input type="text" id="motivo_solicitacao" value="Inspeção de casco" required>
 
-        <label>Data Início:</label>
-        <input type="date" id="data_inicio_servico" required>
+    <label>Data Início:</label>
+    <input type="date" id="data_inicio_servico" required>
 
-        <label>Data Término:</label>
-        <input type="date" id="data_termino_servico" required>
+    <label>Data Término:</label>
+    <input type="date" id="data_termino_servico" required>
 
-        <label>Horário:</label>
-        <input type="text" id="horario_servicos" value="18:00" required>
+    <label>Horário:</label>
+    <input type="text" id="horario_servicos" value="18:00" required>
 
-        <label>Número do Certificado de Livre Prática:</label>
-        <input type="text" id="num_certificado_livre_pratica" value="12345" required>
+    <label>Número do Certificado de Livre Prática:</label>
+    <input type="text" id="num_certificado_livre_pratica" value="12345" required>
 
-        <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
-    </form>
+    <!-- Novas seções para os relacionamentos muitos-para-muitos -->
+    <label>Embarcações (separadas por vírgula):</label>
+    <input type="text" id="embarcacoes" placeholder="Ex: Embarcação A, Embarcação B">
 
-    <p id="mensagem"></p>
+    <label>Veículos (para cada veículo, informe modelo e placa separados por hífen; múltiplos veículos separados por vírgula):</label>
+    <input type="text" id="veiculos" placeholder="Ex: ModeloX-ABC1234, ModeloY-XYZ5678">
+
+    <label>Pessoas (para cada pessoa, informe nome e CPF separados por hífen; múltiplas pessoas separadas por vírgula):</label>
+    <input type="text" id="pessoas" placeholder="Ex: João-123.456.789-00, Maria-987.654.321-00">
+
+    <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
+  </form>
+
+  <p id="mensagem"></p>
 </div>
 
 <!-- Modal de Expiração de Sessão -->
 <div id="session-modal" class="modal">
-    <div class="modal-content">
-        <h2>Aviso de Sessão</h2>
-        <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
-        <button onclick="continuarSessao()">Continuar Logado</button>
-        <button onclick="sairSessao()">Sair</button>
-    </div>
+  <div class="modal-content">
+    <h2>Aviso de Sessão</h2>
+    <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
+    <button onclick="continuarSessao()">Continuar Logado</button>
+    <button onclick="sairSessao()">Sair</button>
+  </div>
 </div>
 
 <script>
-    let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
-    let avisoExpiracao = 28 * 60 * 1000; // Exibir modal 2 minutos antes da expiração
+  // Monitoramento de sessão (código inalterado)
+  let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
+  let avisoExpiracao = 28 * 60 * 1000; // Exibir modal 2 minutos antes da expiração
+  let modal = document.getElementById("session-modal");
+  let sessionTimeout;
 
-    let modal = document.getElementById("session-modal");
-    let sessionTimeout;
+  function iniciarMonitoramentoSessao() {
+    setTimeout(() => { modal.style.display = "flex"; }, avisoExpiracao);
+    sessionTimeout = setTimeout(() => { window.location.href = "/auth/logout"; }, tempoExpiracao);
+  }
 
-    function iniciarMonitoramentoSessao() {
-        // Exibe o modal de aviso 2 minutos antes da expiração
-        setTimeout(() => {
-            modal.style.display = "flex";
-        }, avisoExpiracao);
+  function continuarSessao() {
+    modal.style.display = "none";
+    clearTimeout(sessionTimeout);
+    fetch("/auth/renovar-sessao", { method: "GET" })
+      .then(response => console.log("Sessão renovada"))
+      .catch(error => console.error("Erro ao renovar sessão", error));
+    iniciarMonitoramentoSessao();
+  }
 
-        // Expira a sessão após 30 minutos se o usuário não interagir
-        sessionTimeout = setTimeout(() => {
-            window.location.href = "/auth/logout";
-        }, tempoExpiracao);
+  function sairSessao() { window.location.href = "/auth/logout"; }
+  document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
+
+  // Função de validação de CNPJ (inalterada)
+  function validarCNPJ(cnpj) {
+    cnpj = cnpj.replace(/[^\d]+/g, "");
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1+$/.test(cnpj)) return false;
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0))) return false;
+    tamanho += 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1))) return false;
+    return true;
+  }
+
+  // Função para enviar o pedido
+  function enviarPedido() {
+    let cnpj = document.getElementById("cnpj_empresa").value;
+    if (!validarCNPJ(cnpj)) {
+      document.getElementById("mensagem").innerText = "CNPJ inválido!";
+      document.getElementById("mensagem").style.color = "red";
+      return;
     }
 
-    function continuarSessao() {
-        modal.style.display = "none"; // Oculta o modal
-        clearTimeout(sessionTimeout); // Cancela o logout automático
+    // Coletando os dados dos novos campos, convertendo strings em arrays
+    const embarcacoes = document.getElementById("embarcacoes").value
+      .split(",").map(item => item.trim()).filter(item => item !== "");
+    const veiculos = document.getElementById("veiculos").value
+      .split(",").map(item => item.trim()).filter(item => item !== "");
+    const pessoas = document.getElementById("pessoas").value
+      .split(",").map(item => item.trim()).filter(item => item !== "");
 
-        // Simula uma requisição ao servidor para renovar a sessão
-        fetch("/auth/renovar-sessao", { method: "GET" })
-            .then(response => console.log("Sessão renovada"))
-            .catch(error => console.error("Erro ao renovar sessão", error));
+    const pedido = {
+      nome_empresa: document.getElementById("nome_empresa").value,
+      cnpj_empresa: cnpj,
+      endereco_empresa: document.getElementById("endereco_empresa").value,
+      motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+      data_inicio_servico: document.getElementById("data_inicio_servico").value,
+      data_termino_servico: document.getElementById("data_termino_servico").value,
+      horario_servicos: document.getElementById("horario_servicos").value,
+      num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
+      observacoes: "Nenhuma",
+      // Enviando os arrays para o backend
+      embarcacoes: embarcacoes,
+      veiculos: veiculos,
+      pessoas: pessoas
+    };
 
-        iniciarMonitoramentoSessao(); // Reinicia o monitoramento
-    }
-
-    function sairSessao() {
-        window.location.href = "/auth/logout"; // Redireciona para logout
-    }
-
-    // Inicia o monitoramento quando a página carregar
-    document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
-</script>
-
-<script>
-    function validarCNPJ(cnpj) {
-        cnpj = cnpj.replace(/[^\d]+/g, ""); // Remove caracteres não numéricos
-
-        if (cnpj.length !== 14) return false;
-
-        // Elimina CNPJs com todos os números iguais (ex: 00000000000000)
-        if (/^(\d)\1+$/.test(cnpj)) return false;
-
-        let tamanho = cnpj.length - 2;
-        let numeros = cnpj.substring(0, tamanho);
-        let digitos = cnpj.substring(tamanho);
-        let soma = 0;
-        let pos = tamanho - 7;
-
-        for (let i = tamanho; i >= 1; i--) {
-            soma += numeros.charAt(tamanho - i) * pos--;
-            if (pos < 2) pos = 9;
-        }
-
-        let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-        if (resultado !== parseInt(digitos.charAt(0))) return false;
-
-        tamanho += 1;
-        numeros = cnpj.substring(0, tamanho);
-        soma = 0;
-        pos = tamanho - 7;
-
-        for (let i = tamanho; i >= 1; i--) {
-            soma += numeros.charAt(tamanho - i) * pos--;
-            if (pos < 2) pos = 9;
-        }
-
-        resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-        if (resultado !== parseInt(digitos.charAt(1))) return false;
-
-        return true;
-    }
-
-    function enviarPedido() {
-        let cnpj = document.getElementById("cnpj_empresa").value;
-
-        if (!validarCNPJ(cnpj)) {
-            document.getElementById("mensagem").innerText = "CNPJ inválido!";
-            document.getElementById("mensagem").style.color = "red";
-            return;
-        }
-
-        const pedido = {
-            nome_empresa: document.getElementById("nome_empresa").value,
-            cnpj_empresa: cnpj,
-            endereco_empresa: document.getElementById("endereco_empresa").value,
-            motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-            data_inicio_servico: document.getElementById("data_inicio_servico").value,
-            data_termino_servico: document.getElementById("data_termino_servico").value,
-            horario_servicos: document.getElementById("horario_servicos").value,
-            num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
-            observacoes: "Nenhuma",
-            embarcacoes: [],
-            equipamentos: [],
-            pessoas: []
-        };
-
-        fetch('/api/pedidos-autorizacao', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(pedido)
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
-            document.getElementById("mensagem").style.color = "green";
-        })
-        .catch(error => {
-            document.getElementById("mensagem").innerText = "Erro ao criar o pedido.";
-            document.getElementById("mensagem").style.color = "red";
-            console.error("Erro:", error);
+    fetch('/api/pedidos-autorizacao', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedido)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Erro ao criar pedido.');
         });
-    }
+      }
+      return response.json();
+    })
+    .then(data => {
+      document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
+      document.getElementById("mensagem").style.color = "green";
+    })
+    .catch(error => {
+      document.getElementById("mensagem").innerText = error.message;
+      document.getElementById("mensagem").style.color = "red";
+      console.error("Erro:", error);
+    });
+  }
 </script>
 
 </body>

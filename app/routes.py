@@ -66,126 +66,161 @@ def home():
     return redirect(url_for('pedidos.exibir_pedidos'))  # 🔹 Se logado, vai para /lista-pedidos
 
 
+from flask import Blueprint, request, jsonify
+from flask_login import login_required, current_user
+from datetime import datetime
+import logging
+
+# Supondo que os modelos e funções auxiliares já estejam importados:
+# from models import PedidoAutorizacao, Usuario, db
+# from utils import validar_cnpj, criar_notificacao
+
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
 def gerenciar_pedidos():
-    """ 
-    POST: Cria um novo pedido de autorização de serviço 
-    GET: Retorna todos os pedidos cadastrados com suporte a filtros e paginação
+    """
+    POST: Cria um novo pedido de autorização de serviço.
+    GET: Retorna todos os pedidos cadastrados com suporte a filtros, paginação e ordenação.
     """
 
     if request.method == 'POST':
-        data = request.get_json()
-        
-        # ✅ Validação do CNPJ antes de continuar
-        cnpj = data.get("cnpj_empresa", "")
-        if not validar_cnpj(cnpj):
-            return jsonify({"error": "CNPJ inválido!"}), 400
-
-        # Verificação de campos obrigatórios
-        required_fields = [
-            "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
-            "data_inicio_servico", "data_termino_servico", "horario_servicos",
-            "num_certificado_livre_pratica", "embarcacoes", "equipamentos", "pessoas"
-        ]
-        for field in required_fields:
-            if field not in data:
-                return jsonify({"error": f"Campo obrigatório '{field}' está faltando"}), 400
-
         try:
-            # ✅ Convertendo strings para objetos `date`
-            data_inicio = datetime.strptime(data["data_inicio_servico"], "%Y-%m-%d").date()
-            data_termino = datetime.strptime(data["data_termino_servico"], "%Y-%m-%d").date()
-        except ValueError:
-            return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'"}), 400
+            # Obter dados em formato JSON
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "Dados JSON não enviados ou inválidos."}), 400
 
-        # Criar um novo pedido e salvar no banco de dados SQLite
-        novo_pedido = PedidoAutorizacao(
-            empresa_responsavel=data["nome_empresa"],
-            cnpj_empresa=data["cnpj_empresa"],
-            endereco_empresa=data["endereco_empresa"],
-            motivo_solicitacao=data["motivo_solicitacao"],
-            data_inicio=data_inicio,
-            data_termino=data_termino,
-            horario_servico=data["horario_servicos"],
-            usuario_id=current_user.id
-        )
+            # Validação do CNPJ
+            cnpj = data.get("cnpj_empresa", "")
+            if not validar_cnpj(cnpj):
+                return jsonify({"error": "CNPJ inválido!"}), 400
 
-        db.session.add(novo_pedido)
-        db.session.commit()
-        
-        # ✅ Criar notificação para os administradores sobre o novo pedido
-        administradores = Usuario.query.filter_by(role="RFB").all()
-        for admin in administradores:
-            criar_notificacao(admin.id, f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação.")
+            # Verificação de campos obrigatórios: verificar se as chaves existem e se os valores não estão vazios
+            required_fields = [
+                "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
+                "data_inicio_servico", "data_termino_servico", "horario_servicos",
+                "num_certificado_livre_pratica", "embarcacoes", "pessoas"
+            ]
 
+            campos_invalidos = [field for field in required_fields if not data.get(field)]
+            if campos_invalidos:
+                return jsonify({
+                    "error": f"Campos obrigatórios faltantes ou vazios: {', '.join(campos_invalidos)}"
+                }), 400
 
-        return jsonify({
-            "message": "Pedido de autorização criado com sucesso!",
-            "id_autorizacao": novo_pedido.id  # Retorna o ID do banco
-        }), 201
+            # Conversão das datas para objetos datetime.date
+            try:
+                data_inicio = datetime.strptime(data["data_inicio_servico"], "%Y-%m-%d").date()
+                data_termino = datetime.strptime(data["data_termino_servico"], "%Y-%m-%d").date()
+            except ValueError:
+                return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'."}), 400
+
+            # Obter a data de hoje
+            hoje = datetime.today().date()
+
+            # Verificar se a data de início é maior ou igual à data de hoje
+            if data_inicio < hoje:
+                return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
+
+            # Verificar se a data de término é maior ou igual à data de início
+            if data_termino < data_inicio:
+                return jsonify({"error": "A data de término deve ser maior ou igual à data de início."}), 400
+
+            # Criação do novo pedido de autorização
+            novo_pedido = PedidoAutorizacao(
+                empresa_responsavel=data["nome_empresa"],
+                cnpj_empresa=data["cnpj_empresa"],
+                endereco_empresa=data["endereco_empresa"],
+                motivo_solicitacao=data["motivo_solicitacao"],
+                data_inicio=data_inicio,
+                data_termino=data_termino,
+                horario_servico=data["horario_servicos"],
+                usuario_id=current_user.id
+            )
+
+            db.session.add(novo_pedido)
+            db.session.commit()
+
+            # Notificação aos administradores (exemplo: perfil 'RFB')
+            administradores = Usuario.query.filter_by(role="RFB").all()
+            mensagem = f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação."
+            for admin in administradores:
+                criar_notificacao(admin.id, mensagem)
+
+            return jsonify({
+                "message": "Pedido de autorização criado com sucesso!",
+                "id_autorizacao": novo_pedido.id  # Retorna o ID do novo pedido
+            }), 201
+
+        except Exception as e:
+            logging.exception("Erro ao criar pedido de autorização:")
+            return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
 
     elif request.method == 'GET':
-        """ 
-        Retorna todos os pedidos cadastrados com suporte a filtros, paginação e ordenação.
-        """
+        try:
+            # Filtros opcionais enviados via query string
+            nome_empresa = request.args.get("nome_empresa")
+            data_inicio_str = request.args.get("data_inicio")  # Esperado no formato YYYY-MM-DD
+            data_termino_str = request.args.get("data_termino")  # Esperado no formato YYYY-MM-DD
 
-        # Filtros opcionais
-        nome_empresa = request.args.get("nome_empresa")
-        data_inicio = request.args.get("data_inicio")  # Formato YYYY-MM-DD
-        data_termino = request.args.get("data_termino")  # Formato YYYY-MM-DD
+            # Paginação: página atual e itens por página
+            page = request.args.get("page", default=1, type=int)
+            per_page = request.args.get("per_page", default=10, type=int)
 
-        # Paginação (padrão: página 1, 10 itens por página)
-        page = request.args.get("page", default=1, type=int)
-        per_page = request.args.get("per_page", default=10, type=int)
+            # Inicia a query base
+            query = PedidoAutorizacao.query
 
-        # Base da query
-        query = PedidoAutorizacao.query
+            # Aplicação do filtro por nome da empresa (case insensitive)
+            if nome_empresa:
+                query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
 
-        # Aplicando filtros se fornecidos na URL
-        if nome_empresa:
-            query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
+            # Filtro para data de início
+            if data_inicio_str:
+                try:
+                    data_inicio_filter = datetime.strptime(data_inicio_str, "%Y-%m-%d").date()
+                    query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio_filter)
+                except ValueError:
+                    return jsonify({"error": "Formato inválido para 'data_inicio'. Use 'YYYY-MM-DD'."}), 400
 
-        if data_inicio:
-            try:
-                data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d").date()
-                query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio)
-            except ValueError:
-                return jsonify({"error": "Formato inválido para 'data_inicio'. Use 'YYYY-MM-DD'."}), 400
+            # Filtro para data de término
+            if data_termino_str:
+                try:
+                    data_termino_filter = datetime.strptime(data_termino_str, "%Y-%m-%d").date()
+                    query = query.filter(PedidoAutorizacao.data_termino <= data_termino_filter)
+                except ValueError:
+                    return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
 
-        if data_termino:
-            try:
-                data_termino = datetime.strptime(data_termino, "%Y-%m-%d").date()
-                query = query.filter(PedidoAutorizacao.data_termino <= data_termino)
-            except ValueError:
-                return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
+            # Ordenação decrescente pela data de início
+            query = query.order_by(PedidoAutorizacao.data_inicio.desc())
 
-        # Ordenação por data de início
-        query = query.order_by(PedidoAutorizacao.data_inicio.desc())
+            # Aplicação da paginação
+            pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
 
-        # Aplicando paginação
-        pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
+            # Montagem da resposta com os dados dos pedidos
+            pedidos_lista = []
+            for pedido in pedidos_paginados.items:
+                pedido_dict = {
+                    "id_autorizacao": pedido.id,
+                    "nome_empresa": pedido.empresa_responsavel,
+                    "cnpj_empresa": pedido.cnpj_empresa,
+                    "endereco_empresa": pedido.endereco_empresa,
+                    "motivo_solicitacao": pedido.motivo_solicitacao,
+                    "data_inicio_servico": pedido.data_inicio.strftime("%Y-%m-%d"),
+                    "data_termino_servico": pedido.data_termino.strftime("%Y-%m-%d"),
+                    "horario_servicos": pedido.horario_servico
+                }
+                pedidos_lista.append(pedido_dict)
 
-        # Montando resposta
-        pedidos_lista = [
-            {
-                "id_autorizacao": pedido.id,
-                "nome_empresa": pedido.empresa_responsavel,
-                "cnpj_empresa": pedido.cnpj_empresa,
-                "endereco_empresa": pedido.endereco_empresa,
-                "motivo_solicitacao": pedido.motivo_solicitacao,
-                "data_inicio_servico": pedido.data_inicio.strftime("%Y-%m-%d"),
-                "data_termino_servico": pedido.data_termino.strftime("%Y-%m-%d"),
-                "horario_servicos": pedido.horario_servico
-            } for pedido in pedidos_paginados.items
-        ]
+            return jsonify({
+                "total_pedidos": pedidos_paginados.total,
+                "pagina_atual": pedidos_paginados.page,
+                "total_paginas": pedidos_paginados.pages,
+                "pedidos": pedidos_lista
+            }), 200
 
-        return jsonify({
-            "total_pedidos": pedidos_paginados.total,
-            "pagina_atual": pedidos_paginados.page,
-            "total_paginas": pedidos_paginados.pages,
-            "pedidos": pedidos_lista
-        }), 200
+        except Exception as e:
+            logging.exception("Erro ao recuperar pedidos de autorização:")
+            return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
