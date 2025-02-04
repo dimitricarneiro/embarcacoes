@@ -6,7 +6,7 @@ app = create_app()
 
 # 🔹 Criar banco de dados se não existir
 with app.app_context():
-    db_path = os.path.join(app.instance_path, "database.db")  # 🔹 Caminho correto para o banco
+    db_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
     if not os.path.exists(db_path):  
         db.create_all()  # 🔹 Cria as tabelas no banco de dados
         print("Banco de dados criado!")
