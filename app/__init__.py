@@ -20,9 +20,9 @@ limiter = Limiter(
 )
 
 def create_app():
-    app = Flask(__name__, instance_relative_config=True)  # 🔹 Habilita a pasta /instance
-    app.config['SECRET_KEY'] = 'chave-super-secreta'  # ✅ Define a chave secreta corretamente
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'  # 🔹 Caminho para /instance/
+    app = Flask(__name__, instance_relative_config=True)
+    app.config['SECRET_KEY'] = 'chave-super-secreta'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
     # ✅ Tempo de expiração da sessão
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
