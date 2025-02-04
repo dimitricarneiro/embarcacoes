@@ -28,6 +28,9 @@ jobs:
       - name: Definir ambiente de testes
         run: echo "FLASK_ENV=testing" >> $GITHUB_ENV
 
+      - name: Criar diretório para o banco de dados
+        run: mkdir -p instance
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
