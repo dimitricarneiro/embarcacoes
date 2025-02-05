@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar Usuário</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 10px; margin-top: 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Criar Novo Usuário</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <label>Usuário:</label>
+            <input type="text" name="username" required>
+
+            <label>Senha:</label>
+            <input type="password" name="password" required>
+
+            <label>Nome da Empresa:</label>
+            <input type="text" name="nome_empresa">
+
+            <label>CNPJ:</label>
+            <input type="text" name="cnpj">
+
+            <label>Role:</label>
+            <select name="role">
+                <option value="comum">Comum</option>
+                <option value="RFB">RFB</option>
+            </select>
+
+            <button type="submit">Criar Usuário</button>
+        </form>
+        <br>
+        <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
+    </div>
+</body>
+</html>

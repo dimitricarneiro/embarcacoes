@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Usuários</title>
+    <style>
+        /* Estilize conforme desejar */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        a, button { text-decoration: none; padding: 5px 10px; border-radius: 5px; }
+        a { background-color: #007bff; color: white; }
+        button { background-color: red; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Usuários</h1>
+        <a href="{{ url_for('users.create_user') }}">Criar Novo Usuário</a>
+        <br><br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuário</th>
+                    <th>Nome da Empresa</th>
+                    <th>CNPJ</th>
+                    <th>Role</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td>{{ usuario.username }}</td>
+                    <td>{{ usuario.nome_empresa }}</td>
+                    <td>{{ usuario.cnpj }}</td>
+                    <td>{{ usuario.role }}</td>
+                    <td>
+                        <a href="{{ url_for('users.edit_user', user_id=usuario.id) }}">Editar</a>
+                        <form action="{{ url_for('users.delete_user', user_id=usuario.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

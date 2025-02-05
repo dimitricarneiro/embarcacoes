@@ -31,7 +31,7 @@ class Usuario(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    cnpj = db.Column(db.String(20), nullable=True)         # Novo campo para o CNPJ
+    cnpj = db.Column(db.String(20), unique=True, nullable=True)         # Novo campo para o CNPJ
     nome_empresa = db.Column(db.String(255), nullable=True)  # Novo campo para o nome da empresa
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False, default="comum")  # "comum" ou "RFB"

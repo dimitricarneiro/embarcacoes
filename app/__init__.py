@@ -38,8 +38,10 @@ def create_app():
     # ✅ Registra os Blueprints
     from app.routes import pedidos_bp
     from app.auth_routes import auth_bp
+    from app.users_routes import users_bp
     app.register_blueprint(pedidos_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(users_bp)
 
     return app
 
