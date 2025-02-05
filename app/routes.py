@@ -99,7 +99,7 @@ def gerenciar_pedidos():
             required_fields = [
                 "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
                 "data_inicio_servico", "data_termino_servico", "horario_servicos",
-                "num_certificado_livre_pratica", "embarcacoes", "pessoas"
+                "num_certificado_livre_pratica", "embarcacoes", "equipamentos", "pessoas"
             ]
 
             campos_invalidos = [field for field in required_fields if not data.get(field)]

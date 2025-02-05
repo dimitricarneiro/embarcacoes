@@ -35,7 +35,7 @@ def test_acesso_com_login_formulario_pedido(client):
     assert response.status_code == 200  # Verifica se a página carregou corretamente
     html_content = response.data.decode("utf-8")  # Converte bytes para string
     
-    assert "<title>Cadastrar pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
+    assert "<title>Cadastrar Pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
     assert "<form" in html_content  # Verifica se há um formulário na resposta HTML
-    assert "Enviar Pedido" in html_content  # Verifica se o botão está presente
+    assert "Enviar Pedido de Autorização" in html_content  # Verifica se o botão está presente
 
