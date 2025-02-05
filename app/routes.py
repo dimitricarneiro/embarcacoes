@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 # 🔹 Banco de Dados e Modelos
 from app import db
-from app.models import PedidoAutorizacao, Usuario, Notificacao
+from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao
 
 # 🔹 Utilitários
 from datetime import datetime
@@ -126,7 +126,7 @@ def gerenciar_pedidos():
             if data_termino < data_inicio:
                 return jsonify({"error": "A data de término deve ser maior ou igual à data de início."}), 400
 
-            # Criação do novo pedido de autorização
+            # Criação do novo pedido de autorização (sem ainda associar as embarcações)
             novo_pedido = PedidoAutorizacao(
                 empresa_responsavel=data["nome_empresa"],
                 cnpj_empresa=data["cnpj_empresa"],
@@ -139,6 +139,24 @@ def gerenciar_pedidos():
                 usuario_id=current_user.id
             )
 
+            # Processar e associar as embarcações com base no nome
+            # Assumindo que data["embarcacoes"] é uma lista de nomes de embarcações
+            for nome_embarcacao in data["embarcacoes"]:
+                nome_embarcacao = nome_embarcacao.strip()
+                if nome_embarcacao:  # Ignora strings vazias
+                    # Tenta buscar uma embarcação existente com esse nome
+                    embarcacao = db.session.query(Embarcacao).filter_by(nome=nome_embarcacao).first()
+                    if not embarcacao:
+                        # Se não existir, cria uma nova embarcação
+                        embarcacao = Embarcacao(nome=nome_embarcacao)
+                        db.session.add(embarcacao)
+                    # Associa a embarcação ao pedido
+                    novo_pedido.embarcacoes.append(embarcacao)
+
+            # Se necessário, processar também "equipamentos" e "pessoas" de forma semelhante.
+            # (O código atual não mostra esse processamento, mas a lógica seria similar.)
+
+            # Adiciona o pedido à sessão e comita todas as alterações
             db.session.add(novo_pedido)
             db.session.commit()
 
@@ -155,6 +173,40 @@ def gerenciar_pedidos():
 
         except Exception as e:
             logging.exception("Erro ao criar pedido de autorização:")
+            return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
+
+    elif request.method == 'GET':
+        try:
+            # (Código GET permanece inalterado)
+            # ...
+            # Ordenação e paginação
+            query = query.order_by(PedidoAutorizacao.data_inicio.desc())
+            pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
+
+            # Montagem da resposta com os dados dos pedidos
+            pedidos_lista = []
+            for pedido in pedidos_paginados.items:
+                pedido_dict = {
+                    "id_autorizacao": pedido.id,
+                    "nome_empresa": pedido.empresa_responsavel,
+                    "cnpj_empresa": pedido.cnpj_empresa,
+                    "endereco_empresa": pedido.endereco_empresa,
+                    "motivo_solicitacao": pedido.motivo_solicitacao,
+                    "data_inicio_servico": pedido.data_inicio.strftime("%Y-%m-%d"),
+                    "data_termino_servico": pedido.data_termino.strftime("%Y-%m-%d"),
+                    "horario_servicos": f"{pedido.horario_inicio_servicos} - {pedido.horario_termino_servicos}"
+                }
+                pedidos_lista.append(pedido_dict)
+
+            return jsonify({
+                "total_pedidos": pedidos_paginados.total,
+                "pagina_atual": pedidos_paginados.page,
+                "total_paginas": pedidos_paginados.pages,
+                "pedidos": pedidos_lista
+            }), 200
+
+        except Exception as e:
+            logging.exception("Erro ao recuperar pedidos de autorização:")
             return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
 
     elif request.method == 'GET':
@@ -234,6 +286,8 @@ def exibir_pedidos():
     status = request.args.get("status", "").strip()
     data_inicio = request.args.get("data_inicio", "").strip()
     data_termino = request.args.get("data_termino", "").strip()
+    # Novo filtro para o nome da embarcação:
+    nome_embarcacao = request.args.get("nome_embarcacao", "").strip()
 
     # Configuração da paginação (mantendo a lógica original)
     page = request.args.get("page", default=1, type=int)
@@ -257,17 +311,21 @@ def exibir_pedidos():
 
     if data_inicio:
         try:
-            data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d").date()
-            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio)
+            data_inicio_dt = datetime.strptime(data_inicio, "%Y-%m-%d").date()
+            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio_dt)
         except ValueError:
             return jsonify({"error": "Formato inválido para 'data_inicio'. Use 'YYYY-MM-DD'."}), 400
 
     if data_termino:
         try:
-            data_termino = datetime.strptime(data_termino, "%Y-%m-%d").date()
-            query = query.filter(PedidoAutorizacao.data_termino <= data_termino)
+            data_termino_dt = datetime.strptime(data_termino, "%Y-%m-%d").date()
+            query = query.filter(PedidoAutorizacao.data_termino <= data_termino_dt)
         except ValueError:
             return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
+
+    # Novo filtro: busca por nome da embarcação
+    if nome_embarcacao:
+        query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{nome_embarcacao}%"))
 
     # Ordenação e paginação
     query = query.order_by(PedidoAutorizacao.data_inicio.desc())

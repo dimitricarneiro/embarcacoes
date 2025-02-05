@@ -161,7 +161,10 @@
 <form action="/lista-pedidos" method="GET">
     <input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
     <input type="text" name="cnpj_empresa" placeholder="CNPJ" value="{{ request.args.get('cnpj_empresa', '') }}">
-    
+
+    <!-- Novo campo para filtrar pelo nome da embarcação -->
+    <input type="text" name="nome_embarcacao" placeholder="Nome da Embarcação" value="{{ request.args.get('nome_embarcacao', '') }}">
+
     <select name="status">
         <option value="">Todos os Status</option>
         <option value="pendente" {% if request.args.get('status') == 'pendente' %}selected{% endif %}>Pendente</option>
@@ -176,7 +179,9 @@
     <a href="/lista-pedidos"><button type="button">Limpar Filtros</button></a>
 </form>
 
+{% if current_user.role == "comum" %}
 <h2><a href="/formulario-pedido">Cadastrar novo pedido de autorização</a></h2><br><br>
+{% endif %}
 
     <h1>Meus Pedidos de Autorização</h1>
 
@@ -190,40 +195,45 @@
                 <th>Data Início</th>
                 <th>Data Término</th>
                 <th>Status</th>
-                <th>Ações</th>
+                {% if current_user.role == "RFB" %}
+				<th>Ações</th>
+				{% endif %}
                 <th>Detalhes</th>
             </tr>
         </thead>
-        <tbody>
-            {% for pedido in pedidos.items %}
-            <tr>
-                <td>{{ pedido.id }}</td>
-                <td>{{ pedido.empresa_responsavel }}</td>
-                <td>{{ pedido.cnpj_empresa }}</td>
-                <td>{{ pedido.motivo_solicitacao }}</td>
-                <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
-                <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
-                <td>
-                    {% if pedido.status == "pendente" %}
-                        <span class="status status-pendente">Pendente ⏳</span>
-                    {% elif pedido.status == "aprovado" %}
-                        <span class="status status-aprovado">Aprovado ✅</span>
-                    {% elif pedido.status == "rejeitado" %}
-                        <span class="status status-rejeitado">Rejeitado ❌</span>
-                    {% endif %}
-                </td>
-<td class="actions">
-    {% if pedido.status == "pendente" and current_user.role == "RFB" %}
-        <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
-        <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
-    {% endif %}
-</td>
-                <td>
-                    <a class="btn-detalhes" href="/pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+<tbody>
+    {% for pedido in pedidos.items %}
+    <tr>
+        <td>{{ pedido.id }}</td>
+        <td>{{ pedido.empresa_responsavel }}</td>
+        <td>{{ pedido.cnpj_empresa }}</td>
+        <td>{{ pedido.motivo_solicitacao }}</td>
+        <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
+        <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
+        <td>
+            {% if pedido.status == "pendente" %}
+                <span class="status status-pendente">Pendente ⏳</span>
+            {% elif pedido.status == "aprovado" %}
+                <span class="status status-aprovado">Aprovado ✅</span>
+            {% elif pedido.status == "rejeitado" %}
+                <span class="status status-rejeitado">Rejeitado ❌</span>
+            {% endif %}
+        </td>
+        {% if current_user.role == "RFB" %}
+        <td class="actions">
+            {% if pedido.status == "pendente" %}
+                <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
+                <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
+            {% endif %}
+        </td>
+        {% endif %}
+        <td>
+            <a class="btn-detalhes" href="/pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
     </table>
 
     <div class="pagination">
