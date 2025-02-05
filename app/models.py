@@ -19,6 +19,12 @@ pedido_pessoa = db.Table('pedido_pessoa',
     db.Column('pessoa_id', db.Integer, db.ForeignKey('pessoas.id'), primary_key=True)
 )
 
+# Tabela de associação para Equipamentos (novo)
+pedido_equipamento = db.Table('pedido_equipamento',
+    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
+)
+
 # Modelo de Usuário
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuario'
@@ -60,11 +66,11 @@ class PedidoAutorizacao(db.Model):
     embarcacoes = db.relationship("Embarcacao", secondary=pedido_embarcacao, backref="pedidos")
     veiculos = db.relationship("Veiculo", secondary=pedido_veiculo, backref="pedidos")
     pessoas = db.relationship("Pessoa", secondary=pedido_pessoa, backref="pedidos")
+    equipamentos = db.relationship("Equipamento", secondary=pedido_equipamento, backref="pedidos")
 
 # Modelo para Embarcações
 class Embarcacao(db.Model):
     __tablename__ = 'embarcacoes'
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(255), nullable=False)
     # Outros campos relevantes da embarcação podem ser adicionados aqui.
@@ -72,7 +78,6 @@ class Embarcacao(db.Model):
 # Modelo para Veículos
 class Veiculo(db.Model):
     __tablename__ = 'veiculos'
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     modelo = db.Column(db.String(255), nullable=False)
     placa = db.Column(db.String(20), nullable=False)
@@ -81,23 +86,27 @@ class Veiculo(db.Model):
 # Modelo para Pessoas
 class Pessoa(db.Model):
     __tablename__ = 'pessoas'
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(255), nullable=False)
     cpf = db.Column(db.String(14), nullable=False)
     # Outros campos, se necessário
 
+# Modelo para Equipamentos (novo)
+class Equipamento(db.Model):
+    __tablename__ = 'equipamentos'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    descricao = db.Column(db.String(255), nullable=False)
+    # Você pode adicionar outros campos relevantes para equipamentos, como número de série, modelo, etc.
+
 # Modelo para Notificações
 class Notificacao(db.Model):
     __tablename__ = "notificacoes"
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
     mensagem = db.Column(db.String(255), nullable=False)
     lida = db.Column(db.Boolean, default=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
-
     usuario = db.relationship("Usuario", backref=db.backref("notificacoes", lazy=True))
-
     def __repr__(self):
         return f"<Notificacao {self.id} - Usuário: {self.usuario_id} - {self.mensagem}>"
+
