@@ -98,7 +98,7 @@ def gerenciar_pedidos():
             # Verificação de campos obrigatórios: verificar se as chaves existem e se os valores não estão vazios
             required_fields = [
                 "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
-                "data_inicio_servico", "data_termino_servico", "horario_servicos",
+                "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
                 "num_certificado_livre_pratica", "embarcacoes", "equipamentos", "pessoas"
             ]
 
@@ -110,8 +110,8 @@ def gerenciar_pedidos():
 
             # Conversão das datas para objetos datetime.date
             try:
-                data_inicio = datetime.strptime(data["data_inicio_servico"], "%Y-%m-%d").date()
-                data_termino = datetime.strptime(data["data_termino_servico"], "%Y-%m-%d").date()
+                data_inicio = datetime.strptime(data["data_inicio"], "%Y-%m-%d").date()
+                data_termino = datetime.strptime(data["data_termino"], "%Y-%m-%d").date()
             except ValueError:
                 return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'."}), 400
 
@@ -134,7 +134,8 @@ def gerenciar_pedidos():
                 motivo_solicitacao=data["motivo_solicitacao"],
                 data_inicio=data_inicio,
                 data_termino=data_termino,
-                horario_servico=data["horario_servicos"],
+                horario_inicio_servicos=data["horario_inicio_servicos"],
+                horario_termino_servicos=data["horario_termino_servicos"],
                 usuario_id=current_user.id
             )
 
@@ -205,8 +206,8 @@ def gerenciar_pedidos():
                     "cnpj_empresa": pedido.cnpj_empresa,
                     "endereco_empresa": pedido.endereco_empresa,
                     "motivo_solicitacao": pedido.motivo_solicitacao,
-                    "data_inicio_servico": pedido.data_inicio.strftime("%Y-%m-%d"),
-                    "data_termino_servico": pedido.data_termino.strftime("%Y-%m-%d"),
+                    "data_inicio": pedido.data_inicio.strftime("%Y-%m-%d"),
+                    "data_termino": pedido.data_termino.strftime("%Y-%m-%d"),
                     "horario_servicos": pedido.horario_servico
                 }
                 pedidos_lista.append(pedido_dict)

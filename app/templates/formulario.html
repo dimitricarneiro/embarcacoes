@@ -47,29 +47,32 @@
     <input type="text" id="motivo_solicitacao" value="Inspeção de casco" required>
 
     <label>Data Início:</label>
-    <input type="date" id="data_inicio_servico" required>
+    <input type="date" id="data_inicio" required>
 
     <label>Data Término:</label>
-    <input type="date" id="data_termino_servico" required>
+    <input type="date" id="data_termino" required>
 
-    <label>Horário:</label>
-    <input type="text" id="horario_servicos" value="18:00" required>
+	<label>Horário Início:</label>
+	<input type="text" id="horario_inicio_servicos" value="08:00" required>
+
+	<label>Horário Término:</label>
+	<input type="text" id="horario_termino_servicos" value="18:00" required>
 
     <label>Número do Certificado de Livre Prática:</label>
     <input type="text" id="num_certificado_livre_pratica" value="12345" required>
 
     <!-- Campos para relacionamentos -->
     <label>Embarcações (separadas por vírgula):</label>
-    <input type="text" id="embarcacoes" placeholder="Ex: Embarcação A, Embarcação B">
+    <input type="text" id="embarcacoes" value="nenhuma">
 
     <label>Veículos (para cada veículo, informe modelo e placa separados por hífen; múltiplos veículos separados por vírgula):</label>
-    <input type="text" id="veiculos" placeholder="Ex: ModeloX-ABC1234, ModeloY-XYZ5678">
+    <input type="text" id="veiculos" value="nenhum">
 
     <label>Equipamentos (para cada equipamento, informe modelo e placa separados por hífen; múltiplos equipamentos separados por vírgula):</label>
-    <input type="text" id="equipamentos" placeholder="Ex: EquipamentoX-ABC1234, EquipamentoY-XYZ5678">
+    <input type="text" id="equipamentos" value="nenhum">
 
     <label>Pessoas (para cada pessoa, informe nome e CPF separados por hífen; múltiplas pessoas separadas por vírgula):</label>
-    <input type="text" id="pessoas" placeholder="Ex: João-123.456.789-00, Maria-987.654.321-00">
+    <input type="text" id="pessoas" value="nenhuma">
 
     <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
   </form>
@@ -161,9 +164,10 @@
       cnpj_empresa: cnpj,
       endereco_empresa: document.getElementById("endereco_empresa").value,
       motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-      data_inicio_servico: document.getElementById("data_inicio_servico").value,
-      data_termino_servico: document.getElementById("data_termino_servico").value,
-      horario_servicos: document.getElementById("horario_servicos").value,
+      data_inicio: document.getElementById("data_inicio").value,
+      data_termino: document.getElementById("data_termino").value,
+      horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
+   	  horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
       num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
       observacoes: "Nenhuma",
       embarcacoes: embarcacoes,

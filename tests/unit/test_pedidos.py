@@ -42,7 +42,8 @@ def test_criar_pedido_autorizacao_com_login(client):
         "motivo_solicitacao": "Manutenção no motor",
         "data_inicio_servico": "2050-01-01",  # Data bem no futuro
         "data_termino_servico": "2050-01-10",
-        "horario_servicos": "08:00 - 18:00",
+        "horario_inicio_servicos": "08:00",
+        "horario_termino_servicos": "18:00",
         "num_certificado_livre_pratica": "ABC123",
         "observacoes": "Serviço sujeito a alteração",
         "embarcacoes": ["Embarcação A"],

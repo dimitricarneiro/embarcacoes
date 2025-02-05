@@ -55,7 +55,8 @@ class PedidoAutorizacao(db.Model):
     motivo_solicitacao = db.Column(db.Text, nullable=False)
     data_inicio = db.Column(db.Date, nullable=False)
     data_termino = db.Column(db.Date, nullable=False)
-    horario_servico = db.Column(db.String(20), nullable=False)
+    horario_inicio_servicos = db.Column(db.String(20), nullable=False)
+    horario_termino_servicos = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default="pendente", nullable=False)
     
     # Relacionamento com o usuário que criou o pedido
