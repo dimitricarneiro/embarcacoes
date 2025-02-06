@@ -27,6 +27,24 @@ def login(client):
     assert response.status_code == 200  # Confirma que o login foi bem-sucedido
     return response
 
+def login_admin(client):
+    """Função auxiliar para autenticar o usuário de teste como admin"""
+    credenciais = {
+        "username": "admin",
+        "password": "123456"
+    }
+    response = client.post("/auth/login", data=credenciais, follow_redirects=True)
+
+    print("Headers da resposta de login:", response.headers)  # 🔹 Para depuração
+
+    # 🔹 Mantém a sessão do usuário ativa no cliente de testes
+    with client.session_transaction() as sess:
+        sess.permanent = True  # Força a sessão a ser mantida
+        print("Sessão ativa após login:", sess)  # 🔹 Verifica se a sessão está carregada corretamente
+    
+    assert response.status_code == 200  # Confirma que o login foi bem-sucedido
+    return response
+
 def test_criar_pedido_autorizacao_com_login(client):
     """Teste para criar um novo pedido de autorização de serviço"""
     
