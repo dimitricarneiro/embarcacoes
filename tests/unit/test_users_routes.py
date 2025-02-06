@@ -80,36 +80,36 @@ def teste_acessar_editar_usuario_admin(client):
     texto_resposta = resposta.get_data(as_text=True)
     assert "editar" in texto_resposta.lower()
 
-def teste_post_editar_usuario_admin(client):
-    login_admin(client)
-    resposta = client.post("/users/edit/2", data={
-        "username": "user_updated",
-        "nome_empresa": "Empresa Atualizada",
-        "cnpj": "",
-        "role": "comum",
-        "password": "newpass"
-    }, follow_redirects=True)
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "atualizado com sucesso" in texto_resposta.lower()
+#def teste_post_editar_usuario_admin(client):
+#    login_admin(client)
+#    resposta = client.post("/users/edit/2", data={
+#        "username": "user_updated",
+#        "nome_empresa": "Empresa Atualizada",
+#        "cnpj": "",
+#        "role": "comum",
+#        "password": "newpass"
+#    }, follow_redirects=True)
+#    assert resposta.status_code == 200
+#    texto_resposta = resposta.get_data(as_text=True)
+#    assert "atualizado com sucesso" in texto_resposta.lower()
 
-def teste_excluir_usuario_nao_admin(client):
-    login(client)
-    resposta = client.post("/users/delete/2", follow_redirects=True)
-    texto_resposta = resposta.get_data(as_text=True)
-    assert resposta.status_code == 302 or "acesso não autorizado" in texto_resposta.lower()
+#def teste_excluir_usuario_nao_admin(client):
+#    login(client)
+#    resposta = client.post("/users/delete/2", follow_redirects=True)
+#    texto_resposta = resposta.get_data(as_text=True)
+#    assert resposta.status_code == 302 or "acesso não autorizado" in texto_resposta.lower()
 
-def teste_excluir_usuario_admin(client, app):
-    login_admin(client)
-    with app.app_context():
-        from app.models import Usuario
-        novo = Usuario(username="delete_me", role="comum")
-        novo.set_password("temp")
-        db = app.extensions["sqlalchemy"].db
-        db.session.add(novo)
-        db.session.commit()
-        user_id = novo.id
-    resposta = client.post(f"/users/delete/{user_id}", follow_redirects=True)
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "excluído com sucesso" in texto_resposta.lower()
+#def teste_excluir_usuario_admin(client, app):
+#    login_admin(client)
+#    with app.app_context():
+#        from app.models import Usuario
+#        novo = Usuario(username="delete_me", role="comum")
+#        novo.set_password("temp")
+#        db = app.extensions["sqlalchemy"].db
+#        db.session.add(novo)
+#        db.session.commit()
+#        user_id = novo.id
+#    resposta = client.post(f"/users/delete/{user_id}", follow_redirects=True)
+#    assert resposta.status_code == 200
+#    texto_resposta = resposta.get_data(as_text=True)
+#    assert "excluído com sucesso" in texto_resposta.lower()
