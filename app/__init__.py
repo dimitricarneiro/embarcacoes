@@ -42,6 +42,10 @@ def create_app():
     app.register_blueprint(pedidos_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(users_bp)
+    
+    # Configura o sistema de logging
+    from logging_config import setup_logging
+    setup_logging(app)
 
     return app
 

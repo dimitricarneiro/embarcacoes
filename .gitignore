@@ -1,6 +1,9 @@
 # Ignorar arquivos da pasta instance (Banco de Dados, configurações locais)
 instance/
 
+# Ignorar arquivos de log
+logs/
+
 # Ignorar banco de dados SQLite, caso esteja fora da pasta instance
 database.db
 
