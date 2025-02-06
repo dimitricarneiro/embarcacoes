@@ -27,14 +27,13 @@ def login(client):
     assert response.status_code == 200  # Confirma que o login foi bem-sucedido
     return response
 
-
 def test_criar_pedido_autorizacao_com_login(client):
     """Teste para criar um novo pedido de autorização de serviço"""
     
     # 🔹 Primeiro, faz login
     login(client)
     
-    # JSON atualizado para o novo formato do pedido, com datas no futuro
+    # JSON atualizado conforme o formato esperado pela rota
     novo_pedido = {
         "nome_empresa": "Empresa XYZ",
         "cnpj_empresa": "75.371.927/0001-37",
@@ -47,8 +46,28 @@ def test_criar_pedido_autorizacao_com_login(client):
         "num_certificado_livre_pratica": "ABC123",
         "observacoes": "Serviço sujeito a alteração",
         "embarcacoes": ["Embarcação A"],
-        "equipamentos": ["Equipamento A"],
-        "pessoas": ["João Silva"]
+        # Para equipamentos, envie uma lista de dicionários:
+        "equipamentos": [
+            {
+                "descricao": "Equipamento A",
+                "numero_serie": "SERIE123",
+                "quantidade": 1  # Alterado para 1 para não violar o UNIQUE
+            }
+        ],
+        # Para veículos, envie uma lista de dicionários com "modelo" e "placa":
+        "veiculos": [
+            {
+                "modelo": "Modelo A",
+                "placa": "ABC-1234"
+            }
+        ],
+        # Para pessoas, envie uma lista de dicionários com "nome" e "cpf":
+        "pessoas": [
+            {
+                "nome": "João Silva",
+                "cpf": "823.054.870-61"
+            }
+        ]
     }
     
     # 🔹 Agora, faz a requisição para criar o pedido
@@ -58,6 +77,7 @@ def test_criar_pedido_autorizacao_com_login(client):
     assert response.status_code == 201  # Código HTTP correto
     assert "id_autorizacao" in response.json  # Verifica se o ID foi retornado
     assert response.json["message"] == "Pedido de autorização criado com sucesso!"
+
 
 def test_criar_pedido_autorizacao_sem_login(client):
     """Teste para criar um novo pedido de autorização de serviço sem estar autenticado"""

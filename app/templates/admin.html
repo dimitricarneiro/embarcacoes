@@ -103,6 +103,12 @@
     <a href="{{ url_for('pedidos.exportar_csv') }}" class="btn-export">📄 Exportar CSV</a>
     <a href="{{ url_for('pedidos.exportar_pdf') }}" class="btn-export">📄 Exportar PDF</a>
 </div>
+
+<!-- Link para gerenciar alertas -->
+<div style="text-align: center; margin-top: 15px;">
+    <a href="{{ url_for('pedidos.gerenciar_alertas') }}" class="btn-export" style="background-color: #28a745;">Gerenciar Alertas</a>
+</div>
+
 	
         <h1>Painel Administrativo</h1>
         <p>Bem-vindo, {{ current_user.username }}</p>

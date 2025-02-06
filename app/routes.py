@@ -7,12 +7,13 @@ from flask_login import login_required, current_user
 
 # 🔹 Banco de Dados e Modelos
 from app import db
-from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao
+from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento
 
 # 🔹 Utilitários
 from datetime import datetime
 import csv
 import re
+import logging
 
 # 🔹 SQLAlchemy
 from sqlalchemy.sql import func
@@ -26,6 +27,29 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj
+from app.models import Alerta
+
+def verificar_alertas(novo_pedido):
+    """
+    Verifica se o novo pedido atende a algum alerta cadastrado e, se sim, cria notificações para os respectivos usuários RFB.
+    """
+    alertas = Alerta.query.filter_by(ativo=True).all()
+    for alerta in alertas:
+        # Se o alerta for do tipo "embarcacao", verificamos cada embarcação do pedido
+        if alerta.tipo == "embarcacao":
+            for embarcacao in novo_pedido.embarcacoes:
+                if alerta.valor.lower() in embarcacao.nome.lower():
+                    mensagem = (f"Novo pedido {novo_pedido.id} contém embarcação com nome "
+                                f"correspondente ao seu alerta ('{alerta.valor}').")
+                    criar_notificacao(alerta.usuario_id, mensagem)
+                    break  # Evita notificar o mesmo alerta mais de uma vez para o mesmo pedido
+
+        # Se o alerta for do tipo "cnpj", comparamos com o CNPJ da empresa do pedido
+        elif alerta.tipo == "cnpj":
+            if novo_pedido.cnpj_empresa == alerta.valor:
+                mensagem = (f"Novo pedido {novo_pedido.id} criado por CNPJ "
+                            f"'{novo_pedido.cnpj_empresa}' corresponde ao seu alerta.")
+                criar_notificacao(alerta.usuario_id, mensagem)
 
 def criar_notificacao(usuario_id, mensagem):
     """ Cria uma notificação para um usuário específico """
@@ -43,16 +67,6 @@ def home():
         return redirect(url_for('auth.login'))  # 🔹 Redireciona para login
     return redirect(url_for('pedidos.exibir_pedidos'))  # 🔹 Se logado, vai para /lista-pedidos
 
-
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from datetime import datetime
-import logging
-
-# Supondo que os modelos e funções auxiliares já estejam importados:
-# from models import PedidoAutorizacao, Usuario, db
-# from utils import validar_cnpj, criar_notificacao
-
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
 def gerenciar_pedidos():
@@ -60,7 +74,6 @@ def gerenciar_pedidos():
     POST: Cria um novo pedido de autorização de serviço.
     GET: Retorna todos os pedidos cadastrados com suporte a filtros, paginação e ordenação.
     """
-
     if request.method == 'POST':
         try:
             # Obter dados em formato JSON
@@ -73,13 +86,12 @@ def gerenciar_pedidos():
             if not validar_cnpj(cnpj):
                 return jsonify({"error": "CNPJ inválido!"}), 400
 
-            # Verificação de campos obrigatórios: verificar se as chaves existem e se os valores não estão vazios
+            # Verificação de campos obrigatórios
             required_fields = [
                 "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
                 "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
                 "num_certificado_livre_pratica", "embarcacoes", "equipamentos", "pessoas"
             ]
-
             campos_invalidos = [field for field in required_fields if not data.get(field)]
             if campos_invalidos:
                 return jsonify({
@@ -93,18 +105,14 @@ def gerenciar_pedidos():
             except ValueError:
                 return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'."}), 400
 
-            # Obter a data de hoje
+            # Obter a data de hoje e validar as datas
             hoje = datetime.today().date()
-
-            # Verificar se a data de início é maior ou igual à data de hoje
             if data_inicio < hoje:
                 return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
-
-            # Verificar se a data de término é maior ou igual à data de início
             if data_termino < data_inicio:
                 return jsonify({"error": "A data de término deve ser maior ou igual à data de início."}), 400
 
-            # Criação do novo pedido de autorização (sem ainda associar as embarcações)
+            # Criação do novo pedido de autorização (ainda sem associar os relacionamentos)
             novo_pedido = PedidoAutorizacao(
                 empresa_responsavel=data["nome_empresa"],
                 cnpj_empresa=data["cnpj_empresa"],
@@ -117,28 +125,80 @@ def gerenciar_pedidos():
                 usuario_id=current_user.id
             )
 
-            # Processar e associar as embarcações com base no nome
-            # Assumindo que data["embarcacoes"] é uma lista de nomes de embarcações
+            # -------------------------------
+            # Processamento de Embarcações
+            # -------------------------------
+            # Assume que data["embarcacoes"] é uma lista de nomes de embarcações.
             for nome_embarcacao in data["embarcacoes"]:
                 nome_embarcacao = nome_embarcacao.strip()
                 if nome_embarcacao:  # Ignora strings vazias
-                    # Tenta buscar uma embarcação existente com esse nome
                     embarcacao = db.session.query(Embarcacao).filter_by(nome=nome_embarcacao).first()
                     if not embarcacao:
-                        # Se não existir, cria uma nova embarcação
                         embarcacao = Embarcacao(nome=nome_embarcacao)
                         db.session.add(embarcacao)
-                    # Associa a embarcação ao pedido
                     novo_pedido.embarcacoes.append(embarcacao)
 
-            # Se necessário, processar também "equipamentos" e "pessoas" de forma semelhante.
-            # (O código atual não mostra esse processamento, mas a lógica seria similar.)
+            # -------------------------------
+            # Processamento de Equipamentos
+            # -------------------------------
+            # Agora espera-se que data["equipamentos"] seja uma lista de dicionários
+            # com as chaves: "descricao", "numero_serie" e "quantidade"
+            if "equipamentos" in data and data["equipamentos"]:
+                for equipamento_data in data["equipamentos"]:
+                    descricao = equipamento_data.get("descricao", "").strip()
+                    numero_serie = equipamento_data.get("numero_serie", "").strip()
+                    quantidade = equipamento_data.get("quantidade", 0)
+                    if descricao and numero_serie and quantidade:
+                        # Buscamos pelo número de série para identificar o equipamento
+                        equipamento = db.session.query(Equipamento).filter_by(numero_serie=numero_serie).first()
+                        if not equipamento:
+                            # Cria novo equipamento (certifique-se de que o modelo Equipamento foi atualizado para ter o campo "numero_serie")
+                            equipamento = Equipamento(descricao=descricao, numero_serie=numero_serie)
+                            db.session.add(equipamento)
+                        # Adiciona o equipamento ao pedido conforme a quantidade informada
+                        for i in range(int(quantidade)):
+                            novo_pedido.equipamentos.append(equipamento)
+                    else:
+                        # Se algum dos campos obrigatórios do equipamento estiver faltando, podemos optar por ignorar este item
+                        continue
 
-            # Adiciona o pedido à sessão e comita todas as alterações
+            # -------------------------------
+            # Processamento de Pessoas
+            # -------------------------------
+            # Espera-se que data["pessoas"] seja uma lista de dicionários com "nome" e "cpf"
+            for pessoa_data in data["pessoas"]:
+                nome_pessoa = pessoa_data.get("nome", "").strip()
+                cpf_pessoa = pessoa_data.get("cpf", "").strip()
+                if nome_pessoa and cpf_pessoa:
+                    pessoa = db.session.query(Pessoa).filter_by(cpf=cpf_pessoa).first()
+                    if not pessoa:
+                        pessoa = Pessoa(nome=nome_pessoa, cpf=cpf_pessoa)
+                        db.session.add(pessoa)
+                    novo_pedido.pessoas.append(pessoa)
+
+            # -------------------------------
+            # Processamento de Veículos
+            # -------------------------------
+            # Espera-se que data["veiculos"] seja uma lista de dicionários com "modelo" e "placa"
+            if "veiculos" in data and data["veiculos"]:
+                for veiculo_data in data["veiculos"]:
+                    modelo_veiculo = veiculo_data.get("modelo", "").strip()
+                    placa_veiculo = veiculo_data.get("placa", "").strip()
+                    if modelo_veiculo and placa_veiculo:
+                        veiculo = db.session.query(Veiculo).filter_by(placa=placa_veiculo).first()
+                        if not veiculo:
+                            veiculo = Veiculo(modelo=modelo_veiculo, placa=placa_veiculo)
+                            db.session.add(veiculo)
+                        novo_pedido.veiculos.append(veiculo)
+
+            # Adiciona o pedido à sessão e comita as alterações
             db.session.add(novo_pedido)
             db.session.commit()
 
-            # Notificação aos administradores (exemplo: perfil 'RFB')
+            # Verificar se o pedido atende a algum alerta
+            verificar_alertas(novo_pedido)
+
+            # Notificar os administradores sobre o novo pedido cadastrado
             administradores = Usuario.query.filter_by(role="RFB").all()
             mensagem = f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação."
             for admin in administradores:
@@ -146,7 +206,7 @@ def gerenciar_pedidos():
 
             return jsonify({
                 "message": "Pedido de autorização criado com sucesso!",
-                "id_autorizacao": novo_pedido.id  # Retorna o ID do novo pedido
+                "id_autorizacao": novo_pedido.id
             }), 201
 
         except Exception as e:
@@ -408,6 +468,29 @@ def admin_dashboard():
                            total_usuarios=total_usuarios,
                            datas=datas, 
                            pedidos_quantidade=pedidos_quantidade)
+
+@pedidos_bp.route('/admin/alertas', methods=['GET', 'POST'])
+@login_required
+def gerenciar_alertas():
+    """Exibe os alertas do usuário RFB e permite a criação de novos alertas."""
+    if current_user.role != "RFB":
+        return redirect(url_for('pedidos.exibir_pedidos'))
+    
+    if request.method == "POST":
+        # Recebe os dados do formulário
+        tipo = request.form.get("tipo")  # Esperado: "embarcacao" ou "cnpj"
+        valor = request.form.get("valor")
+        if tipo not in ["embarcacao", "cnpj"] or not valor:
+            return jsonify({"error": "Dados inválidos para criar o alerta."}), 400
+
+        novo_alerta = Alerta(usuario_id=current_user.id, tipo=tipo, valor=valor)
+        db.session.add(novo_alerta)
+        db.session.commit()
+        return redirect(url_for("pedidos.gerenciar_alertas"))
+    
+    # Para método GET, exibe os alertas já criados pelo usuário
+    alertas = Alerta.query.filter_by(usuario_id=current_user.id).all()
+    return render_template("gerenciar_alertas.html", alertas=alertas)
 
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required

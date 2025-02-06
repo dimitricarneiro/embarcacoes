@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Alertas</title>
+    <style>
+        /* Estilização básica */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        input, select { padding: 5px; margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Gerenciar Alertas</h1>
+
+    <h2>Criar Novo Alerta</h2>
+    <form method="POST" action="{{ url_for('pedidos.gerenciar_alertas') }}">
+        <label for="tipo">Tipo:</label>
+        <select name="tipo" id="tipo">
+            <option value="embarcacao">Embarcação</option>
+            <option value="cnpj">CNPJ</option>
+        </select><br>
+
+        <label for="valor">Valor:</label>
+        <input type="text" name="valor" id="valor" required><br>
+
+        <button type="submit">Criar Alerta</button>
+    </form>
+
+    <h2>Alertas Cadastrados</h2>
+    {% if alertas %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Ativo</th>
+                <th>Data de Criação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alerta in alertas %}
+            <tr>
+                <td>{{ alerta.id }}</td>
+                <td>{{ alerta.tipo }}</td>
+                <td>{{ alerta.valor }}</td>
+                <td>{{ 'Sim' if alerta.ativo else 'Não' }}</td>
+                <td>{{ alerta.data_criacao.strftime("%d/%m/%Y %H:%M") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nenhum alerta cadastrado.</p>
+    {% endif %}
+
+    <a href="{{ url_for('pedidos.admin_dashboard') }}">Voltar ao Painel Administrativo</a>
+</body>
+</html>

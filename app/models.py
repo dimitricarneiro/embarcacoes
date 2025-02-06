@@ -76,14 +76,6 @@ class Embarcacao(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     # Outros campos relevantes da embarcação podem ser adicionados aqui.
 
-# Modelo para Veículos
-class Veiculo(db.Model):
-    __tablename__ = 'veiculos'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    modelo = db.Column(db.String(255), nullable=False)
-    placa = db.Column(db.String(20), nullable=False)
-    # Outros campos, se necessário
-
 # Modelo para Pessoas
 class Pessoa(db.Model):
     __tablename__ = 'pessoas'
@@ -92,12 +84,21 @@ class Pessoa(db.Model):
     cpf = db.Column(db.String(14), nullable=False)
     # Outros campos, se necessário
 
-# Modelo para Equipamentos (novo)
+# Modelo para Veículos
+class Veiculo(db.Model):
+    __tablename__ = 'veiculos'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    modelo = db.Column(db.String(255), nullable=False)
+    placa = db.Column(db.String(20), nullable=False)
+    # Outros campos, se necessário
+
+# Modelo para Equipamentos
 class Equipamento(db.Model):
     __tablename__ = 'equipamentos'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao = db.Column(db.String(255), nullable=False)
-    # Você pode adicionar outros campos relevantes para equipamentos, como número de série, modelo, etc.
+    numero_serie = db.Column(db.String(100), nullable=False)
+    quantidade = db.Column(db.Integer, nullable=False, default=1)  # novo campo para quantidade
 
 # Modelo para Notificações
 class Notificacao(db.Model):
@@ -111,3 +112,16 @@ class Notificacao(db.Model):
     def __repr__(self):
         return f"<Notificacao {self.id} - Usuário: {self.usuario_id} - {self.mensagem}>"
 
+class Alerta(db.Model):
+    __tablename__ = 'alertas'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # Ex: "embarcacao" ou "cnpj"
+    valor = db.Column(db.String(255), nullable=False)  # Ex: "Titanic" ou "26.994.558/0001-23"
+    ativo = db.Column(db.Boolean, default=True)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+
+    usuario = db.relationship("Usuario", backref=db.backref("alertas", lazy=True))
+
+    def __repr__(self):
+        return f"<Alerta {self.id} - Tipo: {self.tipo} - Valor: {self.valor}>"

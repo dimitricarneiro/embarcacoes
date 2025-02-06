@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastrar Pedido de Autorização</title>
   <style>
-    /* Seus estilos permanecem inalterados */
+    /* Estilos gerais inalterados */
     body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
     .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
     h1 { text-align: center; color: #333; }
@@ -19,8 +19,30 @@
     .btn-logout:hover { background-color: darkred; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); }
-    button { margin: 10px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { opacity: 0.8; }
+    
+    /* Estilos para blocos dinâmicos */
+    .bloco {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .bloco label {
+      margin-top: 0;
+    }
+    .btn-adicionar {
+      width: auto;
+      padding: 8px 12px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .btn-adicionar:hover {
+      background-color: #218838;
+    }
   </style>
 </head>
 <body>
@@ -52,11 +74,11 @@
     <label>Data Término:</label>
     <input type="date" id="data_termino" required>
 
-	<label>Horário Início:</label>
-	<input type="text" id="horario_inicio_servicos" value="08:00" required>
+    <label>Horário Início:</label>
+    <input type="text" id="horario_inicio_servicos" value="08:00" required>
 
-	<label>Horário Término:</label>
-	<input type="text" id="horario_termino_servicos" value="18:00" required>
+    <label>Horário Término:</label>
+    <input type="text" id="horario_termino_servicos" value="18:00" required>
 
     <label>Número do Certificado de Livre Prática:</label>
     <input type="text" id="num_certificado_livre_pratica" value="12345" required>
@@ -64,14 +86,45 @@
     <label>Embarcações (separadas por vírgula):</label>
     <input type="text" id="embarcacoes" value="nenhuma">
 
-    <label>Veículos (para cada veículo, informe modelo e placa separados por hífen; múltiplos veículos separados por vírgula):</label>
-    <input type="text" id="veiculos" value="nenhum">
+    <!-- Seção para Veículos -->
+    <label>Veículos:</label>
+    <div id="veiculos-container">
+      <!-- Bloco de veículo inicial -->
+      <div class="bloco">
+        <label>Modelo do Veículo:</label>
+        <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
+        <label>Placa do Veículo:</label>
+        <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
+      </div>
+    </div>
+    <button type="button" class="btn-adicionar" onclick="adicionarVeiculo()">Adicionar mais veículos</button>
 
-    <label>Equipamentos (para cada equipamento, informe modelo e placa separados por hífen; múltiplos equipamentos separados por vírgula):</label>
-    <input type="text" id="equipamentos" value="nenhum">
+    <!-- Seção para Equipamentos -->
+    <label>Equipamentos:</label>
+    <div id="equipamentos-container">
+      <!-- Bloco de equipamento inicial -->
+      <div class="bloco">
+        <label>Descrição do Equipamento:</label>
+        <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
+        <label>Número de Série:</label>
+        <input type="text" class="equipamento-numero-serie" placeholder="Número de série do equipamento" required>
+        <label>Quantidade:</label>
+        <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
+      </div>
+    </div>
+    <button type="button" class="btn-adicionar" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
 
-    <label>Pessoas (para cada pessoa, informe nome e CPF separados por hífen; múltiplas pessoas separadas por vírgula):</label>
-    <input type="text" id="pessoas" value="nenhuma">
+    <!-- Seção para Pessoas (já implementada anteriormente) -->
+    <label>Pessoas:</label>
+    <div id="pessoas-container">
+      <div class="bloco">
+        <label>Nome da Pessoa:</label>
+        <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
+        <label>CPF:</label>
+        <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+      </div>
+    </div>
+    <button type="button" class="btn-adicionar" onclick="adicionarPessoa()">Adicionar mais pessoas</button>
 
     <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
   </form>
@@ -79,7 +132,7 @@
   <p id="mensagem"></p>
 </div>
 
-<!-- Modal de Expiração de Sessão -->
+<!-- Modal de Expiração de Sessão (inalterado) -->
 <div id="session-modal" class="modal">
   <div class="modal-content">
     <h2>Aviso de Sessão</h2>
@@ -91,8 +144,8 @@
 
 <script>
   // Monitoramento de sessão (código inalterado)
-  let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
-  let avisoExpiracao = 28 * 60 * 1000; // Exibir modal 2 minutos antes da expiração
+  let tempoExpiracao = 30 * 60 * 1000;
+  let avisoExpiracao = 28 * 60 * 1000;
   let modal = document.getElementById("session-modal");
   let sessionTimeout;
   function iniciarMonitoramentoSessao() {
@@ -110,54 +163,94 @@
   function sairSessao() { window.location.href = "/auth/logout"; }
   document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 
-  // Função de validação de CNPJ (inalterada)
-  function validarCNPJ(cnpj) {
-    cnpj = cnpj.replace(/[^\d]+/g, "");
-    if (cnpj.length !== 14) return false;
-    if (/^(\d)\1+$/.test(cnpj)) return false;
-    let tamanho = cnpj.length - 2;
-    let numeros = cnpj.substring(0, tamanho);
-    let digitos = cnpj.substring(tamanho);
-    let soma = 0;
-    let pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    if (resultado !== parseInt(digitos.charAt(0))) return false;
-    tamanho += 1;
-    numeros = cnpj.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    if (resultado !== parseInt(digitos.charAt(1))) return false;
-    return true;
+  // Funções para adicionar novos blocos de inputs dinamicamente
+  function adicionarPessoa() {
+    const novaPessoa = document.createElement("div");
+    novaPessoa.className = "bloco";
+    novaPessoa.innerHTML = `
+      <label>Nome da Pessoa:</label>
+      <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
+      <label>CPF:</label>
+      <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+    `;
+    document.getElementById("pessoas-container").appendChild(novaPessoa);
   }
 
-  // Função para enviar o pedido
+  function adicionarVeiculo() {
+    const novoVeiculo = document.createElement("div");
+    novoVeiculo.className = "bloco";
+    novoVeiculo.innerHTML = `
+      <label>Modelo do Veículo:</label>
+      <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
+      <label>Placa do Veículo:</label>
+      <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
+    `;
+    document.getElementById("veiculos-container").appendChild(novoVeiculo);
+  }
+
+  function adicionarEquipamento() {
+    const novoEquipamento = document.createElement("div");
+    novoEquipamento.className = "bloco";
+    novoEquipamento.innerHTML = `
+      <label>Descrição do Equipamento:</label>
+      <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
+      <label>Número de Série:</label>
+      <input type="text" class="equipamento-numero-serie" placeholder="Número de série" required>
+      <label>Quantidade:</label>
+      <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
+    `;
+    document.getElementById("equipamentos-container").appendChild(novoEquipamento);
+  }
+
+  // Função para enviar o pedido via fetch
   function enviarPedido() {
-    let cnpj = document.getElementById("cnpj_empresa").value;
+    const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
       document.getElementById("mensagem").innerText = "CNPJ inválido!";
       document.getElementById("mensagem").style.color = "red";
       return;
     }
 
-    // Coleta e processamento dos campos, convertendo strings em arrays
+    // Coleta dos campos que são strings simples (separadas por vírgula, se necessário)
     const embarcacoes = document.getElementById("embarcacoes").value
       .split(",").map(item => item.trim()).filter(item => item !== "");
-    const veiculos = document.getElementById("veiculos").value
-      .split(",").map(item => item.trim()).filter(item => item !== "");
-    const equipamentos = document.getElementById("equipamentos").value
-      .split(",").map(item => item.trim()).filter(item => item !== "");
-    const pessoas = document.getElementById("pessoas").value
-      .split(",").map(item => item.trim()).filter(item => item !== "");
 
+    // Coleta dos dados de veículos
+    const veiculos = [];
+    document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
+      const modelo = el.querySelector('.veiculo-modelo').value.trim();
+      const placa = el.querySelector('.veiculo-placa').value.trim();
+      if (modelo && placa) {
+        veiculos.push({ modelo: modelo, placa: placa });
+      }
+    });
+
+    // Coleta dos dados de equipamentos
+    const equipamentos = [];
+    document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
+      const descricao = el.querySelector('.equipamento-descricao').value.trim();
+      const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
+      const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+      if (descricao && numeroSerie && quantidade) {
+        equipamentos.push({
+          descricao: descricao,
+          numero_serie: numeroSerie,
+          quantidade: parseInt(quantidade)
+        });
+      }
+    });
+
+    // Coleta dos dados de pessoas
+    const pessoas = [];
+    document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
+      const nome = el.querySelector('.pessoa-nome').value.trim();
+      const cpf = el.querySelector('.pessoa-cpf').value.trim();
+      if (nome && cpf) {
+        pessoas.push({ nome: nome, cpf: cpf });
+      }
+    });
+
+    // Monta o objeto pedido
     const pedido = {
       nome_empresa: document.getElementById("nome_empresa").value,
       cnpj_empresa: cnpj,
@@ -166,9 +259,8 @@
       data_inicio: document.getElementById("data_inicio").value,
       data_termino: document.getElementById("data_termino").value,
       horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
-   	  horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
+      horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
       num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
-      observacoes: "Nenhuma",
       embarcacoes: embarcacoes,
       veiculos: veiculos,
       equipamentos: equipamentos,
@@ -198,8 +290,36 @@
       console.error("Erro:", error);
     });
   }
+
+  // Função de validação de CNPJ (inalterada)
+  function validarCNPJ(cnpj) {
+    cnpj = cnpj.replace(/[^\d]+/g, "");
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1+$/.test(cnpj)) return false;
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0))) return false;
+    tamanho += 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1))) return false;
+    return true;
+  }
 </script>
 
 </body>
 </html>
-
