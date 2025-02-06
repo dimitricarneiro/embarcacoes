@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+	
+	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+	
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 20px;
         }
         .container {
@@ -40,9 +42,23 @@
         button:hover {
             background-color: #0056b3;
         }
+
     </style>
 </head>
 <body>
+
+<header class="br-header mb-4" id="header" data-sticky="data-sticky">
+<div class="container-lg">
+<div class="header-top">
+<div class="header-logo">
+<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+</div>
+
+</div>
+</div>
+</header>
+
+
     <div class="container">
         <h1>Login</h1>
         <form method="POST">

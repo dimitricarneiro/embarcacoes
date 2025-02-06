@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo</title>
+	
+	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+	
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
+        body { font-family: Arial, margin: 20px; }
         .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px;
                      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
         h1 { text-align: center; color: #333; }
@@ -84,9 +87,46 @@
     .notificacao-item:hover {
         background: #f5f5f5;
     }
+	    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .btn-logout {
+        text-decoration: none;
+        background-color: red;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    .btn-logout:hover {
+        background-color: darkred;
+    }
     </style>
 </head>
 <body>
+
+<header class="br-header mb-4" id="header" data-sticky="data-sticky">
+<div class="container-lg">
+<div class="header-top">
+<div class="header-logo">
+<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+</div>
+
+<div class="navbar">
+  <span>Bem-vindo, {{ current_user.username }}</span>
+  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+</div>
+
+</div>
+</div>
+</header>
 
     <div class="container">
 
@@ -159,9 +199,6 @@
 	<a href="/users/create">Criar novo usuário</a><br>
 	</div>
 
-    <div class="logout">
-        <a href="{{ url_for('auth.logout') }}">🚪 Sair</a>
-    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

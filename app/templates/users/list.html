@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Gerenciar Usuários</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
     <style>
         /* Estilize conforme desejar */
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
         .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
@@ -13,9 +14,29 @@
         a, button { text-decoration: none; padding: 5px 10px; border-radius: 5px; }
         a { background-color: #007bff; color: white; }
         button { background-color: red; color: white; border: none; cursor: pointer; }
+		.navbar { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; margin-bottom: 20px; }
+		.btn-logout { text-decoration: none; background-color: red; color: white; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
+		.btn-logout:hover { background-color: darkred; }
     </style>
 </head>
 <body>
+
+<header class="br-header mb-4" id="header" data-sticky="data-sticky">
+<div class="container-lg">
+<div class="header-top">
+<div class="header-logo">
+<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+</div>
+
+<div class="navbar">
+  <span>Bem-vindo, {{ current_user.username }}</span>
+  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+</div>
+
+</div>
+</div>
+</header>
+
     <div class="container">
         <h1>Lista de Usuários</h1>
         <a href="{{ url_for('users.create_user') }}">Criar Novo Usuário</a>
