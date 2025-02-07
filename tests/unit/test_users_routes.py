@@ -121,18 +121,3 @@ def teste_excluir_usuario_nao_admin(client):
     resposta = client.post("/users/delete/2")
     texto_resposta = resposta.get_data(as_text=True)
     assert resposta.status_code == 302
-
-#def teste_excluir_usuario_admin(client, app):
-#    login_admin(client)
-#    with app.app_context():
-#        from app.models import Usuario
-#        novo = Usuario(username="delete_me", role="comum")
-#        novo.set_password("temp")
-#        db = app.extensions["sqlalchemy"].db
-#        db.session.add(novo)
-#        db.session.commit()
-#        user_id = novo.id
-#    resposta = client.post(f"/users/delete/{user_id}", follow_redirects=True)
-#    assert resposta.status_code == 200
-#    texto_resposta = resposta.get_data(as_text=True)
-#    assert "excluído com sucesso" in texto_resposta.lower()

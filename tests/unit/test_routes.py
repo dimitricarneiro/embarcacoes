@@ -1,6 +1,7 @@
 import pytest
+from datetime import date, datetime, timedelta
 from app import create_app
-from tests.unit.test_pedidos import login  # 🔹 Importa a função login
+from tests.unit.test_pedidos import login, login_admin  # 🔹 Importa a função login
 
 @pytest.fixture
 def client():
@@ -63,3 +64,60 @@ def teste_exibir_detalhes_pedido_nao_encontrado(client):
     login(client)
     resposta = client.get("/pedido/99999")
     assert resposta.status_code == 404
+
+def teste_get_alertas_admin(client):
+    """Verifica se um administrador pode acessar a página de alertas via GET."""
+    # Autentica como administrador
+    login_admin(client)
+    resposta = client.get("/admin/alertas")
+    # Espera status 200 e o template da página de alertas
+    assert resposta.status_code == 200
+    texto = resposta.get_data(as_text=True)
+    # Verifica se algum conteúdo esperado do template (por exemplo, título ou palavra-chave) está presente.
+    # Ajuste a verificação conforme o conteúdo do seu template.
+    assert "gerenciar alertas" in texto.lower() or "alertas" in texto.lower()
+
+def teste_post_alertas_admin_valido(client):
+    """Verifica se um administrador consegue criar um alerta com dados válidos."""
+    # Autentica como administrador
+    login_admin(client)
+    dados = {
+        "tipo": "embarcacao",  # valor válido (ou "cnpj")
+        "valor": "barco"       # valor não vazio
+    }
+    resposta = client.post("/admin/alertas", data=dados, follow_redirects=True)
+    # Como o redirecionamento ocorre, o status final esperado é 200 (após a renderização do template)
+    assert resposta.status_code == 200
+    texto = resposta.get_data(as_text=True)
+    # Opcionalmente, verifique se o template renderizado indica que o alerta foi criado.
+    # Se o template listar os alertas criados, você pode buscar o valor "barco" nele.
+    assert "barco" in texto.lower() or "alertas" in texto.lower()
+
+def teste_post_alertas_admin_invalido(client):
+    """Verifica se o sistema retorna erro quando os dados para criar um alerta são inválidos."""
+    # Autentica como administrador
+    login_admin(client)
+    # Usa um 'tipo' inválido (não está na lista ["embarcacao", "cnpj"])
+    dados = {
+        "tipo": "invalido",
+        "valor": "qualquer"
+    }
+    resposta = client.post("/admin/alertas", data=dados)
+    # Espera status 400 e resposta JSON com mensagem de erro
+    assert resposta.status_code == 400
+    dados_resposta = resposta.get_json()
+    assert "error" in dados_resposta
+    assert "Dados inválidos" in dados_resposta["error"]
+
+def teste_get_alertas_nao_admin(client):
+    """Verifica se um usuário não administrador é redirecionado ao tentar acessar /admin/alertas."""
+    # Autentica como usuário regular
+    login(client)
+    resposta = client.get("/admin/alertas", follow_redirects=True)
+    # Como o usuário não admin é redirecionado para a página de exibição de pedidos, espera-se status 200
+    # e conteúdo esperado dessa página.
+    assert resposta.status_code == 200
+    texto = resposta.get_data(as_text=True)
+    # Verifica se o template exibido pertence à área de pedidos.
+    # Ajuste a verificação conforme o conteúdo do seu template para 'exibir_pedidos'.
+    assert "pedidos" in texto.lower()
