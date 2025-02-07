@@ -121,3 +121,20 @@ def teste_get_alertas_nao_admin(client):
     # Verifica se o template exibido pertence à área de pedidos.
     # Ajuste a verificação conforme o conteúdo do seu template para 'exibir_pedidos'.
     assert "pedidos" in texto.lower()
+
+def teste_exportar_csv_nao_admin(client):
+    """
+    Verifica que um usuário não administrador é redirecionado ao tentar acessar a rota de exportação de CSV.
+    """
+    # Autentica como usuário comum
+    login(client)
+    
+    # Faz a requisição à rota de exportação de CSV
+    resposta = client.get("/admin/exportar-csv", follow_redirects=True)
+    # Como o usuário não é admin, espera-se ser redirecionado para a página de exibição de pedidos.
+    # Como usamos follow_redirects=True, o status final provavelmente será 200,
+    # e o conteúdo renderizado deve conter elementos da página de pedidos.
+    assert resposta.status_code == 200
+    texto = resposta.get_data(as_text=True)
+    # Verifica que o texto da resposta contém alguma palavra que identifique a área de pedidos.
+    assert "pedidos" in texto.lower()
