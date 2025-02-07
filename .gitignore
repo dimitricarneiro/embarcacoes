@@ -12,3 +12,5 @@ database.db
 
 # Arquivos do PyCharm ou VS Code
 .idea/
+
+.tox
