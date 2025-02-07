@@ -103,18 +103,18 @@ def teste_acessar_editar_usuario_admin(client):
     texto_resposta = resposta.get_data(as_text=True)
     assert "editar" in texto_resposta.lower()
 
-#def teste_post_editar_usuario_admin(client):
-#    login_admin(client)
-#    resposta = client.post("/users/edit/2", data={
-#        "username": "user_updated",
-#        "nome_empresa": "Empresa Atualizada",
-#        "cnpj": "",
-#        "role": "comum",
-#        "password": "newpass"
-#    }, follow_redirects=True)
-#    assert resposta.status_code == 200
-#    texto_resposta = resposta.get_data(as_text=True)
-#    assert "atualizado com sucesso" in texto_resposta.lower()
+def teste_post_editar_usuario_admin(client):
+    login_admin(client)
+    resposta = client.post("/users/edit/3", data={
+        "username": "usuário atualizado",
+        "nome_empresa": "Empresa Atualizada",
+        "cnpj": "02.905.011/0001-46",
+        "role": "comum",
+        "password": "novasenha"
+    }, follow_redirects=True)
+    assert resposta.status_code == 200
+    texto_resposta = resposta.get_data(as_text=True)
+    assert "atualizado com sucesso" in texto_resposta.lower()
 
 def teste_excluir_usuario_nao_admin(client):
     login(client)
