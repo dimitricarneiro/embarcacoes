@@ -1,9 +1,13 @@
 # tests/conftest.py
 import os
+import sys
 import tempfile
 import pytest
 from app import create_app, db
 from app.models import Usuario
+
+# Insere o diretório raiz do projeto no sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 @pytest.fixture
 def app():

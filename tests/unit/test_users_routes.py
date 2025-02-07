@@ -64,6 +64,29 @@ def teste_post_criar_usuario_username_duplicado(client):
     texto_resposta = resposta.get_data(as_text=True)
     assert "usuário já existe" in texto_resposta.lower()
 
+def teste_criar_usuario_cnpj_invalido(client):
+
+    # Autentica como administrador para ter acesso à rota
+    login_admin(client)
+    
+    # Dados para criação de usuário com CNPJ inválido
+    dados = {
+        "username": "usuario_teste",
+        "password": "senha_teste",
+        "nome_empresa": "Empresa Teste",
+        "cnpj": "00000000000000",  # Supondo que este CNPJ seja inválido
+        "role": "comum"
+    }
+    
+    # Envia a requisição POST para /users/create
+    resposta = client.post("/users/create", data=dados, follow_redirects=True)
+    
+    # Verifica se a resposta foi redirecionada para a página de criação novamente
+    # e se a mensagem de erro foi exibida
+    assert resposta.status_code == 200
+    texto_resposta = resposta.get_data(as_text=True)
+    assert "CNPJ inválido. Por favor, verifique o valor informado." in texto_resposta
+
 def teste_acessar_editar_usuario_nao_admin(client):
     login(client)
     resposta = client.get("/users/edit/1", follow_redirects=True)
