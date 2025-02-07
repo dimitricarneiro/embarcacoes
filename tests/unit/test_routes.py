@@ -39,3 +39,27 @@ def test_acesso_com_login_formulario_pedido(client):
     assert "<form" in html_content  # Verifica se há um formulário na resposta HTML
     assert "Enviar Pedido de Autorização" in html_content  # Verifica se o botão está presente
 
+def teste_redirecionamento_home_sem_login(client):
+    resposta = client.get("/")
+    # Usuário não autenticado deve ser redirecionado para /auth/login
+    assert resposta.status_code == 302
+    assert "/auth/login" in resposta.location
+
+def teste_redirecionamento_home_com_login(client):
+    login(client)
+    resposta = client.get("/")
+    # Usuário autenticado deve ser redirecionado para /lista-pedidos
+    assert resposta.status_code == 302
+    assert "/lista-pedidos" in resposta.location
+
+def teste_exibir_lista_de_pedidos(client):
+    login(client)
+    resposta = client.get("/lista-pedidos")
+    assert resposta.status_code == 200
+    texto_resposta = resposta.get_data(as_text=True)
+    assert "<html" in texto_resposta.lower()
+
+def teste_exibir_detalhes_pedido_nao_encontrado(client):
+    login(client)
+    resposta = client.get("/pedido/99999")
+    assert resposta.status_code == 404
