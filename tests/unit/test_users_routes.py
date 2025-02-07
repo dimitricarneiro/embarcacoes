@@ -116,11 +116,11 @@ def teste_acessar_editar_usuario_admin(client):
 #    texto_resposta = resposta.get_data(as_text=True)
 #    assert "atualizado com sucesso" in texto_resposta.lower()
 
-#def teste_excluir_usuario_nao_admin(client):
-#    login(client)
-#    resposta = client.post("/users/delete/2", follow_redirects=True)
-#    texto_resposta = resposta.get_data(as_text=True)
-#    assert resposta.status_code == 302 or "acesso não autorizado" in texto_resposta.lower()
+def teste_excluir_usuario_nao_admin(client):
+    login(client)
+    resposta = client.post("/users/delete/2")
+    texto_resposta = resposta.get_data(as_text=True)
+    assert resposta.status_code == 302
 
 #def teste_excluir_usuario_admin(client, app):
 #    login_admin(client)
