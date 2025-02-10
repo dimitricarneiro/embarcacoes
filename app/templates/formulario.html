@@ -164,17 +164,17 @@
   let sessionTimeout;
   function iniciarMonitoramentoSessao() {
     setTimeout(() => { modal.style.display = "flex"; }, avisoExpiracao);
-    sessionTimeout = setTimeout(() => { window.location.href = "/auth/logout"; }, tempoExpiracao);
+    sessionTimeout = setTimeout(() => { window.location.href = "auth/logout"; }, tempoExpiracao);
   }
   function continuarSessao() {
     modal.style.display = "none";
     clearTimeout(sessionTimeout);
-    fetch("/auth/renovar-sessao", { method: "GET" })
+    fetch("auth/renovar-sessao", { method: "GET" })
       .then(response => console.log("Sessão renovada"))
       .catch(error => console.error("Erro ao renovar sessão", error));
     iniciarMonitoramentoSessao();
   }
-  function sairSessao() { window.location.href = "/auth/logout"; }
+  function sairSessao() { window.location.href = "auth/logout"; }
   document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 
   // Funções para adicionar novos blocos de inputs dinamicamente
@@ -281,7 +281,7 @@
       pessoas: pessoas
     };
 
-    fetch('/api/pedidos-autorizacao', {
+    fetch('api/pedidos-autorizacao', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedido)
