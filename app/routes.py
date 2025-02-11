@@ -29,6 +29,11 @@ from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj
 from app.models import Alerta
 
+# 🔹 Bibliotecas para Gerar Planilhas Excel
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+#Início de definição das rotas
 def verificar_alertas(novo_pedido):
     """
     Verifica se o novo pedido atende a algum alerta cadastrado e, se sim, cria notificações para os respectivos usuários RFB.
@@ -586,6 +591,116 @@ def exportar_pdf():
     buffer.seek(0)
 
     return send_file(buffer, as_attachment=True, download_name="relatorio_pedidos.pdf", mimetype="application/pdf")
+
+@pedidos_bp.route('/admin/exportar-excel')
+@login_required
+def exportar_excel():
+    """ 
+    Exporta os pedidos cadastrados como um arquivo Excel (.xlsx).
+    
+    O arquivo conterá duas planilhas:
+      1. 'Pedidos': Relação completa dos pedidos.
+      2. 'Sumário': Estatísticas gerais dos pedidos.
+    """
+    # Apenas usuários com role "RFB" podem acessar esta rota.
+    if current_user.role != "RFB":
+        return redirect(url_for("pedidos.exibir_pedidos"))
+
+    # Obter todos os pedidos
+    pedidos = PedidoAutorizacao.query.all()
+
+    # Calcular estatísticas
+    total_pedidos = len(pedidos)
+    pedidos_aprovados = len([p for p in pedidos if p.status == "aprovado"])
+    pedidos_rejeitados = len([p for p in pedidos if p.status == "rejeitado"])
+    pedidos_pendentes = len([p for p in pedidos if p.status == "pendente"])
+
+    # Criar um novo Workbook
+    wb = Workbook()
+
+    # --------------------------
+    # Planilha de Pedidos
+    # --------------------------
+    ws_pedidos = wb.active
+    ws_pedidos.title = "Pedidos"
+
+    # Cabeçalho da tabela
+    headers = ["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"]
+    ws_pedidos.append(headers)
+
+    # Estilizar o cabeçalho (fonte em negrito)
+    for col in range(1, len(headers) + 1):
+        ws_pedidos.cell(row=1, column=col).font = Font(bold=True)
+
+    # Preencher os dados de cada pedido
+    for pedido in pedidos:
+        # Formatar datas como "dd/mm/aaaa"
+        data_inicio = pedido.data_inicio.strftime("%d/%m/%Y") if pedido.data_inicio else ""
+        data_termino = pedido.data_termino.strftime("%d/%m/%Y") if pedido.data_termino else ""
+        ws_pedidos.append([
+            pedido.id,
+            pedido.empresa_responsavel,
+            pedido.cnpj_empresa,
+            pedido.motivo_solicitacao,
+            data_inicio,
+            data_termino,
+            pedido.status
+        ])
+
+    # Ajustar a largura das colunas para melhor visualização
+    for column_cells in ws_pedidos.columns:
+        max_length = 0
+        column = column_cells[0].column_letter  # Obter a letra da coluna
+        for cell in column_cells:
+            try:
+                cell_length = len(str(cell.value))
+                if cell_length > max_length:
+                    max_length = cell_length
+            except Exception:
+                pass
+        adjusted_width = max_length + 2
+        ws_pedidos.column_dimensions[column].width = adjusted_width
+
+    # --------------------------
+    # Planilha do Sumário Estatístico
+    # --------------------------
+    ws_sumario = wb.create_sheet(title="Sumário")
+    
+    # Título do sumário
+    ws_sumario["A1"] = "Sumário Estatístico"
+    ws_sumario["A1"].font = Font(bold=True, size=14)
+    
+    # Preencher estatísticas
+    ws_sumario["A3"] = "Total de Pedidos:"
+    ws_sumario["B3"] = total_pedidos
+
+    ws_sumario["A4"] = "Pedidos Aprovados:"
+    ws_sumario["B4"] = pedidos_aprovados
+
+    ws_sumario["A5"] = "Pedidos Rejeitados:"
+    ws_sumario["B5"] = pedidos_rejeitados
+
+    ws_sumario["A6"] = "Pedidos Pendentes:"
+    ws_sumario["B6"] = pedidos_pendentes
+
+    # Ajustar a largura das colunas do sumário
+    ws_sumario.column_dimensions["A"].width = 25
+    ws_sumario.column_dimensions["B"].width = 15
+
+    # --------------------------
+    # Salvar o Workbook em um objeto BytesIO
+    # --------------------------
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    # Retornar o arquivo para download
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="relatorio_pedidos.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 @pedidos_bp.route("/api/notificacoes", methods=["GET"])
 @limiter.limit("30 per minute")  # Permite 30 requisições por minuto só para essa rota

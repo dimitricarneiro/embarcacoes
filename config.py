@@ -27,10 +27,11 @@ class StagingConfig(Config):
 #    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(Config.BASE_DIR, 'instance', 'prod_database.db')}")
 
 class ProductionConfig(Config):
-    """Configuração para Produção utilizando SQL."""
+#    """Configuração para Produção utilizando SQL."""
     DEBUG = False
     # Exige que a variável de ambiente DATABASE_URL esteja definida.
-    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(Config.BASE_DIR, 'instance', 'prod_database.db')}")
+#    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
 
 config = {
     "development": DevelopmentConfig,
