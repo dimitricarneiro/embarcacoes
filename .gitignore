@@ -16,3 +16,4 @@ database.db
 .tox
 *pycache*
 embarcacoes_venv/*
+app/__pycache__/*
