@@ -164,7 +164,7 @@
     </div>
 
     <div class="back">
-        <a href="/lista-pedidos">⬅ Voltar à Lista</a>
+        <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
     </div>
 </div>
 
@@ -194,7 +194,7 @@
 
         // Expira a sessão após 30 minutos se o usuário não interagir
         sessionTimeout = setTimeout(() => {
-            window.location.href = "/auth/logout";
+            window.location.href = "auth/logout";
         }, tempoExpiracao);
     }
 
@@ -203,7 +203,7 @@
         clearTimeout(sessionTimeout); // Cancela o logout automático
 
         // Simula uma requisição ao servidor para renovar a sessão
-        fetch("/auth/renovar-sessao", { method: "GET" })
+        fetch("auth/renovar-sessao", { method: "GET" })
             .then(response => console.log("Sessão renovada"))
             .catch(error => console.error("Erro ao renovar sessão", error));
 
@@ -211,7 +211,7 @@
     }
 
     function sairSessao() {
-        window.location.href = "/auth/logout"; // Redireciona para logout
+        window.location.href = "auth/logout"; // Redireciona para logout
     }
 
     // Inicia o monitoramento quando a página carregar

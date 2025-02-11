@@ -36,7 +36,7 @@
     }
 .notificacoes-container {
     position: fixed; /* 🔹 Fixa o sino na tela */
-    top: 35px; /* 🔹 Ajusta a posição no topo */
+    top: 100px; /* 🔹 Ajusta a posição no topo */
     right: 80px; /* 🔹 Ajusta a posição à direita */
     z-index: 1000; /* 🔹 Garante que fique acima dos outros elementos */
 }
@@ -152,7 +152,7 @@
 	
         <h1>Painel Administrativo</h1>
 		
-		<div><h2><a href="/lista-pedidos">Ver lista de pedidos de autorização</a></h2></div>
+		<div><h2><a href="lista-pedidos">Ver lista de pedidos de autorização</a><br></h2></div>
 
         <div class="stats">
             <div class="card">
@@ -194,8 +194,8 @@
     </div>
 	
 	<div>
-	<a href="/users">Listar usuários</a><br>
-	<a href="/users/create">Criar novo usuário</a><br>
+	<a href="users">Listar usuários</a><br>
+	<a href="users/create">Criar novo usuário</a><br>
 	</div>
 
 </div>
@@ -286,7 +286,7 @@
 
 <script>
     function atualizarNotificacoes() {
-        fetch('/api/notificacoes')
+        fetch('api/notificacoes')
             .then(response => response.json())
             .then(data => {
                 let contador = document.getElementById("contador-notificacoes");
@@ -311,7 +311,7 @@
     }
 
     function carregarNotificacoes() {
-        fetch('/api/notificacoes')
+        fetch('api/notificacoes')
             .then(response => response.json())
             .then(data => {
                 let lista = document.getElementById("lista-notificacoes");
@@ -335,7 +335,7 @@
     }
 
     function marcarComoLida(notificacaoId) {
-        fetch(`/api/notificacoes/${notificacaoId}/marcar-lida`, { method: "PUT" })
+        fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, { method: "PUT" })
             .then(() => {
                 carregarNotificacoes();  // 🔹 Atualiza a lista de notificações
             })

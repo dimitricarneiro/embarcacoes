@@ -170,7 +170,7 @@
 
 <div class="container">
 
-<form action="/lista-pedidos" method="GET">
+<form action="lista-pedidos" method="GET">
     <input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
     <input type="text" name="cnpj_empresa" placeholder="CNPJ" value="{{ request.args.get('cnpj_empresa', '') }}">
 
@@ -188,11 +188,11 @@
     <input type="date" name="data_termino" placeholder="Data Término" value="{{ request.args.get('data_termino', '') }}">
 
     <button type="submit">Filtrar</button>
-    <a href="/lista-pedidos"><button type="button">Limpar Filtros</button></a>
+    <a href="lista-pedidos"><button type="button">Limpar Filtros</button></a>
 </form>
 
 {% if current_user.role == "comum" %}
-<h2><a href="/formulario-pedido">Cadastrar novo pedido de autorização</a></h2><br><br>
+<h2><a href="formulario-pedido">Cadastrar novo pedido de autorização</a></h2><br><br>
 {% endif %}
 
     <h1>Meus Pedidos de Autorização</h1>
@@ -240,7 +240,7 @@
         </td>
         {% endif %}
         <td>
-            <a class="btn-detalhes" href="/pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
+            <a class="btn-detalhes" href="pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
         </td>
     </tr>
     {% endfor %}
@@ -280,7 +280,7 @@
 function aprovarPedido(pedidoId) {
     const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
-    fetch(`/api/pedidos-autorizacao/${pedidoId}/aprovar`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}/aprovar`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -302,7 +302,7 @@ function aprovarPedido(pedidoId) {
 function rejeitarPedido(pedidoId) {
     const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
-    fetch(`/api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -337,7 +337,7 @@ function rejeitarPedido(pedidoId) {
 
         // Expira a sessão após 30 minutos se o usuário não interagir
         sessionTimeout = setTimeout(() => {
-            window.location.href = "/auth/logout";
+            window.location.href = "auth/logout";
         }, tempoExpiracao);
     }
 
@@ -346,7 +346,7 @@ function rejeitarPedido(pedidoId) {
         clearTimeout(sessionTimeout); // Cancela o logout automático
 
         // Simula uma requisição ao servidor para renovar a sessão
-        fetch("/auth/renovar-sessao", { method: "GET" })
+        fetch("auth/renovar-sessao", { method: "GET" })
             .then(response => console.log("Sessão renovada"))
             .catch(error => console.error("Erro ao renovar sessão", error));
 
@@ -354,7 +354,7 @@ function rejeitarPedido(pedidoId) {
     }
 
     function sairSessao() {
-        window.location.href = "/auth/logout"; // Redireciona para logout
+        window.location.href = "auth/logout"; // Redireciona para logout
     }
 
     // Inicia o monitoramento quando a página carregar
