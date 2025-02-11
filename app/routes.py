@@ -33,7 +33,50 @@ from app.models import Alerta
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-#Início de definição das rotas
+#Funções auxiliares
+def filtrar_pedidos():
+    """
+    Aplica os filtros enviados via query string e retorna a lista de pedidos filtrados.
+    """
+    query = PedidoAutorizacao.query
+
+    # Filtro: Nome da Empresa (busca parcial, sem case sensitive)
+    nome_empresa = request.args.get('nome_empresa')
+    if nome_empresa:
+        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
+
+    # Filtro: CNPJ (busca exata)
+    cnpj_empresa = request.args.get('cnpj_empresa')
+    if cnpj_empresa:
+        query = query.filter(PedidoAutorizacao.cnpj_empresa == cnpj_empresa)
+
+    # Filtro: Status
+    status = request.args.get('status')
+    if status:
+        query = query.filter(PedidoAutorizacao.status == status)
+
+    # Filtro: Data Início
+    data_inicio = request.args.get('data_inicio')
+    if data_inicio:
+        try:
+            data_inicio_date = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio_date)
+        except ValueError:
+            pass  # Se o formato da data for inválido, ignora o filtro
+
+    # Filtro: Data Término
+    data_termino = request.args.get('data_termino')
+    if data_termino:
+        try:
+            data_termino_date = datetime.strptime(data_termino, '%Y-%m-%d').date()
+            query = query.filter(PedidoAutorizacao.data_termino <= data_termino_date)
+        except ValueError:
+            pass
+
+    return query.all()
+
+
+######### Início de definição das rotas ##########################################################################
 def verificar_alertas(novo_pedido):
     """
     Verifica se o novo pedido atende a algum alerta cadastrado e, se sim, cria notificações para os respectivos usuários RFB.
@@ -505,7 +548,10 @@ def exportar_csv():
     if current_user.role != "RFB":
         return redirect(url_for("pedidos.exibir_pedidos"))
 
-    pedidos = PedidoAutorizacao.query.all()
+    #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
+    
+    # Utiliza os filtros para obter os pedidos
+    pedidos = filtrar_pedidos()
 
     # Criar resposta CSV
     response = Response()
@@ -530,7 +576,10 @@ def exportar_pdf():
     if current_user.role != "RFB":
         return redirect(url_for("pedidos.exibir_pedidos"))
 
-    pedidos = PedidoAutorizacao.query.all()
+    #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
+    
+    # Utiliza os filtros para obter os pedidos
+    pedidos = filtrar_pedidos()
 
     # 🔹 Estatísticas gerais
     total_pedidos = len(pedidos)
@@ -606,8 +655,10 @@ def exportar_excel():
     if current_user.role != "RFB":
         return redirect(url_for("pedidos.exibir_pedidos"))
 
-    # Obter todos os pedidos
-    pedidos = PedidoAutorizacao.query.all()
+    #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
+    
+    # Utiliza os filtros para obter os pedidos
+    pedidos = filtrar_pedidos()
 
     # Calcular estatísticas
     total_pedidos = len(pedidos)

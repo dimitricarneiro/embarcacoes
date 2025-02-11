@@ -196,6 +196,10 @@
 {% endif %}
 
     <h1>Meus Pedidos de Autorização</h1>
+	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a>
+	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a>
+	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a>
+
 
     <table>
         <thead>
