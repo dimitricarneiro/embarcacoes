@@ -15,3 +15,4 @@ database.db
 
 .tox
 *pycache*
+embarcacoes_venv/*
