@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Pedido</title>
+    <title>Detalhes da Autorização</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
   
@@ -132,7 +132,7 @@
 </div>
 
 <div class="navbar">
-  <span>Bem-vindo, {{ current_user.username }}</span>
+  <span>Olá, {{ current_user.username }} </span>
   <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
 </div>
 
@@ -141,17 +141,17 @@
 </header>
 
 <div class="container">
-    <h1>Detalhes do Pedido</h1>
+    <h1>Detalhes da Autorização</h1>
     
-    <div class="info"><strong>ID:</strong> {{ pedido.id }}</div>
+    <div class="info"><strong>ID do pedido:</strong> {{ pedido.id }}</div>
     <div class="info"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</div>
     <div class="info"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</div>
-    <div class="info"><strong>Endereço:</strong> {{ pedido.endereco_empresa }}</div>
     <div class="info"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</div>
-    <div class="info"><strong>Data Início:</strong> {{ pedido.data_inicio.strftime('%Y-%m-%d') }}</div>
-    <div class="info"><strong>Data Término:</strong> {{ pedido.data_termino.strftime('%Y-%m-%d') }}</div>
-    <div class="info"><strong>Horário:</strong> {{ pedido.horario_servico }}</div>
-    
+    <div class="info"><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%Y-%m-%d') }}</div>
+    <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%Y-%m-%d') }}</div>
+    <div class="info"><strong>Horário de início:</strong> {{ pedido.horario_inicio_servicos }}</div>
+	<div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
+  
     <div class="info">
         <strong>Status:</strong>
         {% if pedido.status == "pendente" %}

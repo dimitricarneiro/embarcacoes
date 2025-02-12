@@ -1,5 +1,5 @@
 # 🔹 Importações do Flask
-from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for
+from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for, make_response, flash
 from app import limiter
 
 # 🔹 Flask-Login (Autenticação)
@@ -10,6 +10,7 @@ from app import db
 from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento
 
 # 🔹 Utilitários
+import io
 from datetime import datetime
 import csv
 import re
@@ -32,6 +33,7 @@ from app.models import Alerta
 # 🔹 Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
 from openpyxl.styles import Font
+
 
 #Funções auxiliares
 def filtrar_pedidos():
@@ -75,8 +77,6 @@ def filtrar_pedidos():
 
     return query.all()
 
-
-######### Início de definição das rotas ##########################################################################
 def verificar_alertas(novo_pedido):
     """
     Verifica se o novo pedido atende a algum alerta cadastrado e, se sim, cria notificações para os respectivos usuários RFB.
@@ -105,6 +105,8 @@ def criar_notificacao(usuario_id, mensagem):
     db.session.add(nova_notificacao)
     db.session.commit()
 
+
+######### Início de definição das rotas ##########################################################################
 
 pedidos_bp = Blueprint('pedidos', __name__)
 
@@ -361,6 +363,100 @@ def gerenciar_pedidos():
             logging.exception("Erro ao recuperar pedidos de autorização:")
             return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
 
+@pedidos_bp.route('/pedido/<int:pedido_id>/editar', methods=['GET', 'POST'])
+@login_required
+def editar_pedido(pedido_id):
+    """
+    Rota para editar um pedido existente.
+    Somente o criador do pedido pode editá-lo e apenas se o status for 'pendente'.
+    """
+    # Recupera o pedido ou retorna 404 se não existir
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Verifica se o usuário atual é o criador do pedido
+    if pedido.usuario_id != current_user.id:
+        flash("Você não tem permissão para editar esse pedido.", "danger")
+        return redirect(url_for('pedidos.exibir_pedidos'))
+
+    # Permite a edição somente se o status for 'pendente'
+    if pedido.status != "pendente":
+        flash("Somente pedidos pendentes podem ser editados.", "warning")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    if request.method == 'POST':
+        # Obtém os dados do formulário
+        nome_empresa = request.form.get('nome_empresa')
+        cnpj_empresa = request.form.get('cnpj_empresa')
+        endereco_empresa = request.form.get('endereco_empresa')
+        motivo_solicitacao = request.form.get('motivo_solicitacao')
+        data_inicio_str = request.form.get('data_inicio')
+        data_termino_str = request.form.get('data_termino')
+
+        # Valida e converte as datas
+        try:
+            data_inicio = datetime.strptime(data_inicio_str, "%Y-%m-%d").date()
+            data_termino = datetime.strptime(data_termino_str, "%Y-%m-%d").date()
+        except ValueError:
+            flash("Formato de data inválido. Use 'YYYY-MM-DD'.", "danger")
+            return render_template('formulario.html', pedido=pedido)
+
+        # Atualiza os atributos do pedido
+        pedido.empresa_responsavel = nome_empresa
+        pedido.cnpj_empresa = cnpj_empresa
+        pedido.endereco_empresa = endereco_empresa
+        pedido.motivo_solicitacao = motivo_solicitacao
+        pedido.data_inicio = data_inicio
+        pedido.data_termino = data_termino
+
+        # Aqui você pode atualizar também outros campos ou relacionamentos, se necessário
+
+        # Comita as alterações no banco de dados
+        db.session.commit()
+        flash("Pedido atualizado com sucesso!", "success")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Se for GET, renderiza o formulário com os dados atuais do pedido
+    return render_template('formulario.html', pedido=pedido)
+
+@pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>', methods=['PUT'])
+@login_required
+def atualizar_pedido_api(pedido_id):
+    """Atualiza um pedido via API. Somente o criador e se o status for 'pendente'."""
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Verifica se o usuário atual é o criador do pedido
+    if pedido.usuario_id != current_user.id:
+        return jsonify({"error": "Você não tem permissão para editar esse pedido."}), 403
+
+    # Permite a edição somente se o status for 'pendente'
+    if pedido.status != "pendente":
+        return jsonify({"error": "Somente pedidos pendentes podem ser editados."}), 400
+
+    # Obtém os dados JSON enviados
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Nenhum dado enviado."}), 400
+
+    try:
+        pedido.empresa_responsavel = data.get("nome_empresa")
+        pedido.cnpj_empresa = data.get("cnpj_empresa")
+        pedido.endereco_empresa = data.get("endereco_empresa")
+        pedido.motivo_solicitacao = data.get("motivo_solicitacao")
+        pedido.data_inicio = datetime.strptime(data.get("data_inicio"), "%Y-%m-%d").date()
+        pedido.data_termino = datetime.strptime(data.get("data_termino"), "%Y-%m-%d").date()
+        # Aqui você pode atualizar outros campos e relacionamentos, se necessário
+
+        db.session.commit()
+        return jsonify({
+            "message": "Pedido atualizado com sucesso!",
+            "id_autorizacao": pedido.id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        # Log do erro (opcional)
+        return jsonify({"error": "Erro ao atualizar pedido."}), 500
+
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
 def exibir_pedidos():
@@ -375,7 +471,7 @@ def exibir_pedidos():
     # Novo filtro para o nome da embarcação:
     nome_embarcacao = request.args.get("nome_embarcacao", "").strip()
 
-    # Configuração da paginação (mantendo a lógica original)
+    # Configuração da paginação
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
 
@@ -543,28 +639,46 @@ def gerenciar_alertas():
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required
 def exportar_csv():
-    """ Exporta os pedidos como um arquivo CSV """
+    """Exporta os pedidos como um arquivo CSV."""
     
+    # Verifica se o usuário tem a permissão necessária
     if current_user.role != "RFB":
         return redirect(url_for("pedidos.exibir_pedidos"))
 
-    #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
-    
-    # Utiliza os filtros para obter os pedidos
+    # Obtém os pedidos utilizando os filtros
     pedidos = filtrar_pedidos()
 
-    # Criar resposta CSV
-    response = Response()
-    response.headers["Content-Disposition"] = "attachment; filename=relatorio_pedidos.csv"
-    response.headers["Content-Type"] = "text/csv"
+    # Cria um buffer em memória para armazenar o CSV
+    output = io.StringIO()
 
-    # Escrever dados no CSV
-    writer = csv.writer(response)
+    # Cria o writer para escrever no buffer
+    writer = csv.writer(output)
+    
+    # Escreve a linha de cabeçalho
     writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"])
     
+    # Escreve cada linha dos pedidos
     for pedido in pedidos:
-        writer.writerow([pedido.id, pedido.empresa_responsavel, pedido.cnpj_empresa, pedido.motivo_solicitacao,
-                         pedido.data_inicio, pedido.data_termino, pedido.status])
+        writer.writerow([
+            pedido.id,
+            pedido.empresa_responsavel,
+            pedido.cnpj_empresa,
+            pedido.motivo_solicitacao,
+            pedido.data_inicio,
+            pedido.data_termino,
+            pedido.status
+        ])
+    
+    # Obtém o conteúdo do CSV a partir do buffer
+    csv_content = output.getvalue()
+    
+    # Fecha o buffer (opcional, mas recomendado)
+    output.close()
+    
+    # Cria a resposta HTTP com o conteúdo do CSV
+    response = make_response(csv_content)
+    response.headers["Content-Disposition"] = "attachment; filename=relatorio_pedidos.csv"
+    response.headers["Content-Type"] = "text/csv"
     
     return response
 

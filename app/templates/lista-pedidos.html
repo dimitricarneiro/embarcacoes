@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meus Pedidos de Autorização</title>
+
+{% if current_user.role == "RFB" %}
+<title>Lista de Autorizações</title>
+{% else %}
+<title>Minhas Autorizações</title>
+{% endif %}
+
 	
 	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 	
@@ -160,8 +166,7 @@
 </div>
 
 <div class="navbar">
-  <span>Bem-vindo, {{ current_user.username }}</span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+  <span>Olá, {{ current_user.username }} </span><a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
 </div>
 
 </div>
@@ -171,10 +176,11 @@
 <div class="container">
 
 <form action="lista-pedidos" method="GET">
-    <input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
+{% if current_user.role == "RFB" %}    
+	<input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
     <input type="text" name="cnpj_empresa" placeholder="CNPJ" value="{{ request.args.get('cnpj_empresa', '') }}">
+{% endif %}
 
-    <!-- Novo campo para filtrar pelo nome da embarcação -->
     <input type="text" name="nome_embarcacao" placeholder="Nome da Embarcação" value="{{ request.args.get('nome_embarcacao', '') }}">
 
     <select name="status">
@@ -195,11 +201,17 @@
 <h2><a href="formulario-pedido">Cadastrar novo pedido de autorização</a></h2><br><br>
 {% endif %}
 
-    <h1>Meus Pedidos de Autorização</h1>
+{% if current_user.role == "RFB" %}
+<h1>Lista de Autorizações</h1>
+{% else %}
+<h1>Minhas Autorizações</h1>
+{% endif %}
+
+{% if current_user.role == "RFB" %}    
 	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a>
 	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a>
 	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a>
-
+{% endif %}
 
     <table>
         <thead>
@@ -228,9 +240,14 @@
         <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
         <td>
             {% if pedido.status == "pendente" %}
-                <span class="status status-pendente">Pendente ⏳</span>
+                <span class="status status-pendente">Pendente ⏳
+				{% if current_user.role != "RFB" and pedido.status == "pendente" %}
+					<a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
+				{% endif %}</span> 
+		
             {% elif pedido.status == "aprovado" %}
                 <span class="status status-aprovado">Aprovado ✅</span>
+				
             {% elif pedido.status == "rejeitado" %}
                 <span class="status status-rejeitado">Rejeitado ❌</span>
             {% endif %}

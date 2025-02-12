@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastrar Pedido de Autorização</title>
+  <title>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 
@@ -50,97 +50,132 @@
 <body>
 
 <header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
-
-<div class="navbar">
-  <span>Bem-vindo, {{ current_user.username }}</span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
-
-</div>
-</div>
+  <div class="container-lg">
+    <div class="header-top">
+      <div class="header-logo">
+        <img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+      </div>
+      <div class="navbar">
+        <span>Olá, {{ current_user.username }} </span>
+        <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+      </div>
+    </div>
+  </div>
 </header>
 
-
 <div class="container">
-  <h1>Cadastrar Pedido de Autorização</h1>
+  <h1>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</h1>
   <form id="pedido-form">
     <!-- Campos do pedido principal -->
     <label>Nome da Empresa:</label>
-    <input type="text" id="nome_empresa" value="{{ current_user.nome_empresa }}" required>
+    <input type="text" id="nome_empresa" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required>
 
     <label>CNPJ:</label>
-    <input type="text" id="cnpj_empresa" value="{{ current_user.cnpj }}" required>
+    <input type="text" id="cnpj_empresa" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required>
 
     <label>Endereço:</label>
-    <input type="text" id="endereco_empresa" value="Rua Teste" required>
+    <input type="text" id="endereco_empresa" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
 
     <label>Motivo:</label>
-    <input type="text" id="motivo_solicitacao" value="Inspeção de casco" required>
+    <input type="text" id="motivo_solicitacao" value="{{ pedido.motivo_solicitacao if pedido else 'Inspeção de casco' }}" required>
 
     <label>Data Início:</label>
-    <input type="date" id="data_inicio" required>
+    <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
 
     <label>Data Término:</label>
-    <input type="date" id="data_termino" required>
+    <input type="date" id="data_termino" value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}" required>
 
-    <label>Horário Início:</label>
-    <input type="text" id="horario_inicio_servicos" value="08:00" required>
+    <label>Horário de Início:</label>
+    <input type="text" id="horario_inicio_servicos" value="{{ pedido.horario_inicio_servicos if pedido else '08:00' }}" required>
 
-    <label>Horário Término:</label>
-    <input type="text" id="horario_termino_servicos" value="18:00" required>
+    <label>Horário de Término:</label>
+    <input type="text" id="horario_termino_servicos" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
 
     <label>Número do Certificado de Livre Prática:</label>
-    <input type="text" id="num_certificado_livre_pratica" value="12345" required>
+    <input type="text" id="num_certificado_livre_pratica" value="{{ pedido.num_certificado_livre_pratica if pedido else '12345' }}" required>
 
     <label>Embarcações (separadas por vírgula):</label>
-    <input type="text" id="embarcacoes" value="nenhuma">
+    <input type="text" id="embarcacoes" value="{{ pedido.embarcacoes|join(', ') if pedido and pedido.embarcacoes else 'nenhuma' }}" required>
 
     <!-- Seção para Veículos -->
     <label>Veículos:</label>
     <div id="veiculos-container">
-      <!-- Bloco de veículo inicial -->
-      <div class="bloco">
-        <label>Modelo do Veículo:</label>
-        <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
-        <label>Placa do Veículo:</label>
-        <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
-      </div>
+      {% if pedido and pedido.veiculos %}
+        {% for veiculo in pedido.veiculos %}
+          <div class="bloco">
+            <label>Modelo do Veículo:</label>
+            <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" value="{{ veiculo.modelo }}" required>
+            <label>Placa do Veículo:</label>
+            <input type="text" class="veiculo-placa" placeholder="Placa do veículo" value="{{ veiculo.placa }}" required>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="bloco">
+          <label>Modelo do Veículo:</label>
+          <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
+          <label>Placa do Veículo:</label>
+          <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
+        </div>
+      {% endif %}
     </div>
     <button type="button" class="btn-adicionar" onclick="adicionarVeiculo()">Adicionar mais veículos</button>
 
     <!-- Seção para Equipamentos -->
     <label>Equipamentos:</label>
     <div id="equipamentos-container">
-      <!-- Bloco de equipamento inicial -->
-      <div class="bloco">
-        <label>Descrição do Equipamento:</label>
-        <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
-        <label>Número de Série:</label>
-        <input type="text" class="equipamento-numero-serie" placeholder="Número de série do equipamento" required>
-        <label>Quantidade:</label>
-        <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
-      </div>
+      {% if pedido and pedido.equipamentos %}
+        {% for equipamento in pedido.equipamentos %}
+          <div class="bloco">
+            <label>Descrição do Equipamento:</label>
+            <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required>
+            <label>Número de Série:</label>
+            <input type="text" class="equipamento-numero-serie" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required>
+            <label>Quantidade:</label>
+            <input type="number" class="equipamento-quantidade" placeholder="Quantidade" value="{{ equipamento.quantidade if equipamento.quantidade else 1 }}" min="1" required>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="bloco">
+          <label>Descrição do Equipamento:</label>
+          <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
+          <label>Número de Série:</label>
+          <input type="text" class="equipamento-numero-serie" placeholder="Número de série" required>
+          <label>Quantidade:</label>
+          <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
+        </div>
+      {% endif %}
     </div>
     <button type="button" class="btn-adicionar" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
 
-    <!-- Seção para Pessoas (já implementada anteriormente) -->
+    <!-- Seção para Pessoas -->
     <label>Pessoas:</label>
     <div id="pessoas-container">
-      <div class="bloco">
-        <label>Nome da Pessoa:</label>
-        <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
-        <label>CPF:</label>
-        <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
-      </div>
+      {% if pedido and pedido.pessoas %}
+        {% for pessoa in pedido.pessoas %}
+          <div class="bloco">
+            <label>Nome da Pessoa:</label>
+            <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required>
+            <label>CPF:</label>
+            <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="bloco">
+          <label>Nome da Pessoa:</label>
+          <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
+          <label>CPF:</label>
+          <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+        </div>
+      {% endif %}
     </div>
     <button type="button" class="btn-adicionar" onclick="adicionarPessoa()">Adicionar mais pessoas</button>
 
-    <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
+    <!-- Botão final: se existir 'pedido' chama a função de atualização; caso contrário, envia um novo pedido -->
+    {% if pedido %}
+      <button type="button" onclick="atualizarPedido()">Atualizar Pedido</button>
+    {% else %}
+      <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
+    {% endif %}
   </form>
 
   <p id="mensagem"></p>
@@ -216,7 +251,7 @@
     document.getElementById("equipamentos-container").appendChild(novoEquipamento);
   }
 
-  // Função para enviar o pedido via fetch
+  // Função para enviar o pedido via fetch (criação)
   function enviarPedido() {
     const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
@@ -225,7 +260,7 @@
       return;
     }
 
-    // Coleta dos campos que são strings simples (separadas por vírgula, se necessário)
+    // Coleta dos campos simples (por exemplo, embarcações)
     const embarcacoes = document.getElementById("embarcacoes").value
       .split(",").map(item => item.trim()).filter(item => item !== "");
 
@@ -305,7 +340,105 @@
     });
   }
 
-  // Função de validação de CNPJ (inalterada)
+  // Função para atualizar o pedido via fetch (edição)
+function atualizarPedido() {
+  const cnpj = document.getElementById("cnpj_empresa").value;
+  if (!validarCNPJ(cnpj)) {
+    document.getElementById("mensagem").innerText = "CNPJ inválido!";
+    document.getElementById("mensagem").style.color = "red";
+    return;
+  }
+
+  // Coleta dos campos simples (por exemplo, embarcações)
+  const embarcacoes = document.getElementById("embarcacoes").value
+    .split(",").map(item => item.trim()).filter(item => item !== "");
+
+  // Coleta dos dados de veículos
+  const veiculos = [];
+  document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
+    const modelo = el.querySelector('.veiculo-modelo').value.trim();
+    const placa = el.querySelector('.veiculo-placa').value.trim();
+    if (modelo && placa) {
+      veiculos.push({ modelo: modelo, placa: placa });
+    }
+  });
+
+  // Coleta dos dados de equipamentos
+  const equipamentos = [];
+  document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
+    const descricao = el.querySelector('.equipamento-descricao').value.trim();
+    const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
+    const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+    if (descricao && numeroSerie && quantidade) {
+      equipamentos.push({
+        descricao: descricao,
+        numero_serie: numeroSerie,
+        quantidade: parseInt(quantidade)
+      });
+    }
+  });
+
+  // Coleta dos dados de pessoas
+  const pessoas = [];
+  document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
+    const nome = el.querySelector('.pessoa-nome').value.trim();
+    const cpf = el.querySelector('.pessoa-cpf').value.trim();
+    if (nome && cpf) {
+      pessoas.push({ nome: nome, cpf: cpf });
+    }
+  });
+
+  // Monta o objeto pedido
+  const pedido = {
+    nome_empresa: document.getElementById("nome_empresa").value,
+    cnpj_empresa: cnpj,
+    endereco_empresa: document.getElementById("endereco_empresa").value,
+    motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+    data_inicio: document.getElementById("data_inicio").value,
+    data_termino: document.getElementById("data_termino").value,
+    horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
+    horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
+    num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
+    embarcacoes: embarcacoes,
+    veiculos: veiculos,
+    equipamentos: equipamentos,
+    pessoas: pessoas
+  };
+
+  // Utiliza o ID do pedido passado no template (disponível se estivermos em modo edição)
+  const pedidoId = {{ pedido.id if pedido else 'null' }};
+  if (!pedidoId) {
+    document.getElementById("mensagem").innerText = "ID do pedido não encontrado para atualização.";
+    document.getElementById("mensagem").style.color = "red";
+    return;
+  }
+
+  // A URL começa com '/' para ser relativa à raiz
+  fetch(`/api/pedidos-autorizacao/${pedidoId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pedido)
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(errorData => {
+        throw new Error(errorData.error || 'Erro ao atualizar pedido.');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    document.getElementById("mensagem").innerText = `Pedido atualizado com sucesso! ID: ${data.id_autorizacao}`;
+    document.getElementById("mensagem").style.color = "green";
+  })
+  .catch(error => {
+    document.getElementById("mensagem").innerText = error.message;
+    document.getElementById("mensagem").style.color = "red";
+    console.error("Erro:", error);
+  });
+}
+
+  // Função de validação de CNPJ
   function validarCNPJ(cnpj) {
     cnpj = cnpj.replace(/[^\d]+/g, "");
     if (cnpj.length !== 14) return false;
