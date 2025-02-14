@@ -1,0 +1,34 @@
+<!-- templates/detalhes_exigencia.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalhes da Exigência</title>
+    <!-- Link para o CSS, se houver -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Detalhes da Exigência</h1>
+
+        <!-- Card com os detalhes da exigência -->
+        <div class="exigencia-card">
+            <!-- Exibe as observações (motivo da exigência) -->
+            <div class="exigencia-item">
+                <span class="label">Observações:</span>
+                <span class="value">{{ exigencia.motivo_exigencia }}</span>
+            </div>
+            <!-- Exibe o prazo definido para a exigência -->
+            <div class="exigencia-item">
+                <span class="label">Prazo:</span>
+                <span class="value">{{ exigencia.prazo_exigencia.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+
+        <!-- Botão para voltar para a lista de pedidos -->
+        <div class="acoes">
+            <a href="{{ url_for('pedidos.exibir_pedidos') }}" class="btn-voltar">Voltar para a lista de pedidos</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 # 🔹 Banco de Dados e Modelos
 from app import db
-from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento
+from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta
 
 # 🔹 Utilitários
 import io
@@ -28,14 +28,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj
-from app.models import Alerta
 
 # 🔹 Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
 
-#Funções auxiliares
+################Funções auxiliares
 def filtrar_pedidos():
     """
     Aplica os filtros enviados via query string e retorna a lista de pedidos filtrados.
@@ -160,6 +159,11 @@ def gerenciar_pedidos():
                 return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
             if data_termino < data_inicio:
                 return jsonify({"error": "A data de término deve ser maior ou igual à data de início."}), 400
+
+            # Validação da duração máxima do serviço: máximo 5 dias
+            duracao = (data_termino - data_inicio).days
+            if duracao > 5:
+                return jsonify({"error": "A duração máxima do serviço é de 5 dias."}), 400
 
             # Criação do novo pedido de autorização com os novos campos
             novo_pedido = PedidoAutorizacao(
@@ -401,6 +405,12 @@ def atualizar_pedido_api(pedido_id):
         pedido.motivo_solicitacao = data.get("motivo_solicitacao")
         pedido.data_inicio = datetime.strptime(data.get("data_inicio"), "%Y-%m-%d").date()
         pedido.data_termino = datetime.strptime(data.get("data_termino"), "%Y-%m-%d").date()
+
+        # Validação da duração máxima do serviço: máximo 5 dias
+        duracao = (pedido.data_termino - pedido.data_inicio).days
+        if duracao > 5:
+            return jsonify({"error": "A duração máxima do serviço é de 5 dias."}), 400
+
         pedido.horario_inicio_servicos = data.get("horario_inicio_servicos")
         pedido.horario_termino_servicos = data.get("horario_termino_servicos")
         pedido.certificado_livre_pratica = data.get("certificado_livre_pratica")
@@ -603,9 +613,78 @@ def rejeitar_pedido(pedido_id):
 
     return jsonify({"message": "Pedido rejeitado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
 
+@pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/exigir', methods=['POST'])
+@login_required
+def exigir_pedido(pedido_id):
+    """
+    Registra uma exigência para um pedido de autorização.
+    Apenas usuários com role "RFB" podem executar essa ação.
+    Ao fazer a exigência, é necessário informar:
+      - motivo_exigencia: o motivo da exigência;
+      - prazo_exigencia: prazo (no formato AAAA-MM-DD) para o cumprimento da exigência.
+    O status do pedido é atualizado para "exigência".
+    """
+    # 🔹 Verifica se o usuário tem permissão
+    if current_user.role != "RFB":
+        return jsonify({"error": "Acesso não autorizado"}), 403
+
+    # 🔹 Busca o pedido no banco
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # 🔹 Verifica se o pedido está no status pendente
+    if pedido.status != "pendente":
+        return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
+
+    # 🔹 Obtém os dados enviados no corpo da requisição (JSON)
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Dados inválidos"}), 400
+
+    motivo_exigencia = data.get('motivo_exigencia')
+    prazo_exigencia = data.get('prazo_exigencia')
+
+    # 🔹 Valida se os campos obrigatórios foram informados
+    if not motivo_exigencia or not prazo_exigencia:
+        return jsonify({"error": "Os campos 'motivo_exigencia' e 'prazo_exigencia' são obrigatórios."}), 400
+
+    # 🔹 Converte o prazo para o formato de data (AAAA-MM-DD)
+    try:
+        prazo_exigencia_date = datetime.strptime(prazo_exigencia, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({"error": "Formato de prazo_exigencia inválido. Utilize AAAA-MM-DD."}), 400
+
+    # 🔹 Cria o registro da exigência (assumindo que o model Exigencia foi criado)
+    exigencia = Exigencia(
+        pedido_id=pedido.id,
+        motivo_exigencia=motivo_exigencia,
+        prazo_exigencia=prazo_exigencia_date
+    )
+    db.session.add(exigencia)
+
+    # 🔹 Atualiza o status do pedido para "exigência"
+    pedido.status = "exigência"
+    db.session.commit()
+
+    return jsonify({
+        "message": "Exigência registrada com sucesso!",
+        "id_autorizacao": pedido.id,
+        "status": pedido.status
+    }), 200
+
+
+@pedidos_bp.route('/exigencia/<int:exigencia_id>')
+@login_required
+def detalhes_exigencia(exigencia_id):
+    exigencia = Exigencia.query.get_or_404(exigencia_id)
+
+    # Verifica se o usuário atual é 'RFB' ou se é o criador do pedido associado à exigência
+    if current_user.role != 'RFB' and exigencia.pedido.usuario_id != current_user.id:
+        return jsonify({"error": "Você não tem permissão para ver essa exigência."}), 403
+
+    return render_template('detalhes_exigencia.html', exigencia=exigencia)
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required  # 🔹 Apenas usuários logados podem acessar
 def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
     return render_template('formulario.html')

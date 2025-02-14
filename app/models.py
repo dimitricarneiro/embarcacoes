@@ -39,6 +39,7 @@ class Usuario(db.Model, UserMixin):
     nome_empresa = db.Column(db.String(255), nullable=True)  # campo para o nome da empresa
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False, default="comum")  # "comum" ou "RFB"
+    data_criacao_usuario = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def set_password(self, password):
         """Gera um hash seguro para a senha"""
@@ -144,3 +145,14 @@ class Alerta(db.Model):
     def __repr__(self):
         return f"<Alerta {self.id} - Tipo: {self.tipo} - Valor: {self.valor}>"
 
+class Exigencia(db.Model):
+    __tablename__ = 'exigencias'  # Opcional, mas recomendado para nomear a tabela
+    id = db.Column(db.Integer, primary_key=True)
+    # Altere 'pedido.id' para 'pedidos_autorizacao.id'
+    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos_autorizacao.id'), nullable=False)
+    motivo_exigencia = db.Column(db.Text, nullable=False)
+    prazo_exigencia = db.Column(db.Date, nullable=False)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Atualize o relacionamento para usar o nome correto do model
+    pedido = db.relationship('PedidoAutorizacao', backref=db.backref('exigencias', lazy=True))

@@ -59,6 +59,11 @@
 
 <div class="container">
   <h1>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</h1>
+  
+    <div class="back">
+        <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
+    </div>
+  
   <form id="pedido-form">
     <!-- Campos do pedido principal -->
     <label>Nome da Empresa:</label>
@@ -89,7 +94,7 @@
     <input type="text" id="certificado_livre_pratica" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
 
     <label>Cidade de Serviço:</label>
-    <input type="text" id="cidade_servico" value="{{ pedido.cidade_servico if pedido else '' }}" required>
+    <input type="text" id="cidade_servico" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required>
 
     <label>Observações:</label>
     <textarea id="observacoes" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
@@ -295,8 +300,31 @@
     document.getElementById("pessoas-container").appendChild(novaPessoa);
   }
 
+  // Função para calcular a diferença de dias entre duas datas
+  function calcularDiferencaEmDias(dataInicioStr, dataTerminoStr) {
+    const dataInicio = new Date(dataInicioStr);
+    const dataTermino = new Date(dataTerminoStr);
+    // Calcula a diferença em milissegundos e converte para dias
+    const diffMs = dataTermino - dataInicio;
+    const diffDias = diffMs / (1000 * 60 * 60 * 24);
+    return diffDias;
+  }
+
   // Função para enviar o pedido via fetch (criação)
   function enviarPedido() {
+    // Coleta as datas do formulário
+    const dataInicioStr = document.getElementById("data_inicio").value;
+    const dataTerminoStr = document.getElementById("data_termino").value;
+
+    // Valida se a diferença de dias não ultrapassa 5 dias
+    const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
+    if(diffDias > 5) {
+      document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
+      document.getElementById("mensagem").style.color = "red";
+      return; // Interrompe o envio do formulário
+    }
+
+    // Validação do CNPJ
     const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
       document.getElementById("mensagem").innerText = "CNPJ inválido!";
@@ -357,8 +385,8 @@
       cnpj_empresa: cnpj,
       endereco_empresa: document.getElementById("endereco_empresa").value,
       motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-      data_inicio: document.getElementById("data_inicio").value,
-      data_termino: document.getElementById("data_termino").value,
+      data_inicio: dataInicioStr,
+      data_termino: dataTerminoStr,
       horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
       horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
       certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
@@ -396,6 +424,19 @@
 
   // Função para atualizar o pedido via fetch (edição)
   function atualizarPedido() {
+    // Coleta as datas do formulário
+    const dataInicioStr = document.getElementById("data_inicio").value;
+    const dataTerminoStr = document.getElementById("data_termino").value;
+
+    // Valida se a diferença de dias não ultrapassa 5 dias
+    const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
+    if(diffDias > 5) {
+      document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
+      document.getElementById("mensagem").style.color = "red";
+      return; // Interrompe o envio do formulário
+    }
+
+    // Validação do CNPJ
     const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
       document.getElementById("mensagem").innerText = "CNPJ inválido!";
@@ -456,8 +497,8 @@
       cnpj_empresa: cnpj,
       endereco_empresa: document.getElementById("endereco_empresa").value,
       motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-      data_inicio: document.getElementById("data_inicio").value,
-      data_termino: document.getElementById("data_termino").value,
+      data_inicio: dataInicioStr,
+      data_termino: dataTerminoStr,
       horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
       horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
       certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
@@ -500,7 +541,7 @@
     });
   }
 
-  // Função de validação de CNPJ
+  // Função de validação de CNPJ (já existente)
   function validarCNPJ(cnpj) {
     cnpj = cnpj.replace(/[^\d]+/g, "");
     if (cnpj.length !== 14) return false;
