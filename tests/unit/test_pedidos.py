@@ -53,40 +53,48 @@ def test_criar_pedido_autorizacao_com_login(client):
     
     # JSON atualizado conforme o formato esperado pela rota
     novo_pedido = {
-        "nome_empresa": "Empresa XYZ",
-        "cnpj_empresa": "75.371.927/0001-37",
-        "endereco_empresa": "Rua Exemplo, 123",
-        "motivo_solicitacao": "Manutenção no motor",
-        "data_inicio": "2050-01-01",  # Data bem no futuro
-        "data_termino": "2050-01-10",
-        "horario_inicio_servicos": "08:00",
-        "horario_termino_servicos": "18:00",
-        "num_certificado_livre_pratica": "ABC123",
-        "observacoes": "Serviço sujeito a alteração",
-        "embarcacoes": ["Embarcação A"],
-        # Para equipamentos, envie uma lista de dicionários:
-        "equipamentos": [
-            {
-                "descricao": "Equipamento A",
-                "numero_serie": "SERIE123",
-                "quantidade": 1  # Alterado para 1 para não violar o UNIQUE
-            }
-        ],
-        # Para veículos, envie uma lista de dicionários com "modelo" e "placa":
-        "veiculos": [
-            {
-                "modelo": "Modelo A",
-                "placa": "ABC-1234"
-            }
-        ],
-        # Para pessoas, envie uma lista de dicionários com "nome" e "cpf":
-        "pessoas": [
-            {
-                "nome": "João Silva",
-                "cpf": "823.054.870-61"
-            }
-        ]
-    }
+    "nome_empresa": "Empresa XYZ",
+    "cnpj_empresa": "75.371.927/0001-37",
+    "endereco_empresa": "Rua Exemplo, 123",
+    "motivo_solicitacao": "Manutenção no motor",
+    "data_inicio": "2050-01-01",           # Data no futuro
+    "data_termino": "2050-01-06",          # Máximo 5 dias de duração
+    "horario_inicio_servicos": "08:00",
+    "horario_termino_servicos": "18:00",
+    "certificado_livre_pratica": "ABC123", # Campo ajustado
+    "cidade_servico": "Cidade Exemplo",    # Campo obrigatório
+    "observacoes": "Serviço sujeito a alteração",
+    # Embarcações: cada item é um dicionário com "nome", "imo" e "bandeira"
+    "embarcacoes": [
+        {
+            "nome": "Embarcação A",
+            "imo": "1234567",       # Pode ser vazio se permitido
+            "bandeira": "Bandeira A"  # Pode ser vazio se permitido
+        }
+    ],
+    # Equipamentos: lista de dicionários com "descricao", "numero_serie" e "quantidade"
+    "equipamentos": [
+        {
+            "descricao": "Equipamento A",
+            "numero_serie": "SERIE123",
+            "quantidade": 1
+        }
+    ],
+    # Pessoas: lista de dicionários com "nome" e "cpf" (o campo "isps" é opcional)
+    "pessoas": [
+        {
+            "nome": "João Silva",
+            "cpf": "823.054.870-61"
+        }
+    ],
+    # Veículos: opcional, mas se enviar, cada item deve ter "modelo" e "placa"
+    "veiculos": [
+        {
+            "modelo": "Modelo A",
+            "placa": "ABC-1234"
+        }
+    ]
+}
     
     # 🔹 Agora, faz a requisição para criar o pedido
     response = client.post("/api/pedidos-autorizacao", json=novo_pedido)
