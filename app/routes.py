@@ -33,6 +33,11 @@ from app.utils import validar_cnpj
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
+# 🔹 Bibliotecas para Gerar QRcode
+import uuid
+import qrcode
+import base64
+
 
 ################Funções auxiliares
 def filtrar_pedidos():
@@ -104,6 +109,23 @@ def criar_notificacao(usuario_id, mensagem):
     db.session.add(nova_notificacao)
     db.session.commit()
 
+def gerar_token():
+    # Pode ser um UUID ou um hash baseado em dados e uma secret key
+    return str(uuid.uuid4())
+
+def gerar_qr_code(token):
+    # Gera a URL para verificação usando url_for (assumindo que você tem a rota 'verificar_comprovante')
+    url = url_for('pedidos.verificar_comprovante', token=token, _external=True)
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill='black', back_color='white')
+
+    # Converter a imagem para base64 para exibir no template
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return img_str
 
 ######### Início de definição das rotas ##########################################################################
 
@@ -750,6 +772,34 @@ def gerenciar_alertas():
     # Para método GET, exibe os alertas já criados pelo usuário
     alertas = Alerta.query.filter_by(usuario_id=current_user.id).all()
     return render_template("gerenciar_alertas.html", alertas=alertas)
+
+@pedidos_bp.route('/comprovante/<int:pedido_id>')
+@login_required
+def gerar_comprovante(pedido_id):
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Verifica se o pedido foi aprovado e se o usuário tem permissão para visualizar o comprovante
+    if pedido.status != "aprovado" or pedido.usuario_id != current_user.id:
+        return jsonify({"error": "Você não tem permissão para visualizar este comprovante."}), 403
+
+    # Se ainda não existir um token, gere e salve
+    if not pedido.token_comprovante:
+        pedido.token_comprovante = gerar_token()
+        db.session.commit()
+
+    qr_code_base64 = gerar_qr_code(pedido.token_comprovante)
+
+    return render_template('comprovante.html', pedido=pedido, qr_code=qr_code_base64)
+
+@pedidos_bp.route('/verificar-comprovante/<string:token>')
+def verificar_comprovante(token):
+    # Procura um pedido com o token informado
+    pedido = PedidoAutorizacao.query.filter_by(token_comprovante=token, status="aprovado").first()
+    if not pedido:
+        return render_template('comprovante_invalido.html'), 404
+
+    # Se válido, exiba os dados do pedido
+    return render_template('detalhes_comprovante.html', pedido=pedido)
 
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required

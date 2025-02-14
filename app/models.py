@@ -68,6 +68,7 @@ class PedidoAutorizacao(db.Model):
     cidade_servico = db.Column(db.String(50), nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
     data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    token_comprovante = db.Column(db.String(100), nullable=True)
 
     # Relacionamento com o usuário que criou o pedido
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)

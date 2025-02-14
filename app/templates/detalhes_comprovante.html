@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalhes do Comprovante</title>
+  <!-- Você pode incluir seu CSS aqui -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; }
+    .detail { margin-bottom: 10px; }
+    .detail strong { display: inline-block; width: 200px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Detalhes do Comprovante</h1>
+    <div class="detail">
+      <strong>ID do Pedido:</strong> {{ pedido.id }}
+    </div>
+    <div class="detail">
+      <strong>Empresa Responsável:</strong> {{ pedido.empresa_responsavel }}
+    </div>
+    <div class="detail">
+      <strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}
+    </div>
+    <div class="detail">
+      <strong>Endereço:</strong> {{ pedido.endereco_empresa }}
+    </div>
+    <div class="detail">
+      <strong>Motivo da Solicitação:</strong> {{ pedido.motivo_solicitacao }}
+    </div>
+    <div class="detail">
+      <strong>Data de Início:</strong> {{ pedido.data_inicio.strftime('%d/%m/%Y') }}
+    </div>
+    <div class="detail">
+      <strong>Data de Término:</strong> {{ pedido.data_termino.strftime('%d/%m/%Y') }}
+    </div>
+    <div class="detail">
+      <strong>Horário de Início dos Serviços:</strong> {{ pedido.horario_inicio_servicos }}
+    </div>
+    <div class="detail">
+      <strong>Horário de Término dos Serviços:</strong> {{ pedido.horario_termino_servicos }}
+    </div>
+    <div class="detail">
+      <strong>Status:</strong> {{ pedido.status }}
+    </div>
+    <div class="detail">
+      <strong>Data de Criação do Pedido:</strong> {{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}
+    </div>
+    <!-- Exiba outros campos relevantes se necessário -->
+
+    <hr>
+    <p style="text-align: center;">Este comprovante confirma a autenticidade do pedido aprovado.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprovante de autorização</title>
+</head>
+<body>
+  <h1>Comprovante de autorizacao #{{ pedido.id }}</h1>
+  <p><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</p>
+  <!-- Outros dados relevantes -->
+  <h2>QR Code para Verificação</h2>
+  <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+  <p>Ao escanear este QR Code, você será direcionado para a página de verificação do comprovante.</p>
+  
+  <!-- Exibe a URL de verificação para acesso manual -->
+<div style="margin-top: 20px; text-align: center; font-size: 0.9em; color: #555;">
+  <p>URL para verificação: <br>
+    <code>{{ url_for('pedidos.verificar_comprovante', token=pedido.token_comprovante, _external=True) }}</code>
+  </p>
+  <p>Você pode copiar e colar essa URL no seu navegador para testar a autenticidade do comprovante.</p>
+</div>
+
+  
+</body>
+</html>

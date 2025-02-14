@@ -301,7 +301,8 @@
                         {% endif %}
                     </span>
                 {% elif pedido.status == "aprovado" %}
-                    <span class="status status-aprovado">Aprovado ✅</span>
+                    <span class="status status-aprovado">Aprovado ✅ <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>
+</span>
                 {% elif pedido.status == "rejeitado" %}
                     <span class="status status-rejeitado">Rejeitado ❌</span>
 				{% elif pedido.status == "exigência" %}
