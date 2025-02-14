@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</title>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-
   <style>
     /* Estilos gerais inalterados */
     .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
@@ -29,9 +27,7 @@
       border-radius: 5px;
       margin-bottom: 10px;
     }
-    .bloco label {
-      margin-top: 0;
-    }
+    .bloco label { margin-top: 0; }
     .btn-adicionar {
       width: auto;
       padding: 8px 12px;
@@ -42,9 +38,7 @@
       cursor: pointer;
       margin-bottom: 10px;
     }
-    .btn-adicionar:hover {
-      background-color: #218838;
-    }
+    .btn-adicionar:hover { background-color: #218838; }
   </style>
 </head>
 <body>
@@ -92,10 +86,40 @@
     <input type="text" id="horario_termino_servicos" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
 
     <label>Número do Certificado de Livre Prática:</label>
-    <input type="text" id="num_certificado_livre_pratica" value="{{ pedido.num_certificado_livre_pratica if pedido else '12345' }}" required>
+    <input type="text" id="certificado_livre_pratica" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
 
-    <label>Embarcações (separadas por vírgula):</label>
-    <input type="text" id="embarcacoes" value="{{ pedido.embarcacoes|join(', ') if pedido and pedido.embarcacoes else 'nenhuma' }}" required>
+    <label>Cidade de Serviço:</label>
+    <input type="text" id="cidade_servico" value="{{ pedido.cidade_servico if pedido else '' }}" required>
+
+    <label>Observações:</label>
+    <textarea id="observacoes" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
+
+    <!-- Seção para Embarcações -->
+    <label>Embarcações:</label>
+    <div id="embarcacoes-container">
+      {% if pedido and pedido.embarcacoes %}
+        {% for embarcacao in pedido.embarcacoes %}
+          <div class="bloco">
+            <label>Nome da Embarcação:</label>
+            <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required>
+            <label>IMO:</label>
+            <input type="text" class="embarcacao-imo" placeholder="Número IMO" value="{{ embarcacao.imo }}">
+            <label>Bandeira:</label>
+            <input type="text" class="embarcacao-bandeira" placeholder="Bandeira" value="{{ embarcacao.bandeira }}">
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="bloco">
+          <label>Nome da Embarcação:</label>
+          <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" required>
+          <label>IMO:</label>
+          <input type="text" class="embarcacao-imo" placeholder="Número IMO">
+          <label>Bandeira:</label>
+          <input type="text" class="embarcacao-bandeira" placeholder="Bandeira">
+        </div>
+      {% endif %}
+    </div>
+    <button type="button" class="btn-adicionar" onclick="adicionarEmbarcacao()">Adicionar mais embarcações</button>
 
     <!-- Seção para Veículos -->
     <label>Veículos:</label>
@@ -157,6 +181,8 @@
             <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required>
             <label>CPF:</label>
             <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
+            <label>ISPS:</label>
+            <input type="text" class="pessoa-isps" placeholder="ISPS" value="{{ pessoa.isps if pessoa.isps else '' }}">
           </div>
         {% endfor %}
       {% else %}
@@ -165,6 +191,8 @@
           <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
           <label>CPF:</label>
           <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+          <label>ISPS:</label>
+          <input type="text" class="pessoa-isps" placeholder="ISPS">
         </div>
       {% endif %}
     </div>
@@ -181,7 +209,7 @@
   <p id="mensagem"></p>
 </div>
 
-<!-- Modal de Expiração de Sessão (inalterado) -->
+<!-- Modal de Expiração de Sessão -->
 <div id="session-modal" class="modal">
   <div class="modal-content">
     <h2>Aviso de Sessão</h2>
@@ -192,7 +220,7 @@
 </div>
 
 <script>
-  // Monitoramento de sessão (código inalterado)
+  // Monitoramento de sessão
   let tempoExpiracao = 30 * 60 * 1000;
   let avisoExpiracao = 28 * 60 * 1000;
   let modal = document.getElementById("session-modal");
@@ -213,16 +241,18 @@
   document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 
   // Funções para adicionar novos blocos de inputs dinamicamente
-  function adicionarPessoa() {
-    const novaPessoa = document.createElement("div");
-    novaPessoa.className = "bloco";
-    novaPessoa.innerHTML = `
-      <label>Nome da Pessoa:</label>
-      <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
-      <label>CPF:</label>
-      <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+  function adicionarEmbarcacao() {
+    const novaEmbarcacao = document.createElement("div");
+    novaEmbarcacao.className = "bloco";
+    novaEmbarcacao.innerHTML = `
+      <label>Nome da Embarcação:</label>
+      <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" required>
+      <label>IMO:</label>
+      <input type="text" class="embarcacao-imo" placeholder="Número IMO">
+      <label>Bandeira:</label>
+      <input type="text" class="embarcacao-bandeira" placeholder="Bandeira">
     `;
-    document.getElementById("pessoas-container").appendChild(novaPessoa);
+    document.getElementById("embarcacoes-container").appendChild(novaEmbarcacao);
   }
 
   function adicionarVeiculo() {
@@ -251,6 +281,20 @@
     document.getElementById("equipamentos-container").appendChild(novoEquipamento);
   }
 
+  function adicionarPessoa() {
+    const novaPessoa = document.createElement("div");
+    novaPessoa.className = "bloco";
+    novaPessoa.innerHTML = `
+      <label>Nome da Pessoa:</label>
+      <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
+      <label>CPF:</label>
+      <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
+      <label>ISPS:</label>
+      <input type="text" class="pessoa-isps" placeholder="ISPS">
+    `;
+    document.getElementById("pessoas-container").appendChild(novaPessoa);
+  }
+
   // Função para enviar o pedido via fetch (criação)
   function enviarPedido() {
     const cnpj = document.getElementById("cnpj_empresa").value;
@@ -260,9 +304,16 @@
       return;
     }
 
-    // Coleta dos campos simples (por exemplo, embarcações)
-    const embarcacoes = document.getElementById("embarcacoes").value
-      .split(",").map(item => item.trim()).filter(item => item !== "");
+    // Coleta dos dados de embarcações
+    const embarcacoes = [];
+    document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
+      const nome = el.querySelector('.embarcacao-nome').value.trim();
+      const imo = el.querySelector('.embarcacao-imo').value.trim();
+      const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
+      if (nome) {
+        embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
+      }
+    });
 
     // Coleta dos dados de veículos
     const veiculos = [];
@@ -294,8 +345,9 @@
     document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
       const nome = el.querySelector('.pessoa-nome').value.trim();
       const cpf = el.querySelector('.pessoa-cpf').value.trim();
+      const isps = el.querySelector('.pessoa-isps').value.trim();
       if (nome && cpf) {
-        pessoas.push({ nome: nome, cpf: cpf });
+        pessoas.push({ nome: nome, cpf: cpf, isps: isps });
       }
     });
 
@@ -309,7 +361,9 @@
       data_termino: document.getElementById("data_termino").value,
       horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
       horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
-      num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
+      certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
+      cidade_servico: document.getElementById("cidade_servico").value,
+      observacoes: document.getElementById("observacoes").value,
       embarcacoes: embarcacoes,
       veiculos: veiculos,
       equipamentos: equipamentos,
@@ -341,102 +395,110 @@
   }
 
   // Função para atualizar o pedido via fetch (edição)
-function atualizarPedido() {
-  const cnpj = document.getElementById("cnpj_empresa").value;
-  if (!validarCNPJ(cnpj)) {
-    document.getElementById("mensagem").innerText = "CNPJ inválido!";
-    document.getElementById("mensagem").style.color = "red";
-    return;
+  function atualizarPedido() {
+    const cnpj = document.getElementById("cnpj_empresa").value;
+    if (!validarCNPJ(cnpj)) {
+      document.getElementById("mensagem").innerText = "CNPJ inválido!";
+      document.getElementById("mensagem").style.color = "red";
+      return;
+    }
+
+    // Coleta dos dados de embarcações
+    const embarcacoes = [];
+    document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
+      const nome = el.querySelector('.embarcacao-nome').value.trim();
+      const imo = el.querySelector('.embarcacao-imo').value.trim();
+      const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
+      if (nome) {
+        embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
+      }
+    });
+
+    // Coleta dos dados de veículos
+    const veiculos = [];
+    document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
+      const modelo = el.querySelector('.veiculo-modelo').value.trim();
+      const placa = el.querySelector('.veiculo-placa').value.trim();
+      if (modelo && placa) {
+        veiculos.push({ modelo: modelo, placa: placa });
+      }
+    });
+
+    // Coleta dos dados de equipamentos
+    const equipamentos = [];
+    document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
+      const descricao = el.querySelector('.equipamento-descricao').value.trim();
+      const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
+      const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+      if (descricao && numeroSerie && quantidade) {
+        equipamentos.push({
+          descricao: descricao,
+          numero_serie: numeroSerie,
+          quantidade: parseInt(quantidade)
+        });
+      }
+    });
+
+    // Coleta dos dados de pessoas
+    const pessoas = [];
+    document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
+      const nome = el.querySelector('.pessoa-nome').value.trim();
+      const cpf = el.querySelector('.pessoa-cpf').value.trim();
+      const isps = el.querySelector('.pessoa-isps').value.trim();
+      if (nome && cpf) {
+        pessoas.push({ nome: nome, cpf: cpf, isps: isps });
+      }
+    });
+
+    // Monta o objeto pedido
+    const pedido = {
+      nome_empresa: document.getElementById("nome_empresa").value,
+      cnpj_empresa: cnpj,
+      endereco_empresa: document.getElementById("endereco_empresa").value,
+      motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+      data_inicio: document.getElementById("data_inicio").value,
+      data_termino: document.getElementById("data_termino").value,
+      horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
+      horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
+      certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
+      cidade_servico: document.getElementById("cidade_servico").value,
+      observacoes: document.getElementById("observacoes").value,
+      embarcacoes: embarcacoes,
+      veiculos: veiculos,
+      equipamentos: equipamentos,
+      pessoas: pessoas
+    };
+
+    const pedidoId = {{ pedido.id if pedido else 'null' }};
+    if (!pedidoId) {
+      document.getElementById("mensagem").innerText = "ID do pedido não encontrado para atualização.";
+      document.getElementById("mensagem").style.color = "red";
+      return;
+    }
+
+    fetch(`/api/pedidos-autorizacao/${pedidoId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedido)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Erro ao atualizar pedido.');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      document.getElementById("mensagem").innerText = `Pedido atualizado com sucesso! ID: ${data.id_autorizacao}`;
+      document.getElementById("mensagem").style.color = "green";
+    })
+    .catch(error => {
+      document.getElementById("mensagem").innerText = error.message;
+      document.getElementById("mensagem").style.color = "red";
+      console.error("Erro:", error);
+    });
   }
-
-  // Coleta dos campos simples (por exemplo, embarcações)
-  const embarcacoes = document.getElementById("embarcacoes").value
-    .split(",").map(item => item.trim()).filter(item => item !== "");
-
-  // Coleta dos dados de veículos
-  const veiculos = [];
-  document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
-    const modelo = el.querySelector('.veiculo-modelo').value.trim();
-    const placa = el.querySelector('.veiculo-placa').value.trim();
-    if (modelo && placa) {
-      veiculos.push({ modelo: modelo, placa: placa });
-    }
-  });
-
-  // Coleta dos dados de equipamentos
-  const equipamentos = [];
-  document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
-    const descricao = el.querySelector('.equipamento-descricao').value.trim();
-    const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
-    const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
-    if (descricao && numeroSerie && quantidade) {
-      equipamentos.push({
-        descricao: descricao,
-        numero_serie: numeroSerie,
-        quantidade: parseInt(quantidade)
-      });
-    }
-  });
-
-  // Coleta dos dados de pessoas
-  const pessoas = [];
-  document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
-    const nome = el.querySelector('.pessoa-nome').value.trim();
-    const cpf = el.querySelector('.pessoa-cpf').value.trim();
-    if (nome && cpf) {
-      pessoas.push({ nome: nome, cpf: cpf });
-    }
-  });
-
-  // Monta o objeto pedido
-  const pedido = {
-    nome_empresa: document.getElementById("nome_empresa").value,
-    cnpj_empresa: cnpj,
-    endereco_empresa: document.getElementById("endereco_empresa").value,
-    motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-    data_inicio: document.getElementById("data_inicio").value,
-    data_termino: document.getElementById("data_termino").value,
-    horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
-    horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
-    num_certificado_livre_pratica: document.getElementById("num_certificado_livre_pratica").value,
-    embarcacoes: embarcacoes,
-    veiculos: veiculos,
-    equipamentos: equipamentos,
-    pessoas: pessoas
-  };
-
-  // Utiliza o ID do pedido passado no template (disponível se estivermos em modo edição)
-  const pedidoId = {{ pedido.id if pedido else 'null' }};
-  if (!pedidoId) {
-    document.getElementById("mensagem").innerText = "ID do pedido não encontrado para atualização.";
-    document.getElementById("mensagem").style.color = "red";
-    return;
-  }
-
-  // A URL começa com '/' para ser relativa à raiz
-  fetch(`/api/pedidos-autorizacao/${pedidoId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(pedido)
-  })
-  .then(response => {
-    if (!response.ok) {
-      return response.json().then(errorData => {
-        throw new Error(errorData.error || 'Erro ao atualizar pedido.');
-      });
-    }
-    return response.json();
-  })
-  .then(data => {
-    document.getElementById("mensagem").innerText = `Pedido atualizado com sucesso! ID: ${data.id_autorizacao}`;
-    document.getElementById("mensagem").style.color = "green";
-  })
-  .catch(error => {
-    document.getElementById("mensagem").innerText = error.message;
-    document.getElementById("mensagem").style.color = "red";
-    console.error("Erro:", error);
-  });
-}
 
   // Função de validação de CNPJ
   function validarCNPJ(cnpj) {

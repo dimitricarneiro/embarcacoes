@@ -5,25 +5,29 @@ from datetime import datetime
 
 # Tabelas de associação para os relacionamentos muitos-para-muitos
 pedido_embarcacao = db.Table('pedido_embarcacao',
-    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-    db.Column('embarcacao_id', db.Integer, db.ForeignKey('embarcacoes.id'), primary_key=True)
-)
+                             db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'),
+                                       primary_key=True),
+                             db.Column('embarcacao_id', db.Integer, db.ForeignKey('embarcacoes.id'), primary_key=True)
+                             )
 
 pedido_veiculo = db.Table('pedido_veiculo',
-    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-    db.Column('veiculo_id', db.Integer, db.ForeignKey('veiculos.id'), primary_key=True)
-)
+                          db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+                          db.Column('veiculo_id', db.Integer, db.ForeignKey('veiculos.id'), primary_key=True)
+                          )
 
 pedido_pessoa = db.Table('pedido_pessoa',
-    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-    db.Column('pessoa_id', db.Integer, db.ForeignKey('pessoas.id'), primary_key=True)
-)
+                         db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+                         db.Column('pessoa_id', db.Integer, db.ForeignKey('pessoas.id'), primary_key=True)
+                         )
 
 # Tabela de associação para Equipamentos (novo)
 pedido_equipamento = db.Table('pedido_equipamento',
-    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
-)
+                              db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'),
+                                        primary_key=True),
+                              db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamentos.id'),
+                                        primary_key=True)
+                              )
+
 
 # Modelo de Usuário
 class Usuario(db.Model, UserMixin):
@@ -31,8 +35,8 @@ class Usuario(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    cnpj = db.Column(db.String(20), unique=True, nullable=True)         # Novo campo para o CNPJ
-    nome_empresa = db.Column(db.String(255), nullable=True)  # Novo campo para o nome da empresa
+    cnpj = db.Column(db.String(20), unique=True, nullable=True)  # campo para o CNPJ
+    nome_empresa = db.Column(db.String(255), nullable=True)  # campo para o nome da empresa
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False, default="comum")  # "comum" ou "RFB"
 
@@ -43,6 +47,7 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         """Verifica se a senha informada está correta"""
         return check_password_hash(self.password_hash, password)
+
 
 # Modelo de Pedido de Autorização
 class PedidoAutorizacao(db.Model):
@@ -58,11 +63,15 @@ class PedidoAutorizacao(db.Model):
     horario_inicio_servicos = db.Column(db.String(20), nullable=False)
     horario_termino_servicos = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default="pendente", nullable=False)
-    
+    certificado_livre_pratica = db.Column(db.String(8), nullable=True)
+    cidade_servico = db.Column(db.String(50), nullable=True)
+    observacoes = db.Column(db.Text, nullable=True)
+    data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
     # Relacionamento com o usuário que criou o pedido
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
     usuario = db.relationship("Usuario", backref="pedidos")
-    
+
     # Relacionamentos muitos-para-muitos
     embarcacoes = db.relationship("Embarcacao", secondary=pedido_embarcacao, backref="pedidos")
     veiculos = db.relationship("Veiculo", secondary=pedido_veiculo, backref="pedidos")
@@ -74,7 +83,10 @@ class Embarcacao(db.Model):
     __tablename__ = 'embarcacoes'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(255), nullable=False)
+    imo = db.Column(db.String(10), nullable=True)
+    bandeira = db.Column(db.String(50), nullable=True)
     # Outros campos relevantes da embarcação podem ser adicionados aqui.
+
 
 # Modelo para Pessoas
 class Pessoa(db.Model):
@@ -82,7 +94,9 @@ class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(255), nullable=False)
     cpf = db.Column(db.String(14), nullable=False)
+    isps = db.Column(db.String(8), nullable=True)
     # Outros campos, se necessário
+
 
 # Modelo para Veículos
 class Veiculo(db.Model):
@@ -92,6 +106,7 @@ class Veiculo(db.Model):
     placa = db.Column(db.String(20), nullable=False)
     # Outros campos, se necessário
 
+
 # Modelo para Equipamentos
 class Equipamento(db.Model):
     __tablename__ = 'equipamentos'
@@ -99,6 +114,7 @@ class Equipamento(db.Model):
     descricao = db.Column(db.String(255), nullable=False)
     numero_serie = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False, default=1)  # novo campo para quantidade
+
 
 # Modelo para Notificações
 class Notificacao(db.Model):
@@ -109,8 +125,10 @@ class Notificacao(db.Model):
     lida = db.Column(db.Boolean, default=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     usuario = db.relationship("Usuario", backref=db.backref("notificacoes", lazy=True))
+
     def __repr__(self):
         return f"<Notificacao {self.id} - Usuário: {self.usuario_id} - {self.mensagem}>"
+
 
 class Alerta(db.Model):
     __tablename__ = 'alertas'
@@ -125,3 +143,4 @@ class Alerta(db.Model):
 
     def __repr__(self):
         return f"<Alerta {self.id} - Tipo: {self.tipo} - Valor: {self.valor}>"
+

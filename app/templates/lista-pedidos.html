@@ -31,20 +31,29 @@
         border-radius: 10px;
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-    }
-    th {
-        background-color: #007bff;
-        color: white;
-    }
+.pedidos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.pedido-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 4px;
+    flex: 1 1 300px; /* permite que o card se expanda e encolha */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.pedido-item {
+    margin-bottom: 0.5rem;
+}
+.pedido-item .label {
+    font-weight: bold;
+}
+.actions button {
+    margin-right: 0.5rem;
+}
+
     .status {
         font-weight: bold;
         padding: 5px 10px;
@@ -213,61 +222,71 @@
 	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a>
 {% endif %}
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Empresa</th>
-                <th>CNPJ</th>
-                <th>Motivo</th>
-                <th>Data Início</th>
-                <th>Data Término</th>
-                <th>Status</th>
-                {% if current_user.role == "RFB" %}
-				<th>Ações</th>
-				{% endif %}
-                <th>Detalhes</th>
-            </tr>
-        </thead>
-<tbody>
+<!-- Container principal dos pedidos -->
+<div class="pedidos-container">
     {% for pedido in pedidos.items %}
-    <tr>
-        <td>{{ pedido.id }}</td>
-        <td>{{ pedido.empresa_responsavel }}</td>
-        <td>{{ pedido.cnpj_empresa }}</td>
-        <td>{{ pedido.motivo_solicitacao }}</td>
-        <td>{{ pedido.data_inicio.strftime('%Y-%m-%d') }}</td>
-        <td>{{ pedido.data_termino.strftime('%Y-%m-%d') }}</td>
-        <td>
-            {% if pedido.status == "pendente" %}
-                <span class="status status-pendente">Pendente ⏳
-				{% if current_user.role != "RFB" and pedido.status == "pendente" %}
-					<a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
-				{% endif %}</span> 
+    <!-- Card de cada pedido -->
+    <div class="pedido-card">
+        <div class="pedido-item">
+            <span class="label">Identificação do pedido:</span>
+            <span class="value">{{ pedido.id }}</span>
+        </div>
+        <div class="pedido-item">
+            <span class="label">Empresa:</span> <span class="value">{{ pedido.empresa_responsavel }}, </span>
+			<span class="label">CNPJ:</span> <span class="value">{{ pedido.cnpj_empresa }}</span>
+        </div>
+
+        <div class="pedido-item">
+            <span class="label">Motivo:</span>
+            <span class="value">{{ pedido.motivo_solicitacao }}</span>
+        </div>
+        <div class="pedido-item">
+            <span class="label">Data de abertura da Solicitação:</span>
+            <span class="value">{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
+        </div>
+        <div class="pedido-item">
+            <span class="label">Data Início Serviço:</span>
+            <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}, </span>
+			<span class="label">Data Término Serviço:</span>
+            <span class="value">{{ pedido.data_termino.strftime('%d/%m/%Y') }}</span>
+        </div>
 		
-            {% elif pedido.status == "aprovado" %}
-                <span class="status status-aprovado">Aprovado ✅</span>
-				
-            {% elif pedido.status == "rejeitado" %}
-                <span class="status status-rejeitado">Rejeitado ❌</span>
-            {% endif %}
-        </td>
+        <div class="pedido-item">
+            <span class="label">Certificado de Livre Prática:</span>
+            <span class="value">{{ pedido.certificado_livre_pratica }}</span>
+        </div>		
+		
+        <div class="pedido-item">
+            <span class="label">Status:</span>
+            <span class="value">
+                {% if pedido.status == "pendente" %}
+                    <span class="status status-pendente">
+                        Pendente ⏳
+                        {% if current_user.role != "RFB" %}
+                            <a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
+                        {% endif %}
+                    </span>
+                {% elif pedido.status == "aprovado" %}
+                    <span class="status status-aprovado">Aprovado ✅</span>
+                {% elif pedido.status == "rejeitado" %}
+                    <span class="status status-rejeitado">Rejeitado ❌</span>
+                {% endif %}
+            </span>
+        </div>
         {% if current_user.role == "RFB" %}
-        <td class="actions">
+        <div class="pedido-item actions">
             {% if pedido.status == "pendente" %}
                 <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
                 <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
             {% endif %}
-        </td>
+        </div>
         {% endif %}
-        <td>
-            <a class="btn-detalhes" href="pedido/{{ pedido.id }}">🔍 Ver Detalhes</a>
-        </td>
-    </tr>
+        <div class="pedido-item">
+            <a class="btn-detalhes" href="pedido/{{ pedido.id }}">🔍 Ver mais detalhes</a>
+        </div>
+    </div>
     {% endfor %}
-</tbody>
-
-    </table>
+</div>
 
     <div class="pagination">
         {% if pedidos.has_prev %}
@@ -284,6 +303,11 @@
             <a class="disabled">Próxima ⏩</a>
         {% endif %}
     </div>
+
+        {% if current_user.role == "RFB" %}
+			<div><a href="{{ url_for('pedidos.admin_dashboard') }}">⬅ Voltar para o painel de administração</a></div>
+		{% endif %}	
+	
 </div>
 
 <!-- Modal de Expiração de Sessão -->
