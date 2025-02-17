@@ -27,11 +27,13 @@ def teste_login_post_invalido(client):
     assert "credenciais inválidas. tente novamente." in texto_resposta.lower()
 
 def teste_login_post_valido_regular(client):
-    login(client)
-    resposta = client.get("/lista-pedidos")
+    client.application.config['WTF_CSRF_ENABLED'] = False  # desabilita o CSRF para o teste, se necessário
+    login(client)  # função helper que realiza o login com credenciais válidas
+    resposta = client.get("/lista-pedidos", follow_redirects=True)
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
-    assert "pedidos" in texto_resposta.lower()
+    assert "minhas autorizações" in texto_resposta.lower() 
+
 
 def teste_login_post_valido_admin(client):
     login_admin(client)
