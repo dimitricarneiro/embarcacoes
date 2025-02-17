@@ -75,8 +75,18 @@
     <label>Endereço:</label>
     <input type="text" id="endereco_empresa" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
 
-    <label>Motivo:</label>
-    <input type="text" id="motivo_solicitacao" value="{{ pedido.motivo_solicitacao if pedido else 'Inspeção de casco' }}" required>
+	<label>Motivo:</label>
+	<select id="motivo_solicitacao" required>
+  <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
+  <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
+  <option value="Inspeção de hélice" {% if pedido and pedido.motivo_solicitacao == "Inspeção de hélice" %}selected{% endif %}>Inspeção de hélice</option>
+  <option value="Inspeção subaquática" {% if pedido and pedido.motivo_solicitacao == "Inspeção subaquática" %}selected{% endif %}>Inspeção subaquática</option>
+  <option value="Limpeza de casco" {% if pedido and pedido.motivo_solicitacao == "Limpeza de casco" %}selected{% endif %}>Limpeza de casco</option>
+  <option value="Limpeza de porão" {% if pedido and pedido.motivo_solicitacao == "Limpeza de porão" %}selected{% endif %}>Limpeza de porão</option>
+  <option value="Ressuprimento de bordo" {% if pedido and pedido.motivo_solicitacao == "Ressuprimento de bordo" %}selected{% endif %}>Ressuprimento de bordo</option>
+  <option value="Atendimento Médico" {% if pedido and pedido.motivo_solicitacao == "Atendimento Médico" %}selected{% endif %}>Atendimento Médico</option>
+  <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
+	</select>
 
     <label>Data Início:</label>
     <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>

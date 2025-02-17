@@ -49,7 +49,20 @@ class PedidoForm(FlaskForm):
     nome_empresa = StringField("Nome da Empresa", validators=[DataRequired()])
     cnpj_empresa = StringField("CNPJ", validators=[DataRequired()])
     endereco_empresa = StringField("Endereço", validators=[DataRequired()])
-    motivo_solicitacao = StringField("Motivo", validators=[DataRequired()])
+    motivo_solicitacao = SelectField("Motivo", 
+                                     choices=[
+                                         ("Inspeção de porão", "Inspeção de porão"),
+                                         ("Inspeção de casco", "Inspeção de casco"),
+                                         ("Inspeção de hélice", "Inspeção de hélice"),
+                                         ("Inspeção subaquática", "Inspeção subaquática"),
+                                         ("Limpeza de casco", "Limpeza de casco"),
+                                         ("Limpeza de porão", "Limpeza de porão"),
+                                         ("Ressuprimento de bordo", "Ressuprimento de bordo"),
+                                         ("Atendimento Médico", "Atendimento Médico"),
+                                         ("Outros", "Outros")
+                                     ], 
+                                     validators=[DataRequired()],
+                                     default="Inspeção de casco")
     data_inicio = DateField("Data Início", validators=[DataRequired()], format='%Y-%m-%d')
     data_termino = DateField("Data Término", validators=[DataRequired()], format='%Y-%m-%d')
     horario_inicio_servicos = StringField("Horário de Início", validators=[DataRequired()])
