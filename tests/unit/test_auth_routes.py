@@ -16,10 +16,15 @@ def teste_acesso_login_get(client):
     assert "login" in texto_resposta.lower()
 
 def teste_login_post_invalido(client):
-    resposta = client.post("/auth/login", data={"username": "inexistente", "password": "errada"}, follow_redirects=True)
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
+    resposta = client.post(
+        "/auth/login",
+        data={"username": "inexistente", "password": "errada"},
+        follow_redirects=True
+    )
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
-    assert "credenciais inválidas" in texto_resposta.lower()
+    assert "credenciais inválidas. tente novamente." in texto_resposta.lower()
 
 def teste_login_post_valido_regular(client):
     login(client)
