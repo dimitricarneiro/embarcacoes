@@ -1,5 +1,5 @@
 # 🔹 Importações do Flask
-from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for, make_response, flash
+from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for, make_response, flash, current_app
 from app import limiter
 
 # 🔹 Flask-Login (Autenticação)
@@ -10,7 +10,9 @@ from app import db
 from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta
 
 # 🔹 Formulários
-from app.forms import AlertaForm
+from app.forms import AlertaForm, PedidoForm, PedidoSearchForm
+from app import csrf  # importe sua instância de CSRFProtect
+
 
 # 🔹 Utilitários
 import io
@@ -141,6 +143,7 @@ def home():
         return redirect(url_for('auth.login'))  # 🔹 Redireciona para login
     return redirect(url_for('pedidos.exibir_pedidos'))  # 🔹 Se logado, vai para /lista-pedidos
 
+@csrf.exempt
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
 def gerenciar_pedidos():
@@ -150,34 +153,25 @@ def gerenciar_pedidos():
     """
     if request.method == 'POST':
         try:
-            # Obter dados em formato JSON
+            # Obter dados em JSON
             data = request.get_json()
             if not data:
                 return jsonify({"error": "Dados JSON não enviados ou inválidos."}), 400
 
-            # Validação do CNPJ
+            # Validação do CNPJ com a sua função customizada
             cnpj = data.get("cnpj_empresa", "")
             if not validar_cnpj(cnpj):
                 return jsonify({"error": "CNPJ inválido!"}), 400
 
-            # Verificação de campos obrigatórios (atualizados)
-            required_fields = [
-                "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
-                "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
-                "certificado_livre_pratica", "cidade_servico", "embarcacoes", "equipamentos", "pessoas"
-            ]
-            campos_invalidos = [field for field in required_fields if not data.get(field)]
-            if campos_invalidos:
-                return jsonify({
-                    "error": f"Campos obrigatórios faltantes ou vazios: {', '.join(campos_invalidos)}"
-                }), 400
+            # Instancia o formulário com os dados do JSON
+            form = PedidoForm(data=data)
+            if not form.validate():
+                current_app.logger.error("Erros no formulário: %s", form.errors)
+                return jsonify({"error": "Dados inválidos", "errors": form.errors}), 400
 
-            # Conversão das datas para objetos date
-            try:
-                data_inicio = datetime.strptime(data["data_inicio"], "%Y-%m-%d").date()
-                data_termino = datetime.strptime(data["data_termino"], "%Y-%m-%d").date()
-            except ValueError:
-                return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'."}), 400
+            # Conversão das datas (já tratadas pelo DateField, mas podemos refinar)
+            data_inicio = form.data_inicio.data
+            data_termino = form.data_termino.data
 
             hoje = datetime.today().date()
             if data_inicio < hoje:
@@ -190,27 +184,24 @@ def gerenciar_pedidos():
             if duracao > 5:
                 return jsonify({"error": "A duração máxima do serviço é de 5 dias."}), 400
 
-            # Criação do novo pedido de autorização com os novos campos
+            # Criação do novo pedido de autorização utilizando os dados validados
             novo_pedido = PedidoAutorizacao(
-                empresa_responsavel=data["nome_empresa"],
-                cnpj_empresa=data["cnpj_empresa"],
-                endereco_empresa=data["endereco_empresa"],
-                motivo_solicitacao=data["motivo_solicitacao"],
+                empresa_responsavel=form.nome_empresa.data,
+                cnpj_empresa=form.cnpj_empresa.data,
+                endereco_empresa=form.endereco_empresa.data,
+                motivo_solicitacao=form.motivo_solicitacao.data,
                 data_inicio=data_inicio,
                 data_termino=data_termino,
-                horario_inicio_servicos=data["horario_inicio_servicos"],
-                horario_termino_servicos=data["horario_termino_servicos"],
-                certificado_livre_pratica=data["certificado_livre_pratica"],
-                cidade_servico=data["cidade_servico"],
-                observacoes=data.get("observacoes", None),
+                horario_inicio_servicos=form.horario_inicio_servicos.data,
+                horario_termino_servicos=form.horario_termino_servicos.data,
+                certificado_livre_pratica=form.certificado_livre_pratica.data,
+                cidade_servico=form.cidade_servico.data,
+                observacoes=form.observacoes.data,
                 usuario_id=current_user.id
             )
 
-            # -------------------------------
-            # Processamento de Embarcações
-            # -------------------------------
-            # data["embarcacoes"] é uma lista de dicionários com as chaves: "nome", "imo" e "bandeira"
-            for embarcacao_data in data["embarcacoes"]:
+            # Processamento de Embarcações (utilizando os dados do FieldList)
+            for embarcacao_data in form.embarcacoes.data:
                 nome = embarcacao_data.get("nome", "").strip()
                 if nome:
                     embarcacao = db.session.query(Embarcacao).filter_by(nome=nome).first()
@@ -222,23 +213,18 @@ def gerenciar_pedidos():
                         )
                         db.session.add(embarcacao)
                     else:
-                        # Opcional: atualizar os campos se novos valores forem enviados
                         if embarcacao_data.get("imo"):
                             embarcacao.imo = embarcacao_data.get("imo").strip()
                         if embarcacao_data.get("bandeira"):
                             embarcacao.bandeira = embarcacao_data.get("bandeira").strip()
                     novo_pedido.embarcacoes.append(embarcacao)
 
-            # -------------------------------
             # Processamento de Equipamentos
-            # -------------------------------
-            # data["equipamentos"] é uma lista de dicionários com as chaves:
-            # "descricao", "numero_serie" e "quantidade"
-            if "equipamentos" in data and data["equipamentos"]:
-                for equipamento_data in data["equipamentos"]:
+            if form.equipamentos.data:
+                for equipamento_data in form.equipamentos.data:
                     descricao = equipamento_data.get("descricao", "").strip()
                     numero_serie = equipamento_data.get("numero_serie", "").strip()
-                    quantidade = equipamento_data.get("quantidade", 0)
+                    quantidade = equipamento_data.get("quantidade")
                     if descricao and numero_serie and quantidade:
                         equipamento = db.session.query(Equipamento).filter_by(numero_serie=numero_serie).first()
                         if not equipamento:
@@ -249,18 +235,11 @@ def gerenciar_pedidos():
                             )
                             db.session.add(equipamento)
                         else:
-                            # Atualiza a quantidade conforme o novo valor
                             equipamento.quantidade = int(quantidade)
-                        # Associa o equipamento apenas uma vez ao pedido
                         novo_pedido.equipamentos.append(equipamento)
-                    else:
-                        continue
 
-            # -------------------------------
             # Processamento de Pessoas
-            # -------------------------------
-            # data["pessoas"] é uma lista de dicionários com as chaves: "nome", "cpf" e "isps"
-            for pessoa_data in data["pessoas"]:
+            for pessoa_data in form.pessoas.data:
                 nome_pessoa = pessoa_data.get("nome", "").strip()
                 cpf_pessoa = pessoa_data.get("cpf", "").strip()
                 isps = pessoa_data.get("isps", "").strip()
@@ -274,12 +253,9 @@ def gerenciar_pedidos():
                             pessoa.isps = isps
                     novo_pedido.pessoas.append(pessoa)
 
-            # -------------------------------
             # Processamento de Veículos
-            # -------------------------------
-            # data["veiculos"] é uma lista de dicionários com "modelo" e "placa"
-            if "veiculos" in data and data["veiculos"]:
-                for veiculo_data in data["veiculos"]:
+            if form.veiculos.data:
+                for veiculo_data in form.veiculos.data:
                     modelo_veiculo = veiculo_data.get("modelo", "").strip()
                     placa_veiculo = veiculo_data.get("placa", "").strip()
                     if modelo_veiculo and placa_veiculo:
@@ -292,7 +268,7 @@ def gerenciar_pedidos():
             db.session.add(novo_pedido)
             db.session.commit()
 
-            # Verificar alertas e notificar administradores (fluxo inalterado)
+            # Fluxo de notificações
             verificar_alertas(novo_pedido)
             administradores = Usuario.query.filter_by(role="RFB").all()
             mensagem = f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação."
@@ -310,13 +286,13 @@ def gerenciar_pedidos():
 
     elif request.method == 'GET':
         try:
-            # Código GET existente (com filtros, paginação e ordenação)
+            # Código GET existente (filtros, paginação e ordenação)
             query = PedidoAutorizacao.query
             page = request.args.get("page", default=1, type=int)
             per_page = request.args.get("per_page", default=10, type=int)
             query = query.order_by(PedidoAutorizacao.data_inicio.desc())
             pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
-
+            
             pedidos_lista = []
             for pedido in pedidos_paginados.items:
                 pedido_dict = {
@@ -330,7 +306,7 @@ def gerenciar_pedidos():
                     "horario_servicos": f"{pedido.horario_inicio_servicos} - {pedido.horario_termino_servicos}"
                 }
                 pedidos_lista.append(pedido_dict)
-
+            
             return jsonify({
                 "total_pedidos": pedidos_paginados.total,
                 "pagina_atual": pedidos_paginados.page,
@@ -341,7 +317,6 @@ def gerenciar_pedidos():
         except Exception as e:
             logging.exception("Erro ao recuperar pedidos de autorização:")
             return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
-
 
 @pedidos_bp.route('/pedido/<int:pedido_id>/editar', methods=['GET', 'POST'])
 @login_required
@@ -527,13 +502,6 @@ def atualizar_pedido_api(pedido_id):
         db.session.rollback()
         logging.exception("Erro ao atualizar pedido:")
         return jsonify({"error": "Erro ao atualizar pedido."}), 500
-
-from flask import render_template, redirect, url_for, request, jsonify
-from flask_login import login_required, current_user
-from datetime import datetime
-from app.models import PedidoAutorizacao, Embarcacao
-from app.forms import PedidoSearchForm
-from app import db
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
