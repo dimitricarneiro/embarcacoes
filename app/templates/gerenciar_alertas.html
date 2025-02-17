@@ -38,19 +38,23 @@
 
     <h1>Gerenciar Alertas</h1>
 
-    <h2>Criar Novo Alerta</h2>
-    <form method="POST" action="{{ url_for('pedidos.gerenciar_alertas') }}">
-        <label for="tipo">Tipo:</label>
-        <select name="tipo" id="tipo">
-            <option value="embarcacao">Embarcação</option>
-            <option value="cnpj">CNPJ</option>
-        </select><br>
-
-        <label for="valor">Valor:</label>
-        <input type="text" name="valor" id="valor" required><br>
-
-        <button type="submit">Criar Alerta</button>
-    </form>
+<h2>Criar Novo Alerta</h2>
+<form method="POST" action="{{ url_for('pedidos.gerenciar_alertas') }}">
+    {{ form.hidden_tag() }}
+    <div>
+        <label>{{ form.tipo.label }}</label>
+        {{ form.tipo() }}
+    </div>
+    <br>
+    <div>
+        <label>{{ form.valor.label }}</label>
+        {{ form.valor() }}
+    </div>
+    <br>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
 
     <h2>Alertas Cadastrados</h2>
     {% if alertas %}

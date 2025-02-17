@@ -9,6 +9,9 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta
 
+# 🔹 Formulários
+from app.forms import AlertaForm
+
 # 🔹 Utilitários
 import io
 from datetime import datetime
@@ -757,21 +760,19 @@ def gerenciar_alertas():
     if current_user.role != "RFB":
         return redirect(url_for('pedidos.exibir_pedidos'))
     
-    if request.method == "POST":
-        # Recebe os dados do formulário
-        tipo = request.form.get("tipo")  # Esperado: "embarcacao" ou "cnpj"
-        valor = request.form.get("valor")
-        if tipo not in ["embarcacao", "cnpj"] or not valor:
-            return jsonify({"error": "Dados inválidos para criar o alerta."}), 400
-
-        novo_alerta = Alerta(usuario_id=current_user.id, tipo=tipo, valor=valor)
+    form = AlertaForm()
+    if form.validate_on_submit():
+        novo_alerta = Alerta(
+            usuario_id=current_user.id,
+            tipo=form.tipo.data,
+            valor=form.valor.data
+        )
         db.session.add(novo_alerta)
         db.session.commit()
         return redirect(url_for("pedidos.gerenciar_alertas"))
     
-    # Para método GET, exibe os alertas já criados pelo usuário
     alertas = Alerta.query.filter_by(usuario_id=current_user.id).all()
-    return render_template("gerenciar_alertas.html", alertas=alertas)
+    return render_template("gerenciar_alertas.html", alertas=alertas, form=form)
 
 @pedidos_bp.route('/comprovante/<int:pedido_id>')
 @login_required
