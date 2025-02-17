@@ -398,37 +398,28 @@
       pessoas: pessoas
     };
 
-fetch('api/pedidos-autorizacao', {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(pedido)
-})
-.then(response => {
-  if (!response.ok) {
-    return response.json().then(errorData => {
-      throw errorData;
+    fetch('api/pedidos-autorizacao', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedido)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Erro ao criar pedido.');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
+      document.getElementById("mensagem").style.color = "green";
+    })
+    .catch(error => {
+      document.getElementById("mensagem").innerText = error.message;
+      document.getElementById("mensagem").style.color = "red";
+      console.error("Erro:", error);
     });
-  }
-  return response.json();
-})
-.then(data => {
-  document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
-  document.getElementById("mensagem").style.color = "green";
-})
-.catch(errorData => {
-  // errorData.error contém a mensagem genérica e errorData.errors contém os detalhes
-  let errorMsg = errorData.error;
-  if (errorData.errors) {
-    // Monta uma string com os erros de cada campo
-    for (const field in errorData.errors) {
-      errorMsg += `\n${field}: ${errorData.errors[field].join(', ')}`;
-    }
-  }
-  document.getElementById("mensagem").innerText = errorMsg;
-  document.getElementById("mensagem").style.color = "red";
-  console.error("Erro:", errorMsg);
-});
-
   }
 
   // Função para atualizar o pedido via fetch (edição)

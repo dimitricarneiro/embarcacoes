@@ -6,57 +6,27 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional
 
-# Base para formulários de API: CSRF desabilitado
-class ApiForm(FlaskForm):
-    class Meta:
-        csrf = False
+# Sub-formulários para campos compostos no pedido
+class EmbarcacaoForm(FlaskForm):
+    nome = StringField("Nome da Embarcação", validators=[DataRequired()])
+    imo = StringField("IMO", validators=[Optional()])
+    bandeira = StringField("Bandeira", validators=[Optional()])
 
-# Sub-formulários (para campos dinâmicos) usados no pedido – sem CSRF, pois são para API
-class EmbarcacaoForm(ApiForm):
-    # Os nomes dos campos abaixo correspondem às keys enviadas pelo JSON
-    nome = StringField("nome", validators=[DataRequired()])
-    imo = StringField("imo", validators=[Optional()])
-    bandeira = StringField("bandeira", validators=[Optional()])
+class VeiculoForm(FlaskForm):
+    modelo = StringField("Modelo do Veículo", validators=[DataRequired()])
+    placa = StringField("Placa do Veículo", validators=[DataRequired()])
 
-class VeiculoForm(ApiForm):
-    modelo = StringField("modelo", validators=[DataRequired()])
-    placa = StringField("placa", validators=[DataRequired()])
+class EquipamentoForm(FlaskForm):
+    descricao = StringField("Descrição do Equipamento", validators=[DataRequired()])
+    numero_serie = StringField("Número de Série", validators=[DataRequired()])
+    quantidade = IntegerField("Quantidade", validators=[DataRequired()])
 
-class EquipamentoForm(ApiForm):
-    descricao = StringField("descricao", validators=[DataRequired()])
-    numero_serie = StringField("numero_serie", validators=[DataRequired()])
-    quantidade = IntegerField("quantidade", validators=[DataRequired()])
+class PessoaForm(FlaskForm):
+    nome = StringField("Nome da Pessoa", validators=[DataRequired()])
+    cpf = StringField("CPF", validators=[DataRequired()])
+    isps = StringField("ISPS", validators=[Optional()])
 
-class PessoaForm(ApiForm):
-    nome = StringField("nome", validators=[DataRequired()])
-    cpf = StringField("cpf", validators=[DataRequired()])
-    isps = StringField("isps", validators=[Optional()])
-
-# Formulário para criação de novo pedido – usado em endpoint de API, sem CSRF
-class PedidoForm(ApiForm):
-    nome_empresa = StringField("nome_empresa", validators=[DataRequired()])
-    cnpj_empresa = StringField("cnpj_empresa", validators=[DataRequired()])
-    endereco_empresa = StringField("endereco_empresa", validators=[DataRequired()])
-    motivo_solicitacao = StringField("motivo_solicitacao", validators=[DataRequired()])
-    data_inicio = DateField("data_inicio", validators=[DataRequired()], format='%Y-%m-%d')
-    data_termino = DateField("data_termino", validators=[DataRequired()], format='%Y-%m-%d')
-    horario_inicio_servicos = StringField("horario_inicio_servicos", validators=[DataRequired()])
-    horario_termino_servicos = StringField("horario_termino_servicos", validators=[DataRequired()])
-    certificado_livre_pratica = StringField("certificado_livre_pratica", validators=[DataRequired()])
-    cidade_servico = StringField("cidade_servico", validators=[DataRequired()])
-    observacoes = TextAreaField("observacoes", validators=[Optional()])
-
-    # Alterado para min_entries=0 para evitar a criação automática de um item vazio.
-    embarcacoes = FieldList(FormField(EmbarcacaoForm), min_entries=0)
-    veiculos = FieldList(FormField(VeiculoForm), min_entries=0)
-    equipamentos = FieldList(FormField(EquipamentoForm), min_entries=0)
-    pessoas = FieldList(FormField(PessoaForm), min_entries=0)
-
-    submit = SubmitField("Enviar Pedido de Autorização")
-
-# Os demais formulários, usados em templates renderizados, mantêm a proteção CSRF
-
-# Formulário para criação de novo usuário (com CSRF)
+# Formulário para criação de novo usuário
 class UserRegistrationForm(FlaskForm):
     username = StringField("Usuário", validators=[DataRequired()])
     password = PasswordField("Senha", validators=[DataRequired()])
@@ -65,7 +35,7 @@ class UserRegistrationForm(FlaskForm):
     role = SelectField("Role", choices=[("comum", "Comum"), ("RFB", "RFB")], validators=[DataRequired()])
     submit = SubmitField("Criar Usuário")
 
-# Formulário para editar usuário (com CSRF)
+# Formulário para editar usuário
 class UserEditForm(FlaskForm):
     username = StringField("Usuário", validators=[DataRequired()])
     password = PasswordField("Nova Senha (deixe em branco para manter a atual)", validators=[Optional()])
@@ -74,20 +44,42 @@ class UserEditForm(FlaskForm):
     role = SelectField("Role", choices=[("comum", "Comum"), ("RFB", "RFB")], validators=[DataRequired()])
     submit = SubmitField("Salvar Alterações")
 
-# Formulário de login (com CSRF)
+# Formulário para criação de novo pedido
+class PedidoForm(FlaskForm):
+    nome_empresa = StringField("Nome da Empresa", validators=[DataRequired()])
+    cnpj_empresa = StringField("CNPJ", validators=[DataRequired()])
+    endereco_empresa = StringField("Endereço", validators=[DataRequired()])
+    motivo_solicitacao = StringField("Motivo", validators=[DataRequired()])
+    data_inicio = DateField("Data Início", validators=[DataRequired()], format='%Y-%m-%d')
+    data_termino = DateField("Data Término", validators=[DataRequired()], format='%Y-%m-%d')
+    horario_inicio_servicos = StringField("Horário de Início", validators=[DataRequired()])
+    horario_termino_servicos = StringField("Horário de Término", validators=[DataRequired()])
+    certificado_livre_pratica = StringField("Certificado de Livre Prática", validators=[DataRequired()])
+    cidade_servico = StringField("Cidade de Serviço", validators=[DataRequired()])
+    observacoes = TextAreaField("Observações", validators=[Optional()])
+
+    # Coleções dinâmicas usando FieldList e FormField
+    embarcacoes = FieldList(FormField(EmbarcacaoForm), min_entries=1)
+    veiculos = FieldList(FormField(VeiculoForm), min_entries=1)
+    equipamentos = FieldList(FormField(EquipamentoForm), min_entries=1)
+    pessoas = FieldList(FormField(PessoaForm), min_entries=1)
+
+    submit = SubmitField("Enviar Pedido de Autorização")
+
+# Formulário de login
 class LoginForm(FlaskForm):
     username = StringField("Usuário", validators=[DataRequired()])
     password = PasswordField("Senha", validators=[DataRequired()])
     remember = BooleanField("Lembrar-me")
     submit = SubmitField("Entrar")
 
-# Formulário para criação de alertas (com CSRF)
+# Formulário para criação de alertas
 class AlertaForm(FlaskForm):
     tipo = SelectField("Tipo", choices=[("embarcacao", "Embarcação"), ("cnpj", "CNPJ")], validators=[DataRequired()])
     valor = StringField("Valor", validators=[DataRequired()])
     submit = SubmitField("Criar Alerta")
 
-# Formulário para busca de pedidos (com CSRF)
+# Formulário para busca de pedidos
 class PedidoSearchForm(FlaskForm):
     nome_empresa = StringField("Nome da Empresa", validators=[Optional()])
     cnpj_empresa = StringField("CNPJ", validators=[Optional()])
