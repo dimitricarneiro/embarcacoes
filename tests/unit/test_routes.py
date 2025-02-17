@@ -107,7 +107,6 @@ def teste_post_alertas_admin_invalido(client):
     # Verifica que o template de gerenciamento de alertas foi renderizado
     assert "gerenciar alertas" in texto.lower()
 
-
 def teste_get_alertas_nao_admin(client):
     """Verifica se um usuário não administrador é redirecionado ao tentar acessar /admin/alertas."""
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
