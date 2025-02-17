@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.models import Usuario
+from app.forms import UserRegistrationForm
 from werkzeug.security import generate_password_hash
 from app.utils import validar_cnpj
 
@@ -28,30 +29,24 @@ def list_users():
 def create_user():
     if not admin_required():
         return redirect(url_for('pedidos.exibir_pedidos'))
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        nome_empresa = request.form.get('nome_empresa')
-        cnpj = request.form.get('cnpj')
-        role = request.form.get('role', 'comum')
 
-        if not username or not password:
-            flash("Usuário e senha são obrigatórios.", "error")
-            return redirect(url_for('users.create_user'))
+    form = UserRegistrationForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        nome_empresa = form.nome_empresa.data
+        cnpj = form.cnpj.data
+        role = form.role.data
 
-        # Verifica se o usuário já existe
+        # Validações adicionais, se necessário
         if Usuario.query.filter_by(username=username).first():
             flash("Usuário já existe.", "error")
             return redirect(url_for('users.create_user'))
 
-        # Verifica se já existe um usuário com o mesmo CNPJ (se o CNPJ for informado)
         if cnpj and Usuario.query.filter_by(cnpj=cnpj).first():
             flash("Já existe um usuário com este CNPJ.", "error")
             return redirect(url_for('users.create_user'))
 
-        # Validação do CNPJ (usando a função validar_cnpj do módulo utils)
-        from app.utils import validar_cnpj
         if cnpj and not validar_cnpj(cnpj):
             flash("CNPJ inválido. Por favor, verifique o valor informado.", "error")
             return redirect(url_for('users.create_user'))
@@ -68,7 +63,7 @@ def create_user():
         flash("Usuário criado com sucesso.", "success")
         return redirect(url_for('users.list_users'))
 
-    return render_template('users/create.html')
+    return render_template('users/create.html', form=form)
 
 @users_bp.route('/edit/<int:user_id>', methods=['GET', 'POST'])
 @login_required

@@ -2,27 +2,28 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import Usuario
+from app.forms import LoginForm  # importa o formulário de login
 from app import limiter
 
 auth_bp = Blueprint("auth", __name__)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 @limiter.limit("10 per minute; 30 per hour")  # 🔹 10 tentativas por minuto, 30 por hora
 def login():
     """Página de login."""
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        remember = "remember" in request.form
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        remember = form.remember.data
 
         user = Usuario.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
             login_user(user, remember=remember)
-            # Define a sessão como permanente para que a expiração funcione
-            session.permanent = True
+            session.permanent = True  # Define a sessão como permanente para que a expiração funcione
 
-            # Registra o evento de login com informações do usuário e IP
             current_app.logger.info(
                 f"Usuário '{username}' efetuou login. IP: {request.remote_addr}"
             )
@@ -33,7 +34,8 @@ def login():
 
         flash("Credenciais inválidas. Tente novamente.", "error")
 
-    return render_template("login.html")
+    return render_template("login.html", form=form)
+
 
 @auth_bp.route("/renovar-sessao", methods=["GET"])
 @login_required

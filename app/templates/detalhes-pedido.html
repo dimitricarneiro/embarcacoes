@@ -5,144 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes da Autorização</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
   
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    .container {
-        max-width: 600px;
-        margin: auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-        text-align: center;
-        color: #333;
-    }
-    .info {
-        margin-bottom: 15px;
-        padding: 10px;
-        background: #f9f9f9;
-        border-radius: 5px;
-    }
-    .info strong {
-        display: inline-block;
-        width: 180px;
-        color: #007bff;
-    }
-    .status {
-        font-weight: bold;
-        padding: 5px 10px;
-        border-radius: 5px;
-        display: inline-block;
-    }
-    .status-pendente {
-        background-color: orange;
-        color: white;
-    }
-    .status-aprovado {
-        background-color: green;
-        color: white;
-    }
-    .status-rejeitado {
-        background-color: red;
-        color: white;
-    }
-    .back {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .back a {
-        text-decoration: none;
-        background-color: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-    .back a:hover {
-        background-color: #0056b3;
-    }
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-    .btn-logout {
-        text-decoration: none;
-        background-color: red;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-    .btn-logout:hover {
-        background-color: darkred;
-    }
-    /* Estilização do Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    }
-    button {
-        margin: 10px;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover {
-        opacity: 0.8;
-    }
-</style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .info strong {
+            display: inline-block;
+            width: 180px;
+            color: #007bff;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .status-pendente {
+            background-color: orange;
+            color: white;
+        }
+        .status-aprovado {
+            background-color: green;
+            color: white;
+        }
+        .status-rejeitado {
+            background-color: red;
+            color: white;
+        }
+        .back {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back a {
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .back a:hover {
+            background-color: #0056b3;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .btn-logout {
+            text-decoration: none;
+            background-color: red;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-logout:hover {
+            background-color: darkred;
+        }
+        /* Estilização do Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+    </style>
 
 </head>
 <body>
 
 <header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
-
-<div class="navbar">
-  <span>Olá, {{ current_user.username }} </span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
-
-</div>
-</div>
+    <div class="container-lg">
+        <div class="header-top">
+            <div class="header-logo">
+                <img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+            </div>
+            <div class="navbar">
+                <span>Olá, {{ current_user.username }} </span>
+                <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+            </div>
+        </div>
+    </div>
 </header>
 
 <div class="container">
     <h1>Detalhes da Autorização</h1>
     
+    <!-- Informações básicas do pedido -->
     <div class="info"><strong>ID do pedido:</strong> {{ pedido.id }}</div>
     <div class="info"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</div>
     <div class="info"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</div>
@@ -150,7 +149,7 @@
     <div class="info"><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%Y-%m-%d') }}</div>
     <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%Y-%m-%d') }}</div>
     <div class="info"><strong>Horário de início:</strong> {{ pedido.horario_inicio_servicos }}</div>
-	<div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
+    <div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
   
     <div class="info">
         <strong>Status:</strong>
@@ -162,6 +161,63 @@
             <span class="status status-rejeitado">Rejeitado ❌</span>
         {% endif %}
     </div>
+    
+    <!-- Seção para Embarcações -->
+    <h2>Embarcações</h2>
+    {% if pedido.embarcacoes %}
+        {% for embarcacao in pedido.embarcacoes %}
+            <div class="info">
+                <strong>Nome:</strong> {{ embarcacao.nome }}<br>
+                <strong>IMO:</strong> {{ embarcacao.imo or 'N/A' }}<br>
+                <strong>Bandeira:</strong> {{ embarcacao.bandeira or 'N/A' }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="info"><strong>Embarcações:</strong> Nenhuma embarcação associada.</div>
+    {% endif %}
+    
+    <!-- Seção para Equipamentos -->
+    <h2>Equipamentos</h2>
+    {% if pedido.equipamentos %}
+        {% for equipamento in pedido.equipamentos %}
+            <div class="info">
+                <strong>Descrição:</strong> {{ equipamento.descricao }}<br>
+                <strong>Número de Série:</strong> {{ equipamento.numero_serie }}<br>
+                <strong>Quantidade:</strong> {{ equipamento.quantidade }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="info"><strong>Equipamentos:</strong> Nenhum equipamento associado.</div>
+    {% endif %}
+    
+    <!-- Seção para Pessoas -->
+    <h2>Pessoas</h2>
+    {% if pedido.pessoas %}
+        {% for pessoa in pedido.pessoas %}
+            <div class="info">
+                <strong>Nome:</strong> {{ pessoa.nome }}<br>
+                <strong>CPF:</strong> {{ pessoa.cpf }}<br>
+                {% if pessoa.isps %}
+                    <strong>ISPS:</strong> {{ pessoa.isps }}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="info"><strong>Pessoas:</strong> Nenhuma pessoa associada.</div>
+    {% endif %}
+    
+    <!-- Seção para Veículos -->
+    <h2>Veículos</h2>
+    {% if pedido.veiculos %}
+        {% for veiculo in pedido.veiculos %}
+            <div class="info">
+                <strong>Modelo:</strong> {{ veiculo.modelo }}<br>
+                <strong>Placa:</strong> {{ veiculo.placa }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="info"><strong>Veículos:</strong> Nenhum veículo associado.</div>
+    {% endif %}
 
     <div class="back">
         <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
@@ -177,7 +233,6 @@
         <button onclick="sairSessao()">Sair</button>
     </div>
 </div>
-</body>
 
 <script>
     let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
@@ -218,4 +273,5 @@
     document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 </script>
 
+</body>
 </html>

@@ -33,38 +33,46 @@
 </div>
 </header>
 
-    <div class="container">
-        <h1>Criar Novo Usuário</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        <form method="POST">
-            <label>Usuário:</label>
-            <input type="text" name="username" required>
+<div class="container">
+    <h1>Criar Novo Usuário</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
+            {{ message }}
+          </p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            <label>{{ form.username.label }}</label>
+            {{ form.username() }}
+        </div>
+        <div>
+            <label>{{ form.password.label }}</label>
+            {{ form.password() }}
+        </div>
+        <div>
+            <label>{{ form.nome_empresa.label }}</label>
+            {{ form.nome_empresa() }}
+        </div>
+        <div>
+            <label>{{ form.cnpj.label }}</label>
+            {{ form.cnpj() }}
+        </div>
+        <div>
+            <label>{{ form.role.label }}</label>
+            {{ form.role() }}
+        </div>
+        <div>
+            <button type="submit">{{ form.submit.label.text }}</button>
+        </div>
+    </form>
+    <br>
+    <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
+</div>
 
-            <label>Senha:</label>
-            <input type="password" name="password" required>
-
-            <label>Nome da Empresa:</label>
-            <input type="text" name="nome_empresa">
-
-            <label>CNPJ:</label>
-            <input type="text" name="cnpj">
-
-            <label>Role:</label>
-            <select name="role">
-                <option value="comum">Comum</option>
-                <option value="RFB">RFB</option>
-            </select>
-
-            <button type="submit">Criar Usuário</button>
-        </form>
-        <br>
-        <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
-    </div>
 </body>
 </html>

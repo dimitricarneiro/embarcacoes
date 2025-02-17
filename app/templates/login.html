@@ -61,16 +61,13 @@
 
     <div class="container">
         <h1>Login</h1>
-        <form method="POST">
-            <input type="text" name="username" placeholder="Usuário" required>
-            <input type="password" name="password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
-			
-			<label>
-			<input type="checkbox" name="remember"> Lembrar-me
-			</label>
-			
-        </form>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.username.label }} {{ form.username() }}
+    {{ form.password.label }} {{ form.password() }}
+    {{ form.remember() }} {{ form.remember.label }}
+    {{ form.submit() }}
+</form>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <p style="color: red;">{{ messages[0] }}</p>
