@@ -46,63 +46,56 @@ def login_admin(client):
     return response
 
 def test_criar_pedido_autorizacao_com_login(client):
-    """Teste para criar um novo pedido de autorização de serviço"""
-    
-    # 🔹 Primeiro, faz login
-    login(client)
-    
-    # JSON atualizado conforme o formato esperado pela rota
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita a validação do CSRF para os testes
+    login(client)  # Garante que o usuário está autenticado; verifique se esse helper realiza follow_redirects, se necessário
+
     novo_pedido = {
-    "nome_empresa": "Empresa XYZ",
-    "cnpj_empresa": "75.371.927/0001-37",
-    "endereco_empresa": "Rua Exemplo, 123",
-    "motivo_solicitacao": "Manutenção no motor",
-    "data_inicio": "2050-01-01",           # Data no futuro
-    "data_termino": "2050-01-06",          # Máximo 5 dias de duração
-    "horario_inicio_servicos": "08:00",
-    "horario_termino_servicos": "18:00",
-    "certificado_livre_pratica": "ABC123", # Campo ajustado
-    "cidade_servico": "Cidade Exemplo",    # Campo obrigatório
-    "observacoes": "Serviço sujeito a alteração",
-    # Embarcações: cada item é um dicionário com "nome", "imo" e "bandeira"
-    "embarcacoes": [
-        {
-            "nome": "Embarcação A",
-            "imo": "1234567",       # Pode ser vazio se permitido
-            "bandeira": "Bandeira A"  # Pode ser vazio se permitido
-        }
-    ],
-    # Equipamentos: lista de dicionários com "descricao", "numero_serie" e "quantidade"
-    "equipamentos": [
-        {
-            "descricao": "Equipamento A",
-            "numero_serie": "SERIE123",
-            "quantidade": 1
-        }
-    ],
-    # Pessoas: lista de dicionários com "nome" e "cpf" (o campo "isps" é opcional)
-    "pessoas": [
-        {
-            "nome": "João Silva",
-            "cpf": "823.054.870-61"
-        }
-    ],
-    # Veículos: opcional, mas se enviar, cada item deve ter "modelo" e "placa"
-    "veiculos": [
-        {
-            "modelo": "Modelo A",
-            "placa": "ABC-1234"
-        }
-    ]
-}
+        "nome_empresa": "Empresa XYZ",
+        "cnpj_empresa": "75.371.927/0001-37",
+        "endereco_empresa": "Rua Exemplo, 123",
+        "motivo_solicitacao": "Manutenção no motor",
+        "data_inicio": "2050-01-01",  # Data no futuro
+        "data_termino": "2050-01-06",  # Máximo 5 dias de duração
+        "horario_inicio_servicos": "08:00",
+        "horario_termino_servicos": "18:00",
+        "certificado_livre_pratica": "ABC123",
+        "cidade_servico": "Cidade Exemplo",
+        "observacoes": "Serviço sujeito a alteração",
+        "embarcacoes": [
+            {
+                "nome": "Embarcação A",
+                "imo": "1234567",
+                "bandeira": "Bandeira A"
+            }
+        ],
+        "equipamentos": [
+            {
+                "descricao": "Equipamento A",
+                "numero_serie": "SERIE123",
+                "quantidade": 1
+            }
+        ],
+        "pessoas": [
+            {
+                "nome": "João Silva",
+                "cpf": "823.054.870-61"
+            }
+        ],
+        "veiculos": [
+            {
+                "modelo": "Modelo A",
+                "placa": "ABC-1234"
+            }
+        ]
+    }
     
-    # 🔹 Agora, faz a requisição para criar o pedido
     response = client.post("/api/pedidos-autorizacao", json=novo_pedido)
     
     # Verificações
     assert response.status_code == 201  # Código HTTP correto
     assert "id_autorizacao" in response.json  # Verifica se o ID foi retornado
     assert response.json["message"] == "Pedido de autorização criado com sucesso!"
+
 
 
 def test_criar_pedido_autorizacao_sem_login(client):
