@@ -528,63 +528,55 @@ def atualizar_pedido_api(pedido_id):
         logging.exception("Erro ao atualizar pedido:")
         return jsonify({"error": "Erro ao atualizar pedido."}), 500
 
+from flask import render_template, redirect, url_for, request, jsonify
+from flask_login import login_required, current_user
+from datetime import datetime
+from app.models import PedidoAutorizacao, Embarcacao
+from app.forms import PedidoSearchForm
+from app import db
+
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
 def exibir_pedidos():
-    """ Exibe os pedidos em uma página HTML com filtros, busca e paginação """
-
-    # Captura os filtros opcionais da URL
-    nome_empresa = request.args.get("nome_empresa", "").strip()
-    cnpj_empresa = request.args.get("cnpj_empresa", "").strip()
-    status = request.args.get("status", "").strip()
-    data_inicio = request.args.get("data_inicio", "").strip()
-    data_termino = request.args.get("data_termino", "").strip()
-    # Novo filtro para o nome da embarcação:
-    nome_embarcacao = request.args.get("nome_embarcacao", "").strip()
-
-    # Configuração da paginação
+    """Exibe os pedidos em uma página HTML com filtros, busca e paginação."""
+    
+    # Cria o formulário de busca com os parâmetros da query string
+    form = PedidoSearchForm(request.args)
+    
+    # Captura a paginação
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
-
-    # Base da query: usuários comuns veem apenas seus pedidos, RFB vê todos
+    
+    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
     if current_user.role == "RFB":
         query = PedidoAutorizacao.query
     else:
         query = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
-
-    # Aplicando filtros opcionais
-    if nome_empresa:
-        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
-
-    if cnpj_empresa:
-        query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{cnpj_empresa}%"))
-
-    if status in ["pendente", "aprovado", "rejeitado"]:
-        query = query.filter(PedidoAutorizacao.status == status)
-
-    if data_inicio:
-        try:
-            data_inicio_dt = datetime.strptime(data_inicio, "%Y-%m-%d").date()
-            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio_dt)
-        except ValueError:
-            return jsonify({"error": "Formato inválido para 'data_inicio'. Use 'YYYY-MM-DD'."}), 400
-
-    if data_termino:
-        try:
-            data_termino_dt = datetime.strptime(data_termino, "%Y-%m-%d").date()
-            query = query.filter(PedidoAutorizacao.data_termino <= data_termino_dt)
-        except ValueError:
-            return jsonify({"error": "Formato inválido para 'data_termino'. Use 'YYYY-MM-DD'."}), 400
-
-    # Novo filtro: busca por nome da embarcação
-    if nome_embarcacao:
-        query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{nome_embarcacao}%"))
-
+    
+    # Aplicando os filtros com base nos dados do formulário
+    if form.nome_empresa.data:
+        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{form.nome_empresa.data}%"))
+    
+    if form.cnpj_empresa.data:
+        query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{form.cnpj_empresa.data}%"))
+    
+    if form.status.data in ["pendente", "aprovado", "rejeitado", "exigência"]:
+        query = query.filter(PedidoAutorizacao.status == form.status.data)
+    
+    if form.data_inicio.data:
+        query = query.filter(PedidoAutorizacao.data_inicio >= form.data_inicio.data)
+    
+    if form.data_termino.data:
+        query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
+    
+    if form.nome_embarcacao.data:
+        query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{form.nome_embarcacao.data}%"))
+    
     # Ordenação e paginação
     query = query.order_by(PedidoAutorizacao.data_inicio.desc())
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
-
-    return render_template('lista-pedidos.html', pedidos=pedidos_paginados)
+    
+    return render_template('lista-pedidos.html', pedidos=pedidos_paginados, form=form)
 
 @pedidos_bp.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required

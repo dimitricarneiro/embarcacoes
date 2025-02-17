@@ -217,27 +217,38 @@
 
 <div class="container">
 
-<form action="lista-pedidos" method="GET">
-{% if current_user.role == "RFB" %}    
-	<input type="text" name="nome_empresa" placeholder="Nome da Empresa" value="{{ request.args.get('nome_empresa', '') }}">
-    <input type="text" name="cnpj_empresa" placeholder="CNPJ" value="{{ request.args.get('cnpj_empresa', '') }}">
-{% endif %}
-
-    <input type="text" name="nome_embarcacao" placeholder="Nome da Embarcação" value="{{ request.args.get('nome_embarcacao', '') }}">
-
-    <select name="status">
-        <option value="">Todos os Status</option>
-        <option value="pendente" {% if request.args.get('status') == 'pendente' %}selected{% endif %}>Pendente</option>
-        <option value="aprovado" {% if request.args.get('status') == 'aprovado' %}selected{% endif %}>Aprovado</option>
-        <option value="rejeitado" {% if request.args.get('status') == 'rejeitado' %}selected{% endif %}>Rejeitado</option>
-		<option value="exigência" {% if request.args.get('status') == 'exigência' %}selected{% endif %}>Com exigência</option>
-    </select>
-
-    <input type="date" name="data_inicio" placeholder="Data Início" value="{{ request.args.get('data_inicio', '') }}">
-    <input type="date" name="data_termino" placeholder="Data Término" value="{{ request.args.get('data_termino', '') }}">
-
-    <button type="submit">Filtrar</button>
-    <a href="lista-pedidos"><button type="button">Limpar Filtros</button></a>
+<form method="GET" action="{{ url_for('pedidos.exibir_pedidos') }}">
+    {{ form.hidden_tag() }}
+    {% if current_user.role == "RFB" %}
+        <div>
+            {{ form.nome_empresa.label }}<br>
+            {{ form.nome_empresa(size=32) }}
+        </div>
+        <div>
+            {{ form.cnpj_empresa.label }}<br>
+            {{ form.cnpj_empresa(size=32) }}
+        </div>
+    {% endif %}
+    <div>
+        {{ form.nome_embarcacao.label }}<br>
+        {{ form.nome_embarcacao(size=32) }}
+    </div>
+    <div>
+        {{ form.status.label }}<br>
+        {{ form.status() }}
+    </div>
+    <div>
+        {{ form.data_inicio.label }}<br>
+        {{ form.data_inicio() }}
+    </div>
+    <div>
+        {{ form.data_termino.label }}<br>
+        {{ form.data_termino() }}
+    </div>
+    <div>
+        {{ form.submit() }}
+        <a href="{{ url_for('pedidos.exibir_pedidos') }}"><button type="button">Limpar Filtros</button></a>
+    </div>
 </form>
 
 {% if current_user.role == "comum" %}
