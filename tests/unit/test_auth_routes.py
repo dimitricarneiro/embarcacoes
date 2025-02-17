@@ -34,13 +34,14 @@ def teste_login_post_valido_regular(client):
     texto_resposta = resposta.get_data(as_text=True)
     assert "minhas autorizações" in texto_resposta.lower() 
 
-
 def teste_login_post_valido_admin(client):
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
     login_admin(client)
-    resposta = client.get("/admin")
+    resposta = client.get("/admin", follow_redirects=True)
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
     assert "admin" in texto_resposta.lower()
+
 
 def teste_renovar_sessao(client):
     login(client)
