@@ -90,13 +90,10 @@ def test_criar_pedido_autorizacao_com_login(client):
     }
     
     response = client.post("/api/pedidos-autorizacao", json=novo_pedido)
-    
-    # Verificações
-    assert response.status_code == 201  # Código HTTP correto
-    assert "id_autorizacao" in response.json  # Verifica se o ID foi retornado
-    assert response.json["message"] == "Pedido de autorização criado com sucesso!"
 
-
+    # Verificações atualizadas
+    assert response.status_code == 200  # Agora espera 200 
+    assert "redirect_url" in response.json  # Verifica se redirect_url foi retornado
 
 def test_criar_pedido_autorizacao_sem_login(client):
     """Teste para criar um novo pedido de autorização de serviço sem estar autenticado"""

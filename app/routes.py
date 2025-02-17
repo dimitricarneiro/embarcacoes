@@ -164,7 +164,7 @@ def gerenciar_pedidos():
             required_fields = [
                 "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
                 "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
-                "certificado_livre_pratica", "cidade_servico", "embarcacoes", "equipamentos", "pessoas"
+                "certificado_livre_pratica", "cidade_servico", "embarcacoes", "pessoas"
             ]
             campos_invalidos = [field for field in required_fields if not data.get(field)]
             if campos_invalidos:
@@ -299,10 +299,10 @@ def gerenciar_pedidos():
             for admin in administradores:
                 criar_notificacao(admin.id, mensagem)
 
+            # Redireciona para a lista de pedidos
             return jsonify({
-                "message": "Pedido de autorização criado com sucesso!",
-                "id_autorizacao": novo_pedido.id
-            }), 201
+                "redirect_url": url_for('pedidos.exibir_pedidos')
+            }), 200
 
         except Exception as e:
             logging.exception("Erro ao criar pedido de autorização:")

@@ -408,28 +408,36 @@
       pessoas: pessoas
     };
 
-    fetch('api/pedidos-autorizacao', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pedido)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.error || 'Erro ao criar pedido.');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      document.getElementById("mensagem").innerText = `Pedido criado com sucesso! ID: ${data.id_autorizacao}`;
-      document.getElementById("mensagem").style.color = "green";
-    })
-    .catch(error => {
-      document.getElementById("mensagem").innerText = error.message;
-      document.getElementById("mensagem").style.color = "red";
-      console.error("Erro:", error);
+fetch('api/pedidos-autorizacao', {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(pedido)
+})
+.then(response => {
+  if (!response.ok) {
+    return response.json().then(errorData => {
+      throw new Error(errorData.error || 'Erro ao criar pedido.');
     });
+  }
+  return response.json();
+})
+.then(data => {
+  if (data.redirect_url) {
+	alert("Pedido criado com sucesso!");
+    // Redireciona para a URL retornada
+    window.location.href = data.redirect_url;
+  } else {
+    // Caso não exista redirect_url, exibe uma mensagem de sucesso
+    document.getElementById("mensagem").innerText = "Pedido criado com sucesso!";
+    document.getElementById("mensagem").style.color = "green";
+  }
+})
+.catch(error => {
+  document.getElementById("mensagem").innerText = error.message;
+  document.getElementById("mensagem").style.color = "red";
+  console.error("Erro:", error);
+});
+
   }
 
   // Função para atualizar o pedido via fetch (edição)
