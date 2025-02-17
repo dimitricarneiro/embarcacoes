@@ -44,11 +44,13 @@ def teste_login_post_valido_admin(client):
 
 
 def teste_renovar_sessao(client):
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
     login(client)
     resposta = client.get("/auth/renovar-sessao")
     assert resposta.status_code == 200
     dados = resposta.get_json()
     assert dados.get("message") == "Sessão renovada"
+
 
 def teste_logout(client):
     login(client)
