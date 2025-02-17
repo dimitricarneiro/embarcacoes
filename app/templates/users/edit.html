@@ -33,38 +33,44 @@
 </div>
 </header>
 
-    <div class="container">
-        <h1>Editar Usuário</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        <form method="POST">
-            <label>Usuário:</label>
-            <input type="text" name="username" value="{{ usuario.username }}" required>
+<div class="container">
+    <h1>Editar Usuário</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            <label>{{ form.username.label }}</label>
+            {{ form.username() }}
+        </div>
+        <div>
+            <label>{{ form.password.label }}</label>
+            {{ form.password() }}
+        </div>
+        <div>
+            <label>{{ form.nome_empresa.label }}</label>
+            {{ form.nome_empresa() }}
+        </div>
+        <div>
+            <label>{{ form.cnpj.label }}</label>
+            {{ form.cnpj() }}
+        </div>
+        <div>
+            <label>{{ form.role.label }}</label>
+            {{ form.role() }}
+        </div>
+        <div>
+            <button type="submit">{{ form.submit.label.text }}</button>
+        </div>
+    </form>
+    <br>
+    <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
+</div>
 
-            <label>Nova Senha (deixe em branco para manter a atual):</label>
-            <input type="password" name="password">
-
-            <label>Nome da Empresa:</label>
-            <input type="text" name="nome_empresa" value="{{ usuario.nome_empresa }}">
-
-            <label>CNPJ:</label>
-            <input type="text" name="cnpj" value="{{ usuario.cnpj }}">
-
-            <label>Role:</label>
-            <select name="role">
-                <option value="comum" {% if usuario.role == 'comum' %}selected{% endif %}>Comum</option>
-                <option value="RFB" {% if usuario.role == 'RFB' %}selected{% endif %}>RFB</option>
-            </select>
-
-            <button type="submit">Salvar Alterações</button>
-        </form>
-        <br>
-        <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
-    </div>
 </body>
 </html>
