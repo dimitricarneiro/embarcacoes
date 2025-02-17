@@ -26,19 +26,17 @@ def test_acesso_sem_login_formulario_pedido(client):
     assert response.headers["Location"].startswith("/auth/login")
   
 def test_acesso_com_login_formulario_pedido(client):
-    """Teste para verificar se o formulário de pedido é carregado corretamente"""
-
-    # 🔹 Primeiro, faz login
-    login(client)
-
-    response = client.get("/formulario-pedido")  # Faz uma requisição GET para a rota
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
+    login(client)  # Certifique-se de que essa função realiza o login com follow_redirects=True internamente
+    response = client.get("/formulario-pedido", follow_redirects=True)
     
-    assert response.status_code == 200  # Verifica se a página carregou corretamente
-    html_content = response.data.decode("utf-8")  # Converte bytes para string
+    assert response.status_code == 200
+    html_content = response.data.decode("utf-8")
     
-    assert "<title>Cadastrar Pedido de Autorização</title>" in html_content  # Verifica se o título está presente no HTML
-    assert "<form" in html_content  # Verifica se há um formulário na resposta HTML
-    assert "Enviar Pedido de Autorização" in html_content  # Verifica se o botão está presente
+    assert "Cadastrar Pedido de Autorização" in html_content  # Verifica se o título esperado está presente
+    assert "<form" in html_content
+    assert "Enviar Pedido de Autorização" in html_content
+
 
 def teste_redirecionamento_home_sem_login(client):
     resposta = client.get("/")

@@ -706,8 +706,6 @@ def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
     return render_template('formulario.html')
 
-from flask_login import login_required, current_user
-
 @pedidos_bp.route('/admin')
 @login_required
 def admin_dashboard():
