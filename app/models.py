@@ -5,29 +5,25 @@ from datetime import datetime
 
 # Tabelas de associação para os relacionamentos muitos-para-muitos
 pedido_embarcacao = db.Table('pedido_embarcacao',
-                             db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'),
-                                       primary_key=True),
-                             db.Column('embarcacao_id', db.Integer, db.ForeignKey('embarcacoes.id'), primary_key=True)
-                             )
+    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+    db.Column('embarcacao_id', db.Integer, db.ForeignKey('embarcacoes.id'), primary_key=True)
+)
 
 pedido_veiculo = db.Table('pedido_veiculo',
-                          db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-                          db.Column('veiculo_id', db.Integer, db.ForeignKey('veiculos.id'), primary_key=True)
-                          )
+    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+    db.Column('veiculo_id', db.Integer, db.ForeignKey('veiculos.id'), primary_key=True)
+)
 
 pedido_pessoa = db.Table('pedido_pessoa',
-                         db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
-                         db.Column('pessoa_id', db.Integer, db.ForeignKey('pessoas.id'), primary_key=True)
-                         )
+    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+    db.Column('pessoa_id', db.Integer, db.ForeignKey('pessoas.id'), primary_key=True)
+)
 
 # Tabela de associação para Equipamentos (novo)
 pedido_equipamento = db.Table('pedido_equipamento',
-                              db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'),
-                                        primary_key=True),
-                              db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamentos.id'),
-                                        primary_key=True)
-                              )
-
+    db.Column('pedido_id', db.Integer, db.ForeignKey('pedidos_autorizacao.id'), primary_key=True),
+    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
+)
 
 # Modelo de Usuário
 class Usuario(db.Model, UserMixin):
@@ -49,11 +45,10 @@ class Usuario(db.Model, UserMixin):
         """Verifica se a senha informada está correta"""
         return check_password_hash(self.password_hash, password)
 
-
 # Modelo de Pedido de Autorização
 class PedidoAutorizacao(db.Model):
     __tablename__ = 'pedidos_autorizacao'
-
+    
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     empresa_responsavel = db.Column(db.String(255), nullable=False)
     cnpj_empresa = db.Column(db.String(20), nullable=False)
@@ -69,6 +64,10 @@ class PedidoAutorizacao(db.Model):
     observacoes = db.Column(db.Text, nullable=True)
     data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     token_comprovante = db.Column(db.String(100), nullable=True)
+    # Novos campos
+    agencia_maritima = db.Column(db.String(255), nullable=True)  # Agência Marítima
+    cnpj_agencia = db.Column(db.String(20), nullable=True)         # CNPJ da Agência
+    termo_responsabilidade = db.Column(db.Boolean, nullable=False, default=False)  # Aceite do termo de responsabilidade
 
     # Relacionamento com o usuário que criou o pedido
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
@@ -89,7 +88,6 @@ class Embarcacao(db.Model):
     bandeira = db.Column(db.String(50), nullable=True)
     # Outros campos relevantes da embarcação podem ser adicionados aqui.
 
-
 # Modelo para Pessoas
 class Pessoa(db.Model):
     __tablename__ = 'pessoas'
@@ -97,8 +95,10 @@ class Pessoa(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     cpf = db.Column(db.String(14), nullable=False)
     isps = db.Column(db.String(8), nullable=True)
-    # Outros campos, se necessário
-
+    # --- Novos campos adicionados ---
+    funcao = db.Column(db.String(255), nullable=True)           # Função da pessoa
+    local_embarque = db.Column(db.String(255), nullable=True)     # Local de embarque
+    local_desembarque = db.Column(db.String(255), nullable=True)  # Local de desembarque
 
 # Modelo para Veículos
 class Veiculo(db.Model):
@@ -108,7 +108,6 @@ class Veiculo(db.Model):
     placa = db.Column(db.String(20), nullable=False)
     # Outros campos, se necessário
 
-
 # Modelo para Equipamentos
 class Equipamento(db.Model):
     __tablename__ = 'equipamentos'
@@ -116,7 +115,6 @@ class Equipamento(db.Model):
     descricao = db.Column(db.String(255), nullable=False)
     numero_serie = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False, default=1)  # novo campo para quantidade
-
 
 # Modelo para Notificações
 class Notificacao(db.Model):
@@ -131,7 +129,6 @@ class Notificacao(db.Model):
     def __repr__(self):
         return f"<Notificacao {self.id} - Usuário: {self.usuario_id} - {self.mensagem}>"
 
-
 class Alerta(db.Model):
     __tablename__ = 'alertas'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -140,20 +137,16 @@ class Alerta(db.Model):
     valor = db.Column(db.String(255), nullable=False)  # Ex: "Titanic" ou "26.994.558/0001-23"
     ativo = db.Column(db.Boolean, default=True)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
-
     usuario = db.relationship("Usuario", backref=db.backref("alertas", lazy=True))
 
     def __repr__(self):
         return f"<Alerta {self.id} - Tipo: {self.tipo} - Valor: {self.valor}>"
 
 class Exigencia(db.Model):
-    __tablename__ = 'exigencias'  # Opcional, mas recomendado para nomear a tabela
+    __tablename__ = 'exigencias'
     id = db.Column(db.Integer, primary_key=True)
-    # Altere 'pedido.id' para 'pedidos_autorizacao.id'
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos_autorizacao.id'), nullable=False)
     motivo_exigencia = db.Column(db.Text, nullable=False)
     prazo_exigencia = db.Column(db.Date, nullable=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Atualize o relacionamento para usar o nome correto do model
     pedido = db.relationship('PedidoAutorizacao', backref=db.backref('exigencias', lazy=True))

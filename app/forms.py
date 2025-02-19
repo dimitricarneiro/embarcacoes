@@ -5,6 +5,15 @@ from wtforms import (
     FieldList, FormField
 )
 from wtforms.validators import DataRequired, Optional
+from wtforms.validators import ValidationError
+
+def must_accept_terms(form, field):
+    """
+    Validador customizado para garantir que o usuário aceite os termos.
+    Se o campo não for True, gera um ValidationError.
+    """
+    if not field.data:
+        raise ValidationError("Você precisa aceitar os termos de responsabilidade.")
 
 # Sub-formulários para campos compostos no pedido
 class EmbarcacaoForm(FlaskForm):
@@ -25,6 +34,10 @@ class PessoaForm(FlaskForm):
     nome = StringField("Nome da Pessoa", validators=[DataRequired()])
     cpf = StringField("CPF", validators=[DataRequired()])
     isps = StringField("ISPS", validators=[Optional()])
+    # --- Novos campos adicionados ---
+    funcao = StringField("Função", validators=[Optional()])
+    local_embarque = StringField("Local de Embarque", validators=[Optional()])
+    local_desembarque = StringField("Local de Desembarque", validators=[Optional()])
 
 # Formulário para criação de novo usuário
 class UserRegistrationForm(FlaskForm):
@@ -50,19 +63,20 @@ class PedidoForm(FlaskForm):
     cnpj_empresa = StringField("CNPJ", validators=[DataRequired()])
     endereco_empresa = StringField("Endereço", validators=[DataRequired()])
     motivo_solicitacao = SelectField("Motivo", 
-                                     choices=[
-                                         ("Inspeção de porão", "Inspeção de porão"),
-                                         ("Inspeção de casco", "Inspeção de casco"),
-                                         ("Inspeção de hélice", "Inspeção de hélice"),
-                                         ("Inspeção subaquática", "Inspeção subaquática"),
-                                         ("Limpeza de casco", "Limpeza de casco"),
-                                         ("Limpeza de porão", "Limpeza de porão"),
-                                         ("Ressuprimento de bordo", "Ressuprimento de bordo"),
-                                         ("Atendimento Médico", "Atendimento Médico"),
-                                         ("Outros", "Outros")
-                                     ], 
-                                     validators=[DataRequired()],
-                                     default="Inspeção de casco")
+        choices=[
+            ("Inspeção de porão", "Inspeção de porão"),
+            ("Inspeção de casco", "Inspeção de casco"),
+            ("Inspeção de hélice", "Inspeção de hélice"),
+            ("Inspeção subaquática", "Inspeção subaquática"),
+            ("Limpeza de casco", "Limpeza de casco"),
+            ("Limpeza de porão", "Limpeza de porão"),
+            ("Ressuprimento de bordo", "Ressuprimento de bordo"),
+            ("Atendimento Médico", "Atendimento Médico"),
+            ("Outros", "Outros")
+        ], 
+        validators=[DataRequired()],
+        default="Inspeção de casco"
+    )
     data_inicio = DateField("Data Início", validators=[DataRequired()], format='%Y-%m-%d')
     data_termino = DateField("Data Término", validators=[DataRequired()], format='%Y-%m-%d')
     horario_inicio_servicos = StringField("Horário de Início", validators=[DataRequired()])
@@ -70,6 +84,10 @@ class PedidoForm(FlaskForm):
     certificado_livre_pratica = StringField("Certificado de Livre Prática", validators=[DataRequired()])
     cidade_servico = StringField("Cidade de Serviço", validators=[DataRequired()])
     observacoes = TextAreaField("Observações", validators=[Optional()])
+    # Novos campos
+    agencia_maritima = StringField("Agência Marítima", validators=[Optional()])
+    cnpj_agencia = StringField("CNPJ da Agência", validators=[Optional()])
+    termo_responsabilidade = BooleanField("Aceito os termos de responsabilidade", validators=[must_accept_terms])
 
     # Coleções dinâmicas usando FieldList e FormField
     embarcacoes = FieldList(FormField(EmbarcacaoForm), min_entries=1)

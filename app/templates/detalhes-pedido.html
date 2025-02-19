@@ -150,7 +150,19 @@
     <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%Y-%m-%d') }}</div>
     <div class="info"><strong>Horário de início:</strong> {{ pedido.horario_inicio_servicos }}</div>
     <div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
-  
+    
+    <!-- Novos campos do pedido -->
+    <div class="info"><strong>Agência Marítima:</strong> {{ pedido.agencia_maritima or 'N/A' }}</div>
+    <div class="info"><strong>CNPJ da Agência:</strong> {{ pedido.cnpj_agencia or 'N/A' }}</div>
+    <div class="info">
+        <strong>Termo de Responsabilidade:</strong>
+        {% if pedido.termo_responsabilidade %}
+            Aceitou os termos
+        {% else %}
+            Não aceitou os termos
+        {% endif %}
+    </div>
+    
     <div class="info">
         <strong>Status:</strong>
         {% if pedido.status == "pendente" %}
@@ -198,7 +210,16 @@
                 <strong>Nome:</strong> {{ pessoa.nome }}<br>
                 <strong>CPF:</strong> {{ pessoa.cpf }}<br>
                 {% if pessoa.isps %}
-                    <strong>ISPS:</strong> {{ pessoa.isps }}
+                    <strong>ISPS:</strong> {{ pessoa.isps }}<br>
+                {% endif %}
+                {% if pessoa.funcao %}
+                    <strong>Função:</strong> {{ pessoa.funcao }}<br>
+                {% endif %}
+                {% if pessoa.local_embarque %}
+                    <strong>Local de Embarque:</strong> {{ pessoa.local_embarque }}<br>
+                {% endif %}
+                {% if pessoa.local_desembarque %}
+                    <strong>Local de Desembarque:</strong> {{ pessoa.local_desembarque }}<br>
                 {% endif %}
             </div>
         {% endfor %}
@@ -242,34 +263,30 @@
     let sessionTimeout;
 
     function iniciarMonitoramentoSessao() {
-        // Exibe o modal de aviso 2 minutos antes da expiração
         setTimeout(() => {
             modal.style.display = "flex";
         }, avisoExpiracao);
 
-        // Expira a sessão após 30 minutos se o usuário não interagir
         sessionTimeout = setTimeout(() => {
             window.location.href = "auth/logout";
         }, tempoExpiracao);
     }
 
     function continuarSessao() {
-        modal.style.display = "none"; // Oculta o modal
-        clearTimeout(sessionTimeout); // Cancela o logout automático
+        modal.style.display = "none";
+        clearTimeout(sessionTimeout);
 
-        // Simula uma requisição ao servidor para renovar a sessão
         fetch("auth/renovar-sessao", { method: "GET" })
             .then(response => console.log("Sessão renovada"))
             .catch(error => console.error("Erro ao renovar sessão", error));
 
-        iniciarMonitoramentoSessao(); // Reinicia o monitoramento
+        iniciarMonitoramentoSessao();
     }
 
     function sairSessao() {
-        window.location.href = "auth/logout"; // Redireciona para logout
+        window.location.href = "auth/logout";
     }
 
-    // Inicia o monitoramento quando a página carregar
     document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
 </script>
 

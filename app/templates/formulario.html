@@ -60,9 +60,9 @@
 <div class="container">
   <h1>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</h1>
   
-    <div class="back">
-        <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
-    </div>
+  <div class="back">
+      <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
+  </div>
   
   <form id="pedido-form">
     <!-- Campos do pedido principal -->
@@ -75,18 +75,18 @@
     <label>Endereço:</label>
     <input type="text" id="endereco_empresa" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
 
-	<label>Motivo:</label>
-	<select id="motivo_solicitacao" required>
-  <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
-  <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
-  <option value="Inspeção de hélice" {% if pedido and pedido.motivo_solicitacao == "Inspeção de hélice" %}selected{% endif %}>Inspeção de hélice</option>
-  <option value="Inspeção subaquática" {% if pedido and pedido.motivo_solicitacao == "Inspeção subaquática" %}selected{% endif %}>Inspeção subaquática</option>
-  <option value="Limpeza de casco" {% if pedido and pedido.motivo_solicitacao == "Limpeza de casco" %}selected{% endif %}>Limpeza de casco</option>
-  <option value="Limpeza de porão" {% if pedido and pedido.motivo_solicitacao == "Limpeza de porão" %}selected{% endif %}>Limpeza de porão</option>
-  <option value="Ressuprimento de bordo" {% if pedido and pedido.motivo_solicitacao == "Ressuprimento de bordo" %}selected{% endif %}>Ressuprimento de bordo</option>
-  <option value="Atendimento Médico" {% if pedido and pedido.motivo_solicitacao == "Atendimento Médico" %}selected{% endif %}>Atendimento Médico</option>
-  <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
-	</select>
+	  <label>Motivo:</label>
+	  <select id="motivo_solicitacao" required>
+      <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
+      <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
+      <option value="Inspeção de hélice" {% if pedido and pedido.motivo_solicitacao == "Inspeção de hélice" %}selected{% endif %}>Inspeção de hélice</option>
+      <option value="Inspeção subaquática" {% if pedido and pedido.motivo_solicitacao == "Inspeção subaquática" %}selected{% endif %}>Inspeção subaquática</option>
+      <option value="Limpeza de casco" {% if pedido and pedido.motivo_solicitacao == "Limpeza de casco" %}selected{% endif %}>Limpeza de casco</option>
+      <option value="Limpeza de porão" {% if pedido and pedido.motivo_solicitacao == "Limpeza de porão" %}selected{% endif %}>Limpeza de porão</option>
+      <option value="Ressuprimento de bordo" {% if pedido and pedido.motivo_solicitacao == "Ressuprimento de bordo" %}selected{% endif %}>Ressuprimento de bordo</option>
+      <option value="Atendimento Médico" {% if pedido and pedido.motivo_solicitacao == "Atendimento Médico" %}selected{% endif %}>Atendimento Médico</option>
+      <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
+	  </select>
 
     <label>Data Início:</label>
     <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
@@ -108,6 +108,13 @@
 
     <label>Observações:</label>
     <textarea id="observacoes" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
+
+    <!-- Novos campos para Pedido -->
+    <label>Agência Marítima:</label>
+    <input type="text" id="agencia_maritima" value="{{ pedido.agencia_maritima if pedido else '' }}">
+
+    <label>CNPJ da Agência:</label>
+    <input type="text" id="cnpj_agencia" value="{{ pedido.cnpj_agencia if pedido else '' }}">
 
     <!-- Seção para Embarcações -->
     <label>Embarcações:</label>
@@ -198,6 +205,12 @@
             <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
             <label>ISPS:</label>
             <input type="text" class="pessoa-isps" placeholder="ISPS" value="{{ pessoa.isps if pessoa.isps else '' }}">
+            <label>Função:</label>
+            <input type="text" class="pessoa-funcao" placeholder="Função" value="{{ pessoa.funcao if pessoa.funcao else '' }}">
+            <label>Local de Embarque:</label>
+            <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque" value="{{ pessoa.local_embarque if pessoa.local_embarque else '' }}">
+            <label>Local de Desembarque:</label>
+            <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque" value="{{ pessoa.local_desembarque if pessoa.local_desembarque else '' }}">
           </div>
         {% endfor %}
       {% else %}
@@ -208,10 +221,22 @@
           <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
           <label>ISPS:</label>
           <input type="text" class="pessoa-isps" placeholder="ISPS">
+          <label>Função:</label>
+          <input type="text" class="pessoa-funcao" placeholder="Função">
+          <label>Local de Embarque:</label>
+          <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque">
+          <label>Local de Desembarque:</label>
+          <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque">
         </div>
       {% endif %}
     </div>
     <button type="button" class="btn-adicionar" onclick="adicionarPessoa()">Adicionar mais pessoas</button>
+
+    <!-- Checkbox de aceite dos termos -->
+    <label>
+      <input type="checkbox" id="termo_responsabilidade" {% if pedido and pedido.termo_responsabilidade %}checked{% endif %}>
+      Aceito os termos de responsabilidade
+    </label>
 
     <!-- Botão final: se existir 'pedido' chama a função de atualização; caso contrário, envia um novo pedido -->
     {% if pedido %}
@@ -306,6 +331,12 @@
       <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
       <label>ISPS:</label>
       <input type="text" class="pessoa-isps" placeholder="ISPS">
+      <label>Função:</label>
+      <input type="text" class="pessoa-funcao" placeholder="Função">
+      <label>Local de Embarque:</label>
+      <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque">
+      <label>Local de Desembarque:</label>
+      <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque">
     `;
     document.getElementById("pessoas-container").appendChild(novaPessoa);
   }
@@ -314,7 +345,6 @@
   function calcularDiferencaEmDias(dataInicioStr, dataTerminoStr) {
     const dataInicio = new Date(dataInicioStr);
     const dataTermino = new Date(dataTerminoStr);
-    // Calcula a diferença em milissegundos e converte para dias
     const diffMs = dataTermino - dataInicio;
     const diffDias = diffMs / (1000 * 60 * 60 * 24);
     return diffDias;
@@ -322,19 +352,15 @@
 
   // Função para enviar o pedido via fetch (criação)
   function enviarPedido() {
-    // Coleta as datas do formulário
     const dataInicioStr = document.getElementById("data_inicio").value;
     const dataTerminoStr = document.getElementById("data_termino").value;
-
-    // Valida se a diferença de dias não ultrapassa 5 dias
     const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
     if(diffDias > 5) {
       document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
       document.getElementById("mensagem").style.color = "red";
-      return; // Interrompe o envio do formulário
+      return;
     }
 
-    // Validação do CNPJ
     const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
       document.getElementById("mensagem").innerText = "CNPJ inválido!";
@@ -342,7 +368,6 @@
       return;
     }
 
-    // Coleta dos dados de embarcações
     const embarcacoes = [];
     document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
       const nome = el.querySelector('.embarcacao-nome').value.trim();
@@ -353,7 +378,6 @@
       }
     });
 
-    // Coleta dos dados de veículos
     const veiculos = [];
     document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
       const modelo = el.querySelector('.veiculo-modelo').value.trim();
@@ -363,7 +387,6 @@
       }
     });
 
-    // Coleta dos dados de equipamentos
     const equipamentos = [];
     document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
       const descricao = el.querySelector('.equipamento-descricao').value.trim();
@@ -378,18 +401,19 @@
       }
     });
 
-    // Coleta dos dados de pessoas
     const pessoas = [];
     document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
       const nome = el.querySelector('.pessoa-nome').value.trim();
       const cpf = el.querySelector('.pessoa-cpf').value.trim();
       const isps = el.querySelector('.pessoa-isps').value.trim();
+      const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+      const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+      const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
       if (nome && cpf) {
-        pessoas.push({ nome: nome, cpf: cpf, isps: isps });
+        pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
       }
     });
 
-    // Monta o objeto pedido
     const pedido = {
       nome_empresa: document.getElementById("nome_empresa").value,
       cnpj_empresa: cnpj,
@@ -402,59 +426,55 @@
       certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
       cidade_servico: document.getElementById("cidade_servico").value,
       observacoes: document.getElementById("observacoes").value,
+      agencia_maritima: document.getElementById("agencia_maritima").value,
+      cnpj_agencia: document.getElementById("cnpj_agencia").value,
+      termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
       embarcacoes: embarcacoes,
       veiculos: veiculos,
       equipamentos: equipamentos,
       pessoas: pessoas
     };
 
-fetch('api/pedidos-autorizacao', {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(pedido)
-})
-.then(response => {
-  if (!response.ok) {
-    return response.json().then(errorData => {
-      throw new Error(errorData.error || 'Erro ao criar pedido.');
+    fetch('api/pedidos-autorizacao', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedido)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Erro ao criar pedido.');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.redirect_url) {
+        alert("Pedido criado com sucesso!");
+        window.location.href = data.redirect_url;
+      } else {
+        document.getElementById("mensagem").innerText = "Pedido criado com sucesso!";
+        document.getElementById("mensagem").style.color = "green";
+      }
+    })
+    .catch(error => {
+      document.getElementById("mensagem").innerText = error.message;
+      document.getElementById("mensagem").style.color = "red";
+      console.error("Erro:", error);
     });
-  }
-  return response.json();
-})
-.then(data => {
-  if (data.redirect_url) {
-	alert("Pedido criado com sucesso!");
-    // Redireciona para a URL retornada
-    window.location.href = data.redirect_url;
-  } else {
-    // Caso não exista redirect_url, exibe uma mensagem de sucesso
-    document.getElementById("mensagem").innerText = "Pedido criado com sucesso!";
-    document.getElementById("mensagem").style.color = "green";
-  }
-})
-.catch(error => {
-  document.getElementById("mensagem").innerText = error.message;
-  document.getElementById("mensagem").style.color = "red";
-  console.error("Erro:", error);
-});
-
   }
 
   // Função para atualizar o pedido via fetch (edição)
   function atualizarPedido() {
-    // Coleta as datas do formulário
     const dataInicioStr = document.getElementById("data_inicio").value;
     const dataTerminoStr = document.getElementById("data_termino").value;
-
-    // Valida se a diferença de dias não ultrapassa 5 dias
     const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
     if(diffDias > 5) {
       document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
       document.getElementById("mensagem").style.color = "red";
-      return; // Interrompe o envio do formulário
+      return;
     }
 
-    // Validação do CNPJ
     const cnpj = document.getElementById("cnpj_empresa").value;
     if (!validarCNPJ(cnpj)) {
       document.getElementById("mensagem").innerText = "CNPJ inválido!";
@@ -462,7 +482,6 @@ fetch('api/pedidos-autorizacao', {
       return;
     }
 
-    // Coleta dos dados de embarcações
     const embarcacoes = [];
     document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
       const nome = el.querySelector('.embarcacao-nome').value.trim();
@@ -473,7 +492,6 @@ fetch('api/pedidos-autorizacao', {
       }
     });
 
-    // Coleta dos dados de veículos
     const veiculos = [];
     document.querySelectorAll("#veiculos-container .bloco").forEach(el => {
       const modelo = el.querySelector('.veiculo-modelo').value.trim();
@@ -483,7 +501,6 @@ fetch('api/pedidos-autorizacao', {
       }
     });
 
-    // Coleta dos dados de equipamentos
     const equipamentos = [];
     document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
       const descricao = el.querySelector('.equipamento-descricao').value.trim();
@@ -498,18 +515,19 @@ fetch('api/pedidos-autorizacao', {
       }
     });
 
-    // Coleta dos dados de pessoas
     const pessoas = [];
     document.querySelectorAll("#pessoas-container .bloco").forEach(el => {
       const nome = el.querySelector('.pessoa-nome').value.trim();
       const cpf = el.querySelector('.pessoa-cpf').value.trim();
       const isps = el.querySelector('.pessoa-isps').value.trim();
+      const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+      const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+      const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
       if (nome && cpf) {
-        pessoas.push({ nome: nome, cpf: cpf, isps: isps });
+        pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
       }
     });
 
-    // Monta o objeto pedido
     const pedido = {
       nome_empresa: document.getElementById("nome_empresa").value,
       cnpj_empresa: cnpj,
@@ -522,6 +540,9 @@ fetch('api/pedidos-autorizacao', {
       certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
       cidade_servico: document.getElementById("cidade_servico").value,
       observacoes: document.getElementById("observacoes").value,
+      agencia_maritima: document.getElementById("agencia_maritima").value,
+      cnpj_agencia: document.getElementById("cnpj_agencia").value,
+      termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
       embarcacoes: embarcacoes,
       veiculos: veiculos,
       equipamentos: equipamentos,

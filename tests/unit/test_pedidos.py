@@ -47,7 +47,7 @@ def login_admin(client):
 
 def test_criar_pedido_autorizacao_com_login(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita a validação do CSRF para os testes
-    login(client)  # Garante que o usuário está autenticado; verifique se esse helper realiza follow_redirects, se necessário
+    login(client)  # Garante que o usuário está autenticado
 
     novo_pedido = {
         "nome_empresa": "Empresa XYZ",
@@ -61,6 +61,10 @@ def test_criar_pedido_autorizacao_com_login(client):
         "certificado_livre_pratica": "ABC123",
         "cidade_servico": "Cidade Exemplo",
         "observacoes": "Serviço sujeito a alteração",
+        # Novos campos do pedido
+        "agencia_maritima": "Agência Marítima XYZ",
+        "cnpj_agencia": "12.345.678/0001-99",
+        "termo_responsabilidade": True,
         "embarcacoes": [
             {
                 "nome": "Embarcação A",
@@ -78,7 +82,11 @@ def test_criar_pedido_autorizacao_com_login(client):
         "pessoas": [
             {
                 "nome": "João Silva",
-                "cpf": "823.054.870-61"
+                "cpf": "823.054.870-61",
+                # Novos campos da pessoa
+                "funcao": "Engenheiro",
+                "local_embarque": "Porto A",
+                "local_desembarque": "Porto B"
             }
         ],
         "veiculos": [
