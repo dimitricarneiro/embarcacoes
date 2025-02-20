@@ -7,9 +7,8 @@ from app import limiter
 
 auth_bp = Blueprint("auth", __name__)
 
-
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("7 per minute; 20 per hour")  # 🔹 7 tentativas por minuto, 20 por hora
+@limiter.limit("7 per minute; 20 per hour")  # 7 tentativas por minuto, 20 por hora
 def login():
     """Exibe página de login."""
     form = LoginForm()
@@ -29,10 +28,13 @@ def login():
                 f"Usuário '{username}' efetuou login. IP: {request.remote_addr}"
             )
 
-            # Após o login, o usuário é redirecionado conforme o tipo de uusário (role)
+            # Redireciona o usuário conforme a sua role
             if user.role == "RFB":
                 return redirect(url_for("pedidos.admin_dashboard"))
-            return redirect(url_for("pedidos.exibir_pedidos"))
+            elif user.role == "agencia_maritima":
+                return redirect(url_for("agencias.agenciar_pedidos"))
+            else:  # Usuário comum
+                return redirect(url_for("pedidos.exibir_pedidos"))
 
         flash("Credenciais inválidas. Tente novamente.", "error")
 

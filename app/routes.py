@@ -1,28 +1,28 @@
-# 🔹 Importações do Flask
+# Importações do Flask
 from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for, make_response, flash
 from app import limiter
 
-# 🔹 Flask-Login (Autenticação)
+# Flask-Login (Autenticação)
 from flask_login import login_required, current_user
 
-# 🔹 Banco de Dados e Modelos
+# Banco de Dados e Modelos
 from app import db
 from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta, Prorrogacao
 
-# 🔹 Formulários
+# Formulários
 from app.forms import AlertaForm, PedidoSearchForm
 
-# 🔹 Utilitários
+# Utilitários
 import io
 from datetime import datetime, date
 import csv
 import re
 import logging
 
-# 🔹 SQLAlchemy
+# SQLAlchemy
 from sqlalchemy.sql import func
 
-# 🔹 Bibliotecas para Gerar Relatórios PDF
+# Bibliotecas para Gerar Relatórios PDF
 from io import BytesIO
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib import colors
@@ -32,11 +32,11 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj
 
-# 🔹 Bibliotecas para Gerar Planilhas Excel
+# Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-# 🔹 Bibliotecas para Gerar QRcode
+# Bibliotecas para Gerar QRcode
 import uuid
 import qrcode
 import base64
@@ -149,6 +149,10 @@ def gerenciar_pedidos():
     GET: Retorna todos os pedidos cadastrados com suporte a filtros, paginação e ordenação.
     """
     if request.method == 'POST':
+        # Restrição: Somente usuários com role "comum" podem criar um novo pedido
+        if current_user.role != "comum":
+            return jsonify({"error": "Você não pode criar um novo pedido."}), 403
+
         try:
             # Obter dados em formato JSON
             data = request.get_json()
@@ -305,12 +309,13 @@ def gerenciar_pedidos():
             db.session.add(novo_pedido)
             db.session.commit()
 
-            # Notificações (fluxo inalterado)
-            verificar_alertas(novo_pedido)
-            administradores = Usuario.query.filter_by(role="RFB").all()
-            mensagem = f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação."
-            for admin in administradores:
-                criar_notificacao(admin.id, mensagem)
+            # Notificações
+            # Este trecho de código está comentado, pois a chamada para criar uma notificação foi movida para a rota da agência
+            #verificar_alertas(novo_pedido)
+            #administradores = Usuario.query.filter_by(role="RFB").all()
+            #mensagem = f"Novo pedido {novo_pedido.id} foi cadastrado e aguarda aprovação."
+            #for admin in administradores:
+            #    criar_notificacao(admin.id, mensagem)
 
             return jsonify({
                 "redirect_url": url_for('pedidos.exibir_pedidos')
@@ -320,6 +325,8 @@ def gerenciar_pedidos():
             logging.exception("Erro ao criar pedido de autorização:")
             return jsonify({"error": "Ocorreu um erro interno no servidor."}), 500
 
+    #TODO: avaliar a necessidade desse método GET.
+    #Acredito que ele não esteja mais sendo usado e possa ser apagado.
     elif request.method == 'GET':
         try:
             query = PedidoAutorizacao.query
@@ -367,8 +374,8 @@ def editar_pedido(pedido_id):
         flash("Você não tem permissão para editar esse pedido.", "danger")
         return redirect(url_for('pedidos.exibir_pedidos'))
 
-    if pedido.status != "pendente":
-        flash("Somente pedidos pendentes podem ser editados.", "warning")
+    if pedido.status != "aguardando_agencia":
+        flash("Somente pedidos que ainda não foram confirmados pela agência podem ser editados.", "warning")
         return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
 
     if request.method == 'POST':
@@ -431,8 +438,8 @@ def atualizar_pedido_api(pedido_id):
     if pedido.usuario_id != current_user.id:
         return jsonify({"error": "Você não tem permissão para editar esse pedido."}), 403
 
-    if pedido.status != "pendente":
-        return jsonify({"error": "Somente pedidos pendentes podem ser editados."}), 400
+    if pedido.status != "aguardando_agencia":
+        return jsonify({"error": "Somente pedidos que ainda não foram confirmados pela agência podem ser editados."}), 400
 
     data = request.get_json()
     if not data:

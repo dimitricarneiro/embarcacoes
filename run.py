@@ -49,14 +49,14 @@ with app.app_context():
 
         if not Usuario.query.filter_by(username="agencia1").first():
             user3 = Usuario(
-                username="agencia1",
+                username="agencia",
                 role="agencia_maritima",
                 nome_empresa="Agência 1",
                 cnpj="52.748.592/0001-28"
             )
             user3.set_password("123456")
             users_to_add.append(user3)
-            print("Usuário 'agencia1' criado!")
+            print("Usuário 'agencia' criado!")
 
         if users_to_add:
             db.session.add_all(users_to_add)
