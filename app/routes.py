@@ -7,14 +7,14 @@ from flask_login import login_required, current_user
 
 # 🔹 Banco de Dados e Modelos
 from app import db
-from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta
+from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta, Prorrogacao
 
 # 🔹 Formulários
 from app.forms import AlertaForm, PedidoSearchForm
 
 # 🔹 Utilitários
 import io
-from datetime import datetime
+from datetime import datetime, date
 import csv
 import re
 import logging
@@ -563,6 +563,152 @@ def atualizar_pedido_api(pedido_id):
         logging.exception("Erro ao atualizar pedido:")
         return jsonify({"error": "Erro ao atualizar pedido."}), 500
 
+@pedidos_bp.route('/pedido/<int:pedido_id>/prorrogar', methods=['GET', 'POST'])
+@login_required
+def prorrogar_pedido(pedido_id):
+    """
+    Rota para solicitar a prorrogação de um pedido.
+    
+    Regras:
+    - Somente o criador do pedido pode solicitar a prorrogação.
+    - O pedido deve ter status "aprovado".
+    - A solicitação só pode ser feita se faltarem menos de 3 dias para o término.
+    - Por padrão, o status da prorrogação é 'pendente'.
+    """
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Verifica se o usuário logado é o criador do pedido
+    if pedido.usuario_id != current_user.id:
+        flash("Você não tem permissão para prorrogar este pedido.", "danger")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Verifica se o pedido está aprovado
+    if pedido.status != "aprovado":
+        flash("Somente pedidos aprovados podem ser prorrogados.", "warning")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Verifica se faltam menos de 3 dias para a data de término
+    dias_restantes = (pedido.data_termino - date.today()).days
+    if dias_restantes >= 3:
+        flash("A prorrogação só pode ser solicitada quando faltam menos de 3 dias para o término.", "warning")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Se for GET, exibe o formulário para solicitar a prorrogação
+    if request.method == 'GET':
+        return render_template('formulario_prorrogacao.html', pedido=pedido)
+
+    # Se for POST, processa os dados do formulário
+    nova_data_str = request.form.get('data_termino_nova')
+    if not nova_data_str:
+        flash("A nova data de término é obrigatória.", "danger")
+        return render_template('formulario_prorrogacao.html', pedido=pedido)
+
+    try:
+        nova_data = datetime.strptime(nova_data_str, "%Y-%m-%d").date()
+    except ValueError:
+        flash("Formato de data inválido. Use 'YYYY-MM-DD'.", "danger")
+        return render_template('formulario_prorrogacao.html', pedido=pedido)
+
+    # Opcional: a nova data deve ser posterior à data de término atual
+    if nova_data <= pedido.data_termino:
+        flash("A nova data deve ser posterior à data de término atual.", "danger")
+        return render_template('formulario_prorrogacao.html', pedido=pedido)
+
+    # Cria o registro da prorrogação com status padrão 'pendente'
+    nova_prorrogacao = Prorrogacao(
+        pedido_id=pedido.id,
+        data_termino_antiga=pedido.data_termino,
+        data_termino_nova=nova_data,
+        status_prorrogacao='pendente'
+    )
+    db.session.add(nova_prorrogacao)
+    db.session.commit()
+
+    flash("Pedido de prorrogação enviado com sucesso e está pendente de aprovação.", "success")
+    return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+@pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/prorrogacoes/<int:prorrogacao_id>/aprovar', methods=['PUT'])
+@login_required
+def aprovar_prorrogacao(pedido_id, prorrogacao_id):
+    """
+    Aprova a prorrogação de um pedido.
+    
+    Regras:
+    - Apenas usuários com role "RFB" podem aprovar.
+    - A prorrogação deve estar com status 'pendente'.
+    - Ao aprovar, atualiza o campo 'data_termino' do pedido com a nova data.
+    """
+    # Verifica se o usuário tem permissão para aprovar
+    if current_user.role != "RFB":
+        return jsonify({"error": "Acesso não autorizado"}), 403
+
+    # Busca o pedido de autorização
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Busca a prorrogação vinculada ao pedido
+    prorrogacao = (
+        Prorrogacao.query
+        .filter_by(id=prorrogacao_id, pedido_id=pedido_id)
+        .first_or_404()
+    )
+
+    # Verifica se a prorrogação já foi processada
+    if prorrogacao.status_prorrogacao != "pendente":
+        return jsonify({"error": "Esta prorrogação já foi processada."}), 400
+
+    # Aprova a prorrogação: atualiza o status e a data de término do pedido
+    prorrogacao.status_prorrogacao = "aprovada"
+    pedido.data_termino = prorrogacao.data_termino_nova
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Prorrogação aprovada com sucesso!",
+        "id_prorrogacao": prorrogacao.id,
+        "status_prorrogacao": prorrogacao.status_prorrogacao,
+        "id_autorizacao": pedido.id,
+        "data_termino_atualizada": pedido.data_termino.strftime("%Y-%m-%d")
+    }), 200
+
+@pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/prorrogacoes/<int:prorrogacao_id>/rejeitar', methods=['PUT'])
+@login_required
+def rejeitar_prorrogacao(pedido_id, prorrogacao_id):
+    """
+    Rota para rejeitar uma prorrogação de pedido.
+    
+    Regras:
+    - Apenas usuários com role "RFB" podem rejeitar.
+    - A prorrogação deve estar com status 'pendente'.
+    """
+    # Verifica se o usuário logado tem permissão para rejeitar (apenas role "RFB")
+    if current_user.role != "RFB":
+        return jsonify({"error": "Acesso não autorizado"}), 403
+
+    # Busca o pedido de autorização
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Busca a prorrogação vinculada ao pedido
+    prorrogacao = (
+        Prorrogacao.query
+        .filter_by(id=prorrogacao_id, pedido_id=pedido_id)
+        .first_or_404()
+    )
+
+    # Verifica se a prorrogação já foi processada
+    if prorrogacao.status_prorrogacao != "pendente":
+        return jsonify({"error": "Esta prorrogação já foi processada."}), 400
+
+    # Atualiza o status da prorrogação para 'rejeitada'
+    prorrogacao.status_prorrogacao = "rejeitada"
+    db.session.commit()
+
+    return jsonify({
+        "message": "Prorrogação rejeitada com sucesso!",
+        "id_prorrogacao": prorrogacao.id,
+        "status_prorrogacao": prorrogacao.status_prorrogacao,
+        "id_autorizacao": pedido.id
+    }), 200
+
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
 def exibir_pedidos():
@@ -604,7 +750,9 @@ def exibir_pedidos():
     query = query.order_by(PedidoAutorizacao.data_inicio.desc())
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
     
-    return render_template('lista-pedidos.html', pedidos=pedidos_paginados, form=form)
+    hoje = date.today()
+    
+    return render_template('lista-pedidos.html', pedidos=pedidos_paginados, form=form, hoje=hoje)
 
 @pedidos_bp.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required

@@ -262,9 +262,9 @@
 {% endif %}
 
 {% if current_user.role == "RFB" %}    
-	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a>
-	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a>
-	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a>
+	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a> | 
+	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a> | 
+	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a><br><br>
 {% endif %}
 
 <!-- Container principal dos pedidos -->
@@ -294,6 +294,19 @@
             <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}, </span>
 			<span class="label">Data Término Serviço:</span>
             <span class="value">{{ pedido.data_termino.strftime('%d/%m/%Y') }}</span>
+			
+			{% if current_user.role == "RFB" and pedido.prorrogacoes|selectattr('status_prorrogacao', 'equalto', 'pendente')|list|length > 0 %}
+    {% for prorrogacao in pedido.prorrogacoes %}
+        {% if prorrogacao.status_prorrogacao == 'pendente' %}
+            <button class="btn-aprovar" onclick="aprovarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✔ Aprovar Prorrogação</button>
+            <button class="btn-rejeitar" onclick="rejeitarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✖ Rejeitar Prorrogação</button>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+			
+			{% if pedido.status == "aprovado" and current_user.role == "comum" and (pedido.data_termino - hoje).days < 3 %}
+				<a href="#" onclick="abrirModalProrrogacao({{ pedido.id }}, '{{ pedido.data_termino.strftime('%Y-%m-%d') }}'); return false;" style="margin-left:10px;">Solicitar prorrogação</a>
+			{% endif %}
         </div>
 		
         <div class="pedido-item">
@@ -353,6 +366,23 @@
                 <input type="date" id="prazo_exigencia" name="prazo_exigencia" required>
             </div>
             <button type="submit">Enviar Exigência</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Prorrogação -->
+<div id="modal-prorrogacao" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="fecharModalProrrogacao()">&times;</span>
+        <h2>Solicitar Prorrogação</h2>
+        <form id="form-prorrogacao">
+            <!-- Campo oculto para guardar o ID do pedido -->
+            <input type="hidden" id="pedido_id_prorrogacao" name="pedido_id">
+            <div>
+                <label for="data_termino_nova">Novo Prazo (até 5 dias a partir de hoje):</label>
+                <input type="date" id="data_termino_nova" name="data_termino_nova" required>
+            </div>
+            <button type="submit">Solicitar prorrogação</button>
         </form>
     </div>
 </div>
@@ -434,6 +464,57 @@ function rejeitarPedido(pedidoId) {
     })
     .catch(error => console.error("Erro:", error));
 }
+
+function aprovarProrrogacao(pedidoId, prorrogacaoId) {
+    const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
+
+    fetch(`/api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Erro: " + data.error);
+        } else {
+            alert("Prorrogação aprovada com sucesso!");
+            location.reload(); // Atualiza a página para refletir as alterações
+        }
+    })
+    .catch(error => {
+        console.error("Erro ao aprovar prorrogação:", error);
+        alert("Erro ao aprovar prorrogação.");
+    });
+}
+
+function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
+    const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
+
+    fetch(`/api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Erro: " + data.error);
+        } else {
+            alert("Prorrogação rejeitada com sucesso!");
+            location.reload(); // Atualiza a página para refletir as alterações
+        }
+    })
+    .catch(error => {
+        console.error("Erro ao rejeitar prorrogação:", error);
+        alert("Erro ao rejeitar prorrogação.");
+    });
+}
+
 </script>
 
 <script>
@@ -511,6 +592,75 @@ document.getElementById('form-exigencia').addEventListener('submit', function(e)
     });
 });
 
+</script>
+
+<script>
+// Função para abrir o modal de prorrogação
+function abrirModalProrrogacao(pedidoId, dataTerminoAtual) {
+    // Define o ID do pedido no campo oculto
+    document.getElementById('pedido_id_prorrogacao').value = pedidoId;
+    
+    // Define o atributo 'max' do input de data para (hoje + 5 dias)
+    let today = new Date();
+    let maxDate = new Date();
+    maxDate.setDate(today.getDate() + 5);
+    // Formata a data no padrão 'YYYY-MM-DD'
+    let dd = String(maxDate.getDate()).padStart(2, '0');
+    let mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+    let yyyy = maxDate.getFullYear();
+    let maxDateStr = yyyy + '-' + mm + '-' + dd;
+    document.getElementById('data_termino_nova').max = maxDateStr;
+    
+    // Exibe o modal (usando flex para centralizar, conforme seu CSS)
+    document.getElementById('modal-prorrogacao').style.display = 'flex';
+}
+
+// Função para fechar o modal de prorrogação
+function fecharModalProrrogacao() {
+    document.getElementById('modal-prorrogacao').style.display = 'none';
+}
+
+// Envia o formulário de prorrogação via AJAX
+document.getElementById('form-prorrogacao').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let pedidoId = document.getElementById('pedido_id_prorrogacao').value;
+    let novaData = document.getElementById('data_termino_nova').value;
+    
+    // Validação extra: verifica se a nova data não ultrapassa 5 dias a partir de hoje
+    let today = new Date();
+    let maxAllowed = new Date();
+    maxAllowed.setDate(today.getDate() + 5);
+    let novaDataObj = new Date(novaData);
+    if (novaDataObj > maxAllowed) {
+        alert("A nova data não pode ser maior do que 5 dias a partir de hoje.");
+        return;
+    }
+    
+    // Envia os dados via fetch para a rota de prorrogação
+    fetch(`/pedido/${pedidoId}/prorrogar`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `data_termino_nova=${novaData}`
+    })
+    .then(response => {
+        if (response.redirected) {
+            // Caso a rota redirecione, navega para a nova URL
+            window.location.href = response.url;
+        } else {
+            return response.text();
+        }
+    })
+    .then(data => {
+        alert("Pedido de prorrogação enviado com sucesso!");
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error("Erro ao solicitar prorrogação:", error);
+        alert("Erro ao solicitar prorrogação.");
+    });
+});
 </script>
 
 </html>

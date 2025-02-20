@@ -55,7 +55,7 @@ class PedidoAutorizacao(db.Model):
     endereco_empresa = db.Column(db.String(255), nullable=False)
     motivo_solicitacao = db.Column(db.Text, nullable=False)
     data_inicio = db.Column(db.Date, nullable=False)
-    data_termino = db.Column(db.Date, nullable=False)
+    data_termino = db.Column(db.Date, nullable=False)  # Data de término original ou atualizada
     horario_inicio_servicos = db.Column(db.String(20), nullable=False)
     horario_termino_servicos = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default="pendente", nullable=False)
@@ -64,16 +64,16 @@ class PedidoAutorizacao(db.Model):
     observacoes = db.Column(db.Text, nullable=True)
     data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     token_comprovante = db.Column(db.String(100), nullable=True)
-    agencia_maritima = db.Column(db.String(255), nullable=True)  # Agência Marítima
-    cnpj_agencia = db.Column(db.String(20), nullable=True)         # CNPJ da Agência
-    termo_responsabilidade = db.Column(db.Boolean, nullable=False, default=False)  # Aceite do termo de responsabilidade
+    agencia_maritima = db.Column(db.String(255), nullable=True)
+    cnpj_agencia = db.Column(db.String(20), nullable=True)
+    termo_responsabilidade = db.Column(db.Boolean, nullable=False, default=False)
     data_analise_pedido = db.Column(db.DateTime, nullable=True)
     id_usuario_que_analisou_pedido = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
 
     # Relacionamento para o usuário que analisou o pedido:
     usuario_que_analisou = db.relationship("Usuario", foreign_keys=[id_usuario_que_analisou_pedido])
 
-    # Relacionamento com o usuário que criou o pedido
+    # Relacionamento com o usuário que criou o pedido:
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
     usuario = db.relationship("Usuario", foreign_keys=[usuario_id], backref="pedidos")
 
@@ -82,6 +82,35 @@ class PedidoAutorizacao(db.Model):
     veiculos = db.relationship("Veiculo", secondary=pedido_veiculo, backref="pedidos")
     pessoas = db.relationship("Pessoa", secondary=pedido_pessoa, backref="pedidos")
     equipamentos = db.relationship("Equipamento", secondary=pedido_equipamento, backref="pedidos")
+
+class Prorrogacao(db.Model):
+    __tablename__ = 'prorrogacoes'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # Chave estrangeira para associar a prorrogação a um pedido
+    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos_autorizacao.id'), nullable=False)
+    
+    # Data de término registrada antes da prorrogação
+    data_termino_antiga = db.Column(db.Date, nullable=False)
+    # Nova data de término solicitada
+    data_termino_nova = db.Column(db.Date, nullable=False)
+    
+    # Data e hora em que a solicitação foi realizada
+    data_solicitacao = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Campo para indicar o status da prorrogação:
+    # Possíveis valores: 'pendente', 'aprovada', 'rejeitada'
+    status_prorrogacao = db.Column(db.String(20), nullable=False, default='pendente')
+
+    # Relacionamento com o modelo PedidoAutorizacao.
+    # O backref 'prorrogacoes' permite acessar todas as prorrogações de um pedido: pedido.prorrogacoes
+    pedido = db.relationship('PedidoAutorizacao', backref=db.backref('prorrogacoes', lazy=True))
+
+    def __repr__(self):
+        return (
+            f"<Prorrogacao {self.id}: {self.data_termino_antiga} -> "
+            f"{self.data_termino_nova}, status={self.status_prorrogacao}>"
+        )
 
 # Modelo para Embarcações
 class Embarcacao(db.Model):
