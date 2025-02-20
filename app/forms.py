@@ -44,7 +44,7 @@ class UserRegistrationForm(FlaskForm):
     password = PasswordField("Senha", validators=[DataRequired()])
     nome_empresa = StringField("Nome da Empresa", validators=[Optional()])
     cnpj = StringField("CNPJ", validators=[Optional()])
-    role = SelectField("Role", choices=[("comum", "Comum"), ("RFB", "RFB")], validators=[DataRequired()])
+    role = SelectField("Role", choices=[("comum", "Comum"), ("agencia_maritima", "Agência"), ("RFB", "RFB")], validators=[DataRequired()])
     submit = SubmitField("Criar Usuário")
 
 # Formulário para editar usuário

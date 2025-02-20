@@ -29,7 +29,7 @@ with app.app_context():
             user1 = Usuario(
                 username="usuario",
                 role="comum",
-                nome_empresa="Empresa Usuario 1",
+                nome_empresa="Prestador de Serviços 1",
                 cnpj="09.441.804/0001-09"
             )
             user1.set_password("123456")
@@ -40,12 +40,23 @@ with app.app_context():
             user2 = Usuario(
                 username="usuario2",
                 role="comum",
-                nome_empresa="Empresa Usuario 2",
+                nome_empresa="Prestador de Serviços 2",
                 cnpj="96.411.668/0001-09"
             )
             user2.set_password("123456")
             users_to_add.append(user2)
             print("Usuário 'usuario2' criado!")
+
+        if not Usuario.query.filter_by(username="agencia1").first():
+            user3 = Usuario(
+                username="agencia1",
+                role="agencia_maritima",
+                nome_empresa="Agência 1",
+                cnpj="52.748.592/0001-28"
+            )
+            user3.set_password("123456")
+            users_to_add.append(user3)
+            print("Usuário 'agencia1' criado!")
 
         if users_to_add:
             db.session.add_all(users_to_add)

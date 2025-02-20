@@ -34,7 +34,7 @@ class Usuario(db.Model, UserMixin):
     cnpj = db.Column(db.String(20), unique=True, nullable=True)  # campo para o CNPJ
     nome_empresa = db.Column(db.String(255), nullable=True)  # campo para o nome da empresa
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(50), nullable=False, default="comum")  # "comum" ou "RFB"
+    role = db.Column(db.String(50), nullable=False, default="comum")  # "comum", "agencia_maritima" ou "RFB"
     data_criacao_usuario = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def set_password(self, password):
@@ -58,7 +58,7 @@ class PedidoAutorizacao(db.Model):
     data_termino = db.Column(db.Date, nullable=False)  # Data de término original ou atualizada
     horario_inicio_servicos = db.Column(db.String(20), nullable=False)
     horario_termino_servicos = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), default="pendente", nullable=False)
+    status = db.Column(db.String(20), default="aguardando_agencia", nullable=False)
     certificado_livre_pratica = db.Column(db.String(8), nullable=True)
     cidade_servico = db.Column(db.String(50), nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
