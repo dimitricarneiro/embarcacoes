@@ -14,7 +14,7 @@ login_manager.login_view = "auth.login"  # Redireciona usuários não autenticad
 # ✅ Inicializa o Flask-Limiter para controle de tentativas de login
 limiter = Limiter(
     key_func=get_remote_address,  # 🔹 Usa o IP do usuário para limitar requisições
-    default_limits=["50 per minute"]  # 🔹 Limite padrão de 50 requisições por minuto
+    default_limits=["30 per minute"]  # 🔹 Limite padrão de 30 requisições por minuto
 )
 
 def create_app():
@@ -28,7 +28,7 @@ def create_app():
     print(f"🚀 Rodando no ambiente: {env}")
 
     # ✅ Tempo de expiração da sessão
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60)
 
     # ✅ Inicializa extensões
     db.init_app(app)
@@ -55,5 +55,3 @@ from app.models import Usuario
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
-
-

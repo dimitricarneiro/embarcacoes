@@ -19,7 +19,8 @@ def admin_required():
 @login_required
 def list_users():
     """Lista todos os usuários (acessível apenas para administradores)."""
-    if not admin_required():
+
+    if not admin_required(): # Verifica se é um usuário RFB antes de listar os usuários existentes
         return redirect(url_for('pedidos.exibir_pedidos'))
     usuarios = Usuario.query.all()
     return render_template('users/list.html', usuarios=usuarios)
@@ -27,7 +28,7 @@ def list_users():
 @users_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_user():
-    if not admin_required():
+    if not admin_required(): # Verifica se é um usuário RFB 
         return redirect(url_for('pedidos.exibir_pedidos'))
 
     form = UserRegistrationForm()
@@ -38,7 +39,7 @@ def create_user():
         cnpj = form.cnpj.data
         role = form.role.data
 
-        # Validações adicionais, se necessário
+        # Validações adicionais
         if Usuario.query.filter_by(username=username).first():
             flash("Usuário já existe.", "error")
             return redirect(url_for('users.create_user'))
@@ -69,7 +70,7 @@ def create_user():
 @login_required
 def edit_user(user_id):
     """Edita os dados de um usuário existente (acessível apenas para administradores)."""
-    if not admin_required():
+    if not admin_required(): # Verifica se é um usuário RFB
         return redirect(url_for('pedidos.exibir_pedidos'))
     
     usuario = Usuario.query.get_or_404(user_id)
@@ -112,7 +113,8 @@ def edit_user(user_id):
 @login_required
 def delete_user(user_id):
     """Exclui um usuário (acessível apenas para administradores)."""
-    if not admin_required():
+
+    if not admin_required(): # Verifica se é um usuário RFB 
         return redirect(url_for('pedidos.exibir_pedidos'))
     
     usuario = Usuario.query.get_or_404(user_id)

@@ -138,8 +138,8 @@ pedidos_bp = Blueprint('pedidos', __name__)
 def home():
     """Redireciona usuários não logados para a página de login"""
     if not current_user.is_authenticated:
-        return redirect(url_for('auth.login'))  # 🔹 Redireciona para login
-    return redirect(url_for('pedidos.exibir_pedidos'))  # 🔹 Se logado, vai para /lista-pedidos
+        return redirect(url_for('auth.login'))  # Redireciona para login
+    return redirect(url_for('pedidos.exibir_pedidos'))  # Se logado, vai para /lista-pedidos
 
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
@@ -160,7 +160,7 @@ def gerenciar_pedidos():
             if not validar_cnpj(cnpj):
                 return jsonify({"error": "CNPJ inválido!"}), 400
 
-            # Verificação de campos obrigatórios (incluindo o aceite dos termos)
+            # Verificação de campos obrigatórios
             required_fields = [
                 "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
                 "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
@@ -362,6 +362,7 @@ def editar_pedido(pedido_id):
     """
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
+    # Verifica que o pedido que está sendo editado foi criado pelo usuário logado
     if pedido.usuario_id != current_user.id:
         flash("Você não tem permissão para editar esse pedido.", "danger")
         return redirect(url_for('pedidos.exibir_pedidos'))
@@ -383,8 +384,6 @@ def editar_pedido(pedido_id):
         certificado = request.form.get('certificado_livre_pratica')
         cidade_servico = request.form.get('cidade_servico')
         observacoes = request.form.get('observacoes')
-
-        # Novos campos do pedido
         agencia_maritima = request.form.get('agencia_maritima')
         cnpj_agencia = request.form.get('cnpj_agencia')
         termo_responsabilidade = request.form.get('termo_responsabilidade')
@@ -410,13 +409,9 @@ def editar_pedido(pedido_id):
         pedido.certificado_livre_pratica = certificado
         pedido.cidade_servico = cidade_servico
         pedido.observacoes = observacoes
-
-        # Atualiza os novos campos do pedido
         pedido.agencia_maritima = agencia_maritima
         pedido.cnpj_agencia = cnpj_agencia
         pedido.termo_responsabilidade = termo_responsabilidade
-
-        # (Caso deseje atualizar também os relacionamentos, faça-o aqui)
 
         db.session.commit()
         flash("Pedido atualizado com sucesso!", "success")
@@ -462,8 +457,6 @@ def atualizar_pedido_api(pedido_id):
         pedido.certificado_livre_pratica = data.get("certificado_livre_pratica")
         pedido.cidade_servico = data.get("cidade_servico")
         pedido.observacoes = data.get("observacoes")
-
-        # Atualiza os novos campos do pedido
         pedido.agencia_maritima = data.get("agencia_maritima")
         pedido.cnpj_agencia = data.get("cnpj_agencia")
         pedido.termo_responsabilidade = data.get("termo_responsabilidade", False)
@@ -619,6 +612,11 @@ def exibir_detalhes_pedido(pedido_id):
     """ Exibe os detalhes de um pedido específico """
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
+    # Verifica que o pedido que está sendo visualizado foi criado pelo usuário logado ou por um usuário da RFB
+    if current_user.role != 'RFB' and pedido.usuario_id != current_user.id:
+        flash("Você não tem permissão para detalhar esse pedido.", "danger")
+        return redirect(url_for('pedidos.exibir_pedidos'))
+
     return render_template('detalhes-pedido.html', pedido=pedido)
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])
@@ -626,44 +624,58 @@ def exibir_detalhes_pedido(pedido_id):
 def aprovar_pedido(pedido_id):
     """ Aprova um pedido de autorização """
 
-    # 🔹 Verifica se o usuário tem permissão
+    # Verifica se o usuário tem permissão (apenas usuários com role "RFB" podem aprovar)
     if current_user.role != "RFB":
         return jsonify({"error": "Acesso não autorizado"}), 403
 
-    # 🔹 Busca o pedido no banco
+    # Busca o pedido no banco
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
-    # 🔹 Verifica se já foi aprovado
+    # Verifica se já foi aprovado
     if pedido.status == "aprovado":
         return jsonify({"error": "Este pedido já foi aprovado"}), 400
 
-    # 🔹 Aprova o pedido
+    # Aprova o pedido e registra as informações de análise
     pedido.status = "aprovado"
+    pedido.data_analise_pedido = datetime.utcnow()
+    pedido.id_usuario_que_analisou_pedido = current_user.id
+
     db.session.commit()
 
-    return jsonify({"message": "Pedido aprovado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
+    return jsonify({
+        "message": "Pedido aprovado com sucesso!",
+        "id_autorizacao": pedido.id,
+        "status": pedido.status
+    }), 200
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/rejeitar', methods=['PUT'])
-@login_required  # 🔹 Agora apenas usuários logados podem acessar
+@login_required
 def rejeitar_pedido(pedido_id):
     """ Rejeita um pedido de autorização """
 
-    # 🔹 Verifica se o usuário tem permissão para rejeitar
+    # Verifica se o usuário tem permissão para rejeitar (apenas usuários com role "RFB")
     if current_user.role != "RFB":
         return jsonify({"error": "Acesso não autorizado"}), 403
 
-    # 🔹 Busca o pedido no banco
+    # Busca o pedido no banco
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
-    # 🔹 Verifica se já foi aprovado ou rejeitado
+    # Verifica se já foi aprovado ou rejeitado
     if pedido.status != "pendente":
         return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
 
-    # 🔹 Rejeita o pedido
+    # Rejeita o pedido e registra as informações de análise
     pedido.status = "rejeitado"
+    pedido.data_analise_pedido = datetime.utcnow()
+    pedido.id_usuario_que_analisou_pedido = current_user.id
+
     db.session.commit()
 
-    return jsonify({"message": "Pedido rejeitado com sucesso!", "id_autorizacao": pedido.id, "status": pedido.status}), 200
+    return jsonify({
+        "message": "Pedido rejeitado com sucesso!",
+        "id_autorizacao": pedido.id,
+        "status": pedido.status
+    }), 200
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/exigir', methods=['POST'])
 @login_required
@@ -736,7 +748,7 @@ def detalhes_exigencia(exigencia_id):
     return render_template('detalhes_exigencia.html', exigencia=exigencia)
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
-@login_required  # 🔹 Apenas usuários logados podem acessar
+@login_required  # Apenas usuários logados podem acessar
 def exibir_formulario():
     """ Rota que exibe o formulário para preencher o pedido de autorização """
     return render_template('formulario.html')
@@ -746,18 +758,18 @@ def exibir_formulario():
 def admin_dashboard():
     """ Painel Administrativo - Somente para usuários RFB """
 
-    # 🔹 Verifica se o usuário é RFB
+    # Verifica se o usuário é RFB
     if current_user.role != "RFB":
         return redirect(url_for("pedidos.exibir_pedidos"))
 
-    # 🔹 Estatísticas gerais
+    # Estatísticas gerais
     total_pedidos = PedidoAutorizacao.query.count()
     pedidos_aprovados = PedidoAutorizacao.query.filter_by(status="aprovado").count()
     pedidos_rejeitados = PedidoAutorizacao.query.filter_by(status="rejeitado").count()
     pedidos_pendentes = PedidoAutorizacao.query.filter_by(status="pendente").count()
     total_usuarios = Usuario.query.count()
 
-    # 🔹 Contagem de pedidos por dia
+    # Contagem de pedidos por dia
     pedidos_por_dia = (
         db.session.query(func.date(PedidoAutorizacao.data_inicio), func.count())
         .group_by(func.date(PedidoAutorizacao.data_inicio))
@@ -765,7 +777,7 @@ def admin_dashboard():
         .all()
     )
 
-    # 🔹 Preparar dados para o gráfico
+    # Preparar dados para o gráfico
     datas = [str(p[0]) for p in pedidos_por_dia]
     pedidos_quantidade = [p[1] for p in pedidos_por_dia]
 
@@ -886,7 +898,7 @@ def exportar_pdf():
     # Utiliza os filtros para obter os pedidos
     pedidos = filtrar_pedidos()
 
-    # 🔹 Estatísticas gerais
+    # Estatísticas gerais
     total_pedidos = len(pedidos)
     pedidos_aprovados = len([p for p in pedidos if p.status == "aprovado"])
     pedidos_rejeitados = len([p for p in pedidos if p.status == "rejeitado"])
@@ -897,12 +909,12 @@ def exportar_pdf():
     
     elementos = []
 
-    # 🔹 Título do Relatório
+    # Título do Relatório
     styles = getSampleStyleSheet()
     elementos.append(Paragraph("<b>Relatório de Pedidos</b>", styles['Title']))
     elementos.append(Spacer(1, 12))  # Adiciona um espaço
 
-    # 🔹 Criar a tabela de pedidos
+    # Cria a tabela de pedidos
     dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"]]
     
     for pedido in pedidos:
@@ -918,7 +930,7 @@ def exportar_pdf():
 
     tabela = Table(dados)
     
-    # 🔹 Estilizar a tabela
+    # Estiliza a tabela
     estilo = TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -933,14 +945,14 @@ def exportar_pdf():
     elementos.append(tabela)
     elementos.append(Spacer(1, 20))  # Adiciona um espaço antes do sumário
 
-    # 🔹 Criar o sumário estatístico
+    # Cria o sumário estatístico
     elementos.append(Paragraph("<b>Sumário Estatístico</b>", styles['Heading2']))
     elementos.append(Paragraph(f"Total de Pedidos: {total_pedidos}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Aprovados: {pedidos_aprovados}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Rejeitados: {pedidos_rejeitados}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Pendentes: {pedidos_pendentes}", styles['Normal']))
 
-    # 🔹 Criar o PDF
+    # Cria o PDF
     pdf.build(elementos)
     buffer.seek(0)
 

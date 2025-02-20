@@ -34,7 +34,6 @@ class PessoaForm(FlaskForm):
     nome = StringField("Nome da Pessoa", validators=[DataRequired()])
     cpf = StringField("CPF", validators=[DataRequired()])
     isps = StringField("ISPS", validators=[Optional()])
-    # --- Novos campos adicionados ---
     funcao = StringField("Função", validators=[Optional()])
     local_embarque = StringField("Local de Embarque", validators=[Optional()])
     local_desembarque = StringField("Local de Desembarque", validators=[Optional()])
@@ -84,7 +83,6 @@ class PedidoForm(FlaskForm):
     certificado_livre_pratica = StringField("Certificado de Livre Prática", validators=[DataRequired()])
     cidade_servico = StringField("Cidade de Serviço", validators=[DataRequired()])
     observacoes = TextAreaField("Observações", validators=[Optional()])
-    # Novos campos
     agencia_maritima = StringField("Agência Marítima", validators=[Optional()])
     cnpj_agencia = StringField("CNPJ da Agência", validators=[Optional()])
     termo_responsabilidade = BooleanField("Aceito os termos de responsabilidade", validators=[must_accept_terms])

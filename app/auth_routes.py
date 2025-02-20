@@ -9,9 +9,9 @@ auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("10 per minute; 30 per hour")  # 🔹 10 tentativas por minuto, 30 por hora
+@limiter.limit("7 per minute; 20 per hour")  # 🔹 7 tentativas por minuto, 20 por hora
 def login():
-    """Página de login."""
+    """Exibe página de login."""
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
@@ -24,10 +24,12 @@ def login():
             login_user(user, remember=remember)
             session.permanent = True  # Define a sessão como permanente para que a expiração funcione
 
+            # Registra o evento de login com informações do usuário e IP
             current_app.logger.info(
                 f"Usuário '{username}' efetuou login. IP: {request.remote_addr}"
             )
 
+            # Após o login, o usuário é redirecionado conforme o tipo de uusário (role)
             if user.role == "RFB":
                 return redirect(url_for("pedidos.admin_dashboard"))
             return redirect(url_for("pedidos.exibir_pedidos"))
@@ -35,7 +37,6 @@ def login():
         flash("Credenciais inválidas. Tente novamente.", "error")
 
     return render_template("login.html", form=form)
-
 
 @auth_bp.route("/renovar-sessao", methods=["GET"])
 @login_required

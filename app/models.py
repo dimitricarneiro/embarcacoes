@@ -64,14 +64,18 @@ class PedidoAutorizacao(db.Model):
     observacoes = db.Column(db.Text, nullable=True)
     data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     token_comprovante = db.Column(db.String(100), nullable=True)
-    # Novos campos
     agencia_maritima = db.Column(db.String(255), nullable=True)  # Agência Marítima
     cnpj_agencia = db.Column(db.String(20), nullable=True)         # CNPJ da Agência
     termo_responsabilidade = db.Column(db.Boolean, nullable=False, default=False)  # Aceite do termo de responsabilidade
+    data_analise_pedido = db.Column(db.DateTime, nullable=True)
+    id_usuario_que_analisou_pedido = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+    # Relacionamento para o usuário que analisou o pedido:
+    usuario_que_analisou = db.relationship("Usuario", foreign_keys=[id_usuario_que_analisou_pedido])
 
     # Relacionamento com o usuário que criou o pedido
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
-    usuario = db.relationship("Usuario", backref="pedidos")
+    usuario = db.relationship("Usuario", foreign_keys=[usuario_id], backref="pedidos")
 
     # Relacionamentos muitos-para-muitos
     embarcacoes = db.relationship("Embarcacao", secondary=pedido_embarcacao, backref="pedidos")
