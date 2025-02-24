@@ -6,6 +6,9 @@ from app.forms import UserRegistrationForm, UserEditForm
 from werkzeug.security import generate_password_hash
 from app.utils import validar_cnpj
 
+# Segurança
+from app.security import role_required
+
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
 def admin_required():
@@ -17,6 +20,7 @@ def admin_required():
 
 @users_bp.route('/', methods=['GET'])
 @login_required
+@role_required("RFB")
 def list_users():
     """Lista todos os usuários (acessível apenas para administradores)."""
 
@@ -27,6 +31,7 @@ def list_users():
 
 @users_bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@role_required("RFB")
 def create_user():
     if not admin_required(): # Verifica se é um usuário RFB 
         return redirect(url_for('pedidos.exibir_pedidos'))
@@ -68,6 +73,7 @@ def create_user():
 
 @users_bp.route('/edit/<int:user_id>', methods=['GET', 'POST'])
 @login_required
+@role_required("RFB")
 def edit_user(user_id):
     """Edita os dados de um usuário existente (acessível apenas para administradores)."""
     if not admin_required(): # Verifica se é um usuário RFB
@@ -111,6 +117,7 @@ def edit_user(user_id):
 
 @users_bp.route('/delete/<int:user_id>', methods=['POST'])
 @login_required
+@role_required("RFB")
 def delete_user(user_id):
     """Exclui um usuário (acessível apenas para administradores)."""
 
