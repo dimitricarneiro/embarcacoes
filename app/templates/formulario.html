@@ -350,7 +350,7 @@
     return diffDias;
   }
 
-  // Função para enviar o pedido via fetch (criação)
+  // Função para criar novo pedido via fetch
   function enviarPedido() {
     const dataInicioStr = document.getElementById("data_inicio").value;
     const dataTerminoStr = document.getElementById("data_termino").value;
@@ -464,7 +464,7 @@
     });
   }
 
-  // Função para atualizar o pedido via fetch (edição)
+  // Função para atualizar o pedido via fetch
   function atualizarPedido() {
     const dataInicioStr = document.getElementById("data_inicio").value;
     const dataTerminoStr = document.getElementById("data_termino").value;
@@ -570,8 +570,13 @@
       return response.json();
     })
     .then(data => {
-      document.getElementById("mensagem").innerText = `Pedido atualizado com sucesso! ID: ${data.id_autorizacao}`;
-      document.getElementById("mensagem").style.color = "green";
+      if (data.redirect_url) {
+        alert("Pedido atualizado com sucesso!");
+        window.location.href = data.redirect_url;
+      } else {
+        document.getElementById("mensagem").innerText = "Pedido atualizado com sucesso!";
+        document.getElementById("mensagem").style.color = "green";
+      }
     })
     .catch(error => {
       document.getElementById("mensagem").innerText = error.message;
@@ -580,7 +585,7 @@
     });
   }
 
-  // Função de validação de CNPJ (já existente)
+  // Função de validação de CNPJ
   function validarCNPJ(cnpj) {
     cnpj = cnpj.replace(/[^\d]+/g, "");
     if (cnpj.length !== 14) return false;

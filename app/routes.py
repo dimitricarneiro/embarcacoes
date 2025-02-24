@@ -30,7 +30,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
-from app.utils import validar_cnpj
+from app.utils import validar_cnpj, validar_cpf
 
 # Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
@@ -164,16 +164,38 @@ def gerenciar_pedidos():
             if not validar_cnpj(cnpj):
                 return jsonify({"error": "CNPJ inválido!"}), 400
 
-            # Verificação de campos obrigatórios
-            required_fields = [
-                "nome_empresa", "cnpj_empresa", "endereco_empresa", "motivo_solicitacao",
-                "data_inicio", "data_termino", "horario_inicio_servicos", "horario_termino_servicos",
-                "certificado_livre_pratica", "cidade_servico", "embarcacoes", "pessoas", "termo_responsabilidade"
+            # Validação do CPF
+            #cpf = data.get("pessoa-cpf", "")
+            #if not validar_cpf(cpf):
+            #    return jsonify({"error": f"CPF {cpf} inválido!"}), 400
+
+            # Dicionário com os campos obrigatórios e seus rótulos amigáveis
+            campos_obrigatorios = {
+                "nome_empresa": "Nome da empresa",
+                "cnpj_empresa": "CNPJ da empresa",
+                "endereco_empresa": "Endereço da empresa",
+                "motivo_solicitacao": "Motivo da solicitação",
+                "data_inicio": "Data do início",
+                "data_termino": "Data do término",
+                "horario_inicio_servicos": "Horário de início dos serviços",
+                "horario_termino_servicos": "Horário de término dos serviços",
+                "certificado_livre_pratica": "Certificado livre prática",
+                "cidade_servico": "Cidade do serviço",
+                "embarcacoes": "Embarcações",
+                "pessoas": "Pessoas",
+                "termo_responsabilidade": "Termo de responsabilidade"
+            }
+
+            # Verificação dos campos que não foram preenchidos
+            campos_invalidos = [
+                label 
+                for campo, label in campos_obrigatorios.items() 
+                if not data.get(campo)
             ]
-            campos_invalidos = [field for field in required_fields if not data.get(field)]
+
             if campos_invalidos:
                 return jsonify({
-                    "error": f"Campos obrigatórios faltantes ou vazios: {', '.join(campos_invalidos)}"
+                    "error": f"Campos obrigatórios: {', '.join(campos_invalidos)}"
                 }), 400
 
             # Verifica se o termo de responsabilidade foi aceito
@@ -422,7 +444,10 @@ def editar_pedido(pedido_id):
 
         db.session.commit()
         flash("Pedido atualizado com sucesso!", "success")
-        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+        return jsonify({
+            "redirect_url": url_for('pedidos.exibir_pedidos')
+        }), 200
 
     return render_template('formulario.html', pedido=pedido)
 
@@ -526,7 +551,7 @@ def atualizar_pedido_api(pedido_id):
                 pedido.equipamentos.append(equipamento)
 
         # -------------------------------
-        # Atualização de Pessoas (incluindo os novos campos)
+        # Atualização de Pessoas
         # -------------------------------
         pedido.pessoas.clear()
         for pessoa_data in data.get("pessoas", []):
@@ -561,8 +586,7 @@ def atualizar_pedido_api(pedido_id):
 
         db.session.commit()
         return jsonify({
-            "message": "Pedido atualizado com sucesso!",
-            "id_autorizacao": pedido.id
+            "redirect_url": url_for('pedidos.exibir_pedidos')
         }), 200
 
     except Exception as e:

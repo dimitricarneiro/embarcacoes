@@ -1,6 +1,6 @@
 import pytest
 from app import create_app
-from tests.unit.test_pedidos import login, login_admin  # 🔹 Importa a função login
+from tests.unit.test_pedidos import login, login_admin  # Importa a função login
 
 @pytest.fixture
 def client():
@@ -36,12 +36,11 @@ def teste_login_post_valido_regular(client):
 
 def teste_login_post_valido_admin(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    login_admin(client)
+    login_admin(client) # realiza login como admin
     resposta = client.get("/admin", follow_redirects=True)
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
     assert "admin" in texto_resposta.lower()
-
 
 def teste_renovar_sessao(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
@@ -50,7 +49,6 @@ def teste_renovar_sessao(client):
     assert resposta.status_code == 200
     dados = resposta.get_json()
     assert dados.get("message") == "Sessão renovada"
-
 
 def teste_logout(client):
     login(client)

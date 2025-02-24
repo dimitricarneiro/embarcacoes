@@ -154,23 +154,19 @@
     <!-- Novos campos do pedido -->
     <div class="info"><strong>Agência Marítima:</strong> {{ pedido.agencia_maritima or 'N/A' }}</div>
     <div class="info"><strong>CNPJ da Agência:</strong> {{ pedido.cnpj_agencia or 'N/A' }}</div>
-    <div class="info">
-        <strong>Termo de Responsabilidade:</strong>
-        {% if pedido.termo_responsabilidade %}
-            Aceitou os termos
-        {% else %}
-            Não aceitou os termos
-        {% endif %}
-    </div>
     
     <div class="info">
-        <strong>Status:</strong>
+        <strong>Situação:</strong>
         {% if pedido.status == "pendente" %}
-            <span class="status status-pendente">Pendente ⏳</span>
+            <span class="status status-pendente">Pendente de análise pela RFB ⏳</span>
+        {% elif pedido.status == "aguardando_agencia" %}
+            <span class="status status-pendente">Aguardando agência ⏳</span>
         {% elif pedido.status == "aprovado" %}
             <span class="status status-aprovado">Aprovado ✅</span>
         {% elif pedido.status == "rejeitado" %}
             <span class="status status-rejeitado">Rejeitado ❌</span>
+        {% elif pedido.status == "rejeitado pela agência" %}
+            <span class="status status-rejeitado">Rejeitado pela agência❌</span>			
         {% endif %}
     </div>
     
