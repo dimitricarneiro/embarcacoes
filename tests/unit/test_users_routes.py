@@ -103,8 +103,8 @@ def teste_acessar_editar_usuario_nao_admin(client):
     resposta = client.get("/users/edit/1", follow_redirects=True)
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
-    # Usuário não admin deve ser redirecionado para a área de pedidos
-    assert "pedidos" in texto_resposta.lower()
+    # Usuário não admin deve ser redirecionado para login
+    assert "login" in texto_resposta.lower()
 
 def teste_acessar_editar_usuario_admin(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
