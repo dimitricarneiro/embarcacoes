@@ -556,7 +556,7 @@
       return;
     }
 
-    fetch(`/api/pedidos-autorizacao/${pedidoId}`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedido)

@@ -188,8 +188,8 @@
     </div>
 	
 	<div>
-	<a href="users">Listar usuários</a><br>
-	<a href="users/create">Criar novo usuário</a><br>
+		<a href="{{ url_for('users.list_users') }}">Listar usuários</a><br>
+		<a href="{{ url_for('users.create_user') }}">Criar novo usuário</a><br>
 	</div>
 
 </div>

@@ -487,7 +487,7 @@ function rejeitarPedido(pedidoId) {
 function aprovarProrrogacao(pedidoId, prorrogacaoId) {
     const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
-    fetch(`/api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -512,7 +512,7 @@ function aprovarProrrogacao(pedidoId, prorrogacaoId) {
 function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
     const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
-    fetch(`/api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -592,7 +592,7 @@ document.getElementById('form-exigencia').addEventListener('submit', function(e)
     var motivoExigencia = document.getElementById('motivo_exigencia').value;
     var prazoExigencia = document.getElementById('prazo_exigencia').value;
     
-    fetch(`/api/pedidos-autorizacao/${pedidoId}/exigir`, {
+    fetch(`api/pedidos-autorizacao/${pedidoId}/exigir`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -656,7 +656,7 @@ document.getElementById('form-prorrogacao').addEventListener('submit', function(
     }
     
     // Envia os dados via fetch para a rota de prorrogação
-    fetch(`/pedido/${pedidoId}/prorrogar`, {
+    fetch(`pedido/${pedidoId}/prorrogar`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
