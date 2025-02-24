@@ -195,6 +195,14 @@
     button:hover {
         opacity: 0.8;
     }
+    .form-row {
+        display: flex;
+        align-items: center;  /* Alinha verticalmente os itens */
+        gap: 5px; /* Espaçamento entre os elementos */
+    }
+    .form-row > div {
+        margin: 0;
+    }
 </style>
 
 </head>
@@ -219,35 +227,38 @@
 
 <form method="GET" action="{{ url_for('pedidos.exibir_pedidos') }}">
     {{ form.hidden_tag() }}
-    {% if current_user.role == "RFB" %}
+    <div class="form-row">
+        {% if current_user.role == "RFB" %}
+            <div>
+                {{ form.nome_empresa.label }}<br>
+                {{ form.nome_empresa(size=32) }}
+            </div>
+            <div>
+                {{ form.cnpj_empresa.label }}<br>
+                {{ form.cnpj_empresa(size=32) }}
+            </div>
+        {% endif %}
         <div>
-            {{ form.nome_empresa.label }}<br>
-            {{ form.nome_empresa(size=32) }}
+            {{ form.nome_embarcacao.label }}<br>
+            {{ form.nome_embarcacao(size=32) }}
         </div>
         <div>
-            {{ form.cnpj_empresa.label }}<br>
-            {{ form.cnpj_empresa(size=32) }}
+            {{ form.status.label }}<br>
+            {{ form.status() }}
         </div>
-    {% endif %}
-    <div>
-        {{ form.nome_embarcacao.label }}<br>
-        {{ form.nome_embarcacao(size=32) }}
-    </div>
-    <div>
-        {{ form.status.label }}<br>
-        {{ form.status() }}
-    </div>
-    <div>
-        {{ form.data_inicio.label }}<br>
-        {{ form.data_inicio() }}
-    </div>
-    <div>
-        {{ form.data_termino.label }}<br>
-        {{ form.data_termino() }}
-    </div>
-    <div>
-        {{ form.submit() }}
-        <a href="{{ url_for('pedidos.exibir_pedidos') }}"><button type="button">Limpar Filtros</button></a>
+	</div>
+	<div class="form-row">
+        <div>
+            {{ form.data_inicio.label }}<br>
+            {{ form.data_inicio() }}
+        </div>
+        <div>
+            {{ form.data_termino.label }}<br>
+            {{ form.data_termino() }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
     </div>
 </form>
 
