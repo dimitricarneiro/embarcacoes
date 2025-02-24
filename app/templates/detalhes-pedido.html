@@ -158,15 +158,17 @@
     <div class="info">
         <strong>Situação:</strong>
         {% if pedido.status == "pendente" %}
-            <span class="status status-pendente">Pendente de análise pela RFB ⏳</span>
+            <span>Pendente de análise pela RFB ⏳</span>
         {% elif pedido.status == "aguardando_agencia" %}
-            <span class="status status-pendente">Aguardando agência ⏳</span>
+            <span>Aguardando agência ⏳</span>
         {% elif pedido.status == "aprovado" %}
-            <span class="status status-aprovado">Aprovado ✅</span>
+            <span>Aprovado ✅</span>
         {% elif pedido.status == "rejeitado" %}
-            <span class="status status-rejeitado">Rejeitado ❌</span>
+            <span>Rejeitado ❌</span>
+        {% elif pedido.status == "exigência" %}
+            <span>Com exigência ⚠</span>			
         {% elif pedido.status == "rejeitado pela agência" %}
-            <span class="status status-rejeitado">Rejeitado pela agência❌</span>			
+            <span>Rejeitado pela agência❌</span>	
         {% endif %}
     </div>
     

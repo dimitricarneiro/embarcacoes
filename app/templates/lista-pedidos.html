@@ -318,23 +318,23 @@
             <span class="label">Situação:</span>
             <span class="value">
                 {% if pedido.status == "pendente" %}
-                    <span class="status status-pendente">Pendente de análise pela RFB ⏳ </span>
+                    <span>Pendente de análise pela RFB ⏳ </span>
                 {% elif pedido.status == "aprovado" %}
-                    <span class="status status-aprovado">Aprovado ✅ <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a></span>
+                    <span>Aprovado ✅ <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a></span>
                 {% elif pedido.status == "rejeitado" %}
-                    <span class="status status-rejeitado">Rejeitado ❌</span>
+                    <span>Rejeitado ❌</span>
                 {% elif pedido.status == "rejeitado pela agência" %}
-                    <span class="status status-rejeitado">Rejeitado pela agência❌</span>
+                    <span>Rejeitado pela agência❌</span>
 					
                 {% elif pedido.status == "aguardando_agencia" %}
-                    <span class="status status-aguardando">Aguardando agência ⏳ </span>
+                    <span>Aguardando agência ⏳ </span>
 					
 			            {% if current_user.role == "comum" %}
                             <a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
                         {% endif %}
 				
 				{% elif pedido.status == "exigência" %}
-                    <span class="status status-exigencia">Com exigência ⚠ <a href="{{ url_for('pedidos.detalhes_exigencia', exigencia_id=pedido.exigencias[0].id) }}">🔍 Ver detalhes da Exigência</a></span>
+                    <span>Com exigência ⚠ <a href="{{ url_for('pedidos.detalhes_exigencia', exigencia_id=pedido.exigencias[0].id) }}">🔍 Ver detalhes da Exigência</a></span>
                 {% endif %}
             </span>
         </div>
