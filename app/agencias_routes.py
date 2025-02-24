@@ -7,6 +7,8 @@ from app.models import PedidoAutorizacao, Usuario
 # Importa a função de notificação
 from app.routes import criar_notificacao  
 
+# Segurança
+from app.security import role_required
 
 
 # Cria um Blueprint para as rotas da agência marítima
@@ -14,6 +16,7 @@ agencias_bp = Blueprint('agencias', __name__)
 
 @agencias_bp.route('/agencia/pedidos', methods=['GET'])
 @login_required
+@role_required("agencia_maritima")
 def agenciar_pedidos():
     """
     Exibe os pedidos destinados à agência marítima autenticada.
@@ -42,6 +45,7 @@ def agenciar_pedidos():
 
 @agencias_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/agenciar', methods=['PUT'])
 @login_required
+@role_required("agencia_maritima")
 def agenciar_pedido(pedido_id):
     """
     Rota para que uma agência marítima aceite (agencie) um pedido.
@@ -82,6 +86,7 @@ def agenciar_pedido(pedido_id):
 
 @agencias_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/rejeitar-agencia', methods=['PUT'])
 @login_required
+@role_required("agencia_maritima")
 def rejeitar_pedido_agencia(pedido_id):
     """
     Rota para que uma agência marítima rejeite um pedido.

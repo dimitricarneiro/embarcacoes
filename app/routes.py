@@ -9,6 +9,9 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import PedidoAutorizacao, Usuario, Notificacao, Embarcacao, Veiculo, Pessoa, Equipamento, Exigencia, Alerta, Prorrogacao
 
+# Segurança
+from app.security import role_required
+
 # Formulários
 from app.forms import AlertaForm, PedidoSearchForm
 
@@ -143,6 +146,7 @@ def home():
 
 @pedidos_bp.route('/api/pedidos-autorizacao', methods=['POST', 'GET'])
 @login_required
+@role_required("comum")
 def gerenciar_pedidos():
     """
     POST: Cria um novo pedido de autorização de serviço.
@@ -385,6 +389,7 @@ def gerenciar_pedidos():
 
 @pedidos_bp.route('/pedido/<int:pedido_id>/editar', methods=['GET', 'POST'])
 @login_required
+@role_required("comum")
 def editar_pedido(pedido_id):
     """
     Rota para editar um pedido existente via formulário web.
@@ -454,6 +459,7 @@ def editar_pedido(pedido_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>', methods=['PUT'])
 @login_required
+@role_required("comum")
 def atualizar_pedido_api(pedido_id):
     """
     Atualiza um pedido via API.
@@ -597,6 +603,7 @@ def atualizar_pedido_api(pedido_id):
 
 @pedidos_bp.route('/pedido/<int:pedido_id>/prorrogar', methods=['GET', 'POST'])
 @login_required
+@role_required("comum")
 def prorrogar_pedido(pedido_id):
     """
     Rota para solicitar a prorrogação de um pedido.
@@ -661,6 +668,7 @@ def prorrogar_pedido(pedido_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/prorrogacoes/<int:prorrogacao_id>/aprovar', methods=['PUT'])
 @login_required
+@role_required("RFB")
 def aprovar_prorrogacao(pedido_id, prorrogacao_id):
     """
     Aprova a prorrogação de um pedido.
@@ -704,6 +712,7 @@ def aprovar_prorrogacao(pedido_id, prorrogacao_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/prorrogacoes/<int:prorrogacao_id>/rejeitar', methods=['PUT'])
 @login_required
+@role_required("RFB")
 def rejeitar_prorrogacao(pedido_id, prorrogacao_id):
     """
     Rota para rejeitar uma prorrogação de pedido.
@@ -743,6 +752,7 @@ def rejeitar_prorrogacao(pedido_id, prorrogacao_id):
 
 @pedidos_bp.route('/lista-pedidos', methods=['GET'])
 @login_required
+@role_required("RFB", "comum")
 def exibir_pedidos():
     """Exibe os pedidos em uma página HTML com filtros, busca e paginação."""
     
@@ -801,6 +811,7 @@ def exibir_detalhes_pedido(pedido_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])
 @login_required
+@role_required("RFB")
 def aprovar_pedido(pedido_id):
     """ Aprova um pedido de autorização """
 
@@ -830,6 +841,7 @@ def aprovar_pedido(pedido_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/rejeitar', methods=['PUT'])
 @login_required
+@role_required("RFB")
 def rejeitar_pedido(pedido_id):
     """ Rejeita um pedido de autorização """
 
@@ -859,6 +871,7 @@ def rejeitar_pedido(pedido_id):
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/exigir', methods=['POST'])
 @login_required
+@role_required("RFB")
 def exigir_pedido(pedido_id):
     """
     Registra uma exigência para um pedido de autorização.
@@ -918,6 +931,7 @@ def exigir_pedido(pedido_id):
 
 @pedidos_bp.route('/exigencia/<int:exigencia_id>')
 @login_required
+@role_required("comum", "RFB")
 def detalhes_exigencia(exigencia_id):
     exigencia = Exigencia.query.get_or_404(exigencia_id)
 
@@ -935,6 +949,7 @@ def exibir_formulario():
 
 @pedidos_bp.route('/admin')
 @login_required
+@role_required("RFB")
 def admin_dashboard():
     """ Painel Administrativo - Somente para usuários RFB """
 
@@ -972,6 +987,7 @@ def admin_dashboard():
 
 @pedidos_bp.route('/admin/alertas', methods=['GET', 'POST'])
 @login_required
+@role_required("RFB")
 def gerenciar_alertas():
     """Exibe os alertas do usuário RFB e permite a criação de novos alertas."""
     if current_user.role != "RFB":
@@ -1021,6 +1037,7 @@ def verificar_comprovante(token):
 
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required
+@role_required("RFB")
 def exportar_csv():
     """Exporta os pedidos como um arquivo CSV."""
     
@@ -1067,6 +1084,7 @@ def exportar_csv():
 
 @pedidos_bp.route('/admin/exportar-pdf')
 @login_required
+@role_required("RFB")
 def exportar_pdf():
     """ Exporta os pedidos como um arquivo PDF formatado com sumário estatístico """
     
@@ -1140,6 +1158,7 @@ def exportar_pdf():
 
 @pedidos_bp.route('/admin/exportar-excel')
 @login_required
+@role_required("RFB")
 def exportar_excel():
     """ 
     Exporta os pedidos cadastrados como um arquivo Excel (.xlsx).
@@ -1253,6 +1272,7 @@ def exportar_excel():
 @pedidos_bp.route("/api/notificacoes", methods=["GET"])
 @limiter.limit("30 per minute")  # Permite 30 requisições por minuto só para essa rota
 @login_required
+@role_required("RFB")
 def listar_notificacoes():
     """ Retorna notificações não lidas do usuário autenticado """
     notificacoes = Notificacao.query.filter_by(usuario_id=current_user.id, lida=False).all()
@@ -1264,6 +1284,7 @@ def listar_notificacoes():
 
 @pedidos_bp.route('/api/notificacoes/<int:notificacao_id>/marcar-lida', methods=['PUT'])
 @login_required
+@role_required("RFB")
 def marcar_notificacao_lida(notificacao_id):
     """ Marca uma notificação como lida """
     

@@ -1,7 +1,7 @@
 import pytest
 from datetime import date, datetime, timedelta
 from app import create_app
-from tests.unit.test_pedidos import login, login_admin  # 🔹 Importa a função login
+from tests.unit.test_pedidos import login, login_admin  # Importa a função login
 
 @pytest.fixture
 def client():
@@ -13,7 +13,7 @@ def client():
 def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 302
-    assert "Location" in response.headers  # 🔹 Confirma que há um cabeçalho de redirecionamento
+    assert "Location" in response.headers  # Confirma que há um cabeçalho de redirecionamento
     assert response.headers["Location"].startswith("/auth/login")
 
 def test_acesso_sem_login_formulario_pedido(client):
@@ -21,8 +21,8 @@ def test_acesso_sem_login_formulario_pedido(client):
 
     response = client.get("/formulario-pedido", follow_redirects=False)
     
-    assert response.status_code == 302  # 🔹 Confirma que há um redirecionamento
-    assert "Location" in response.headers  # 🔹 Confirma que há um cabeçalho de redirecionamento
+    assert response.status_code == 302  # Confirma que há um redirecionamento
+    assert "Location" in response.headers  # Confirma que há um cabeçalho de redirecionamento
     assert response.headers["Location"].startswith("/auth/login")
   
 def test_acesso_com_login_formulario_pedido(client):
@@ -113,11 +113,10 @@ def teste_get_alertas_nao_admin(client):
     # Autentica como usuário regular
     login(client)
     resposta = client.get("/admin/alertas", follow_redirects=True)
-    # Espera que o usuário seja redirecionado para a página de pedidos/autorizações, com status 200
+    # Espera que o usuário seja redirecionado para a página de login
     assert resposta.status_code == 200
     texto = resposta.get_data(as_text=True)
-    # Para usuários não administradores, o template exibe "Minhas Autorizações"
-    assert "minhas autorizações" in texto.lower()
+    assert "login" in texto.lower()
 
 def teste_exportar_csv_nao_admin(client):
     """
@@ -129,9 +128,8 @@ def teste_exportar_csv_nao_admin(client):
     
     # Faz a requisição à rota de exportação de CSV, seguindo redirecionamentos
     resposta = client.get("/admin/exportar-csv", follow_redirects=True)
-    # Como o usuário não é admin, ele será redirecionado para a página de exibição de pedidos/autorizações
+    # Como o usuário não é admin, ele será redirecionado para a página de login
     assert resposta.status_code == 200
     texto = resposta.get_data(as_text=True)
-    # No template para usuários não administradores, o título exibido é "Minhas Autorizações"
-    assert "minhas autorizações" in texto.lower()
+    assert "login" in texto.lower()
 
