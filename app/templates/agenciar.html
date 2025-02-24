@@ -92,7 +92,7 @@
   </div>
 </header>
 
-        <h1>Pedidos para Agenciamento</h1>
+        <h1>Pedidos de agenciamento</h1>
     <div class="container">
         <!-- Container dos pedidos -->
         <div class="pedidos-container">
@@ -131,7 +131,8 @@
                     <span class="status status-aprovado">Aprovado ✅ <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a></span>
                 {% elif pedido.status == "rejeitado" %}
                     <span class="status status-rejeitado">Rejeitado ❌</span>
-					
+                {% elif pedido.status == "rejeitado pela agência" %}
+                    <span class="status status-rejeitado">Rejeitado pela agência ❌</span>					
                 {% elif pedido.status == "aguardando_agencia" %}
                     <span class="status status-aguardando">Aguardando agência ⏳ </span>
 				{% endif %}

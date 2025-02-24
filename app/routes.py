@@ -148,6 +148,7 @@ def gerenciar_pedidos():
     POST: Cria um novo pedido de autorização de serviço.
     GET: Retorna todos os pedidos cadastrados com suporte a filtros, paginação e ordenação.
     """
+   
     if request.method == 'POST':
         # Restrição: Somente usuários com role "comum" podem criar um novo pedido
         if current_user.role != "comum":

@@ -20,8 +20,7 @@ def agenciar_pedidos():
     
     Regras:
     - Apenas usuários com role 'agencia_maritima' podem acessar esta rota.
-    - São listados os pedidos com status 'aguardando_agencia'
-      e cujo cnpj_agencia seja igual ao cnpj do usuário.
+    - São listados os pedidos cujo cnpj_agencia seja igual ao cnpj do usuário.
     """
     if current_user.role != "agencia_maritima":
         flash("Acesso não autorizado.", "danger")
@@ -33,7 +32,6 @@ def agenciar_pedidos():
     
     # Consulta os pedidos filtrados conforme as regras
     query = PedidoAutorizacao.query.filter(
-        PedidoAutorizacao.status == "aguardando_agencia",
         PedidoAutorizacao.cnpj_agencia == current_user.cnpj
     ).order_by(PedidoAutorizacao.data_criacao_pedido.desc())
     
