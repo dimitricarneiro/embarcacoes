@@ -331,7 +331,7 @@
                 {% if pedido.status == "pendente" %}
                     <span>Pendente de análise pela RFB ⏳ </span>
                 {% elif pedido.status == "aprovado" %}
-                    <span>Aprovado ✅ <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a></span>
+                    <span>Aprovado ✅ {% if current_user.role == "comum" %}<a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>{% endif %}</span>
                 {% elif pedido.status == "rejeitado" %}
                     <span>Rejeitado ❌</span>
                 {% elif pedido.status == "rejeitado pela agência" %}
