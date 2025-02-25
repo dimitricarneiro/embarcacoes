@@ -36,7 +36,7 @@ def agenciar_pedidos():
     # Consulta os pedidos filtrados conforme as regras
     query = PedidoAutorizacao.query.filter(
         PedidoAutorizacao.cnpj_agencia == current_user.cnpj
-    ).order_by(PedidoAutorizacao.data_criacao_pedido.desc())
+    ).order_by(PedidoAutorizacao.id.desc())
     
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
     hoje = date.today()

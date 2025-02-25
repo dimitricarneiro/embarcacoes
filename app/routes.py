@@ -789,7 +789,7 @@ def exibir_pedidos():
         query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{form.nome_embarcacao.data}%"))
     
     # Ordenação e paginação
-    query = query.order_by(PedidoAutorizacao.data_inicio.desc())
+    query = query.order_by(PedidoAutorizacao.id.desc())
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
     
     hoje = date.today()
