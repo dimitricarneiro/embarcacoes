@@ -14,7 +14,7 @@ def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 302
     assert "Location" in response.headers  # Confirma que há um cabeçalho de redirecionamento
-    assert response.headers["Location"].startswith("/auth/login")
+    assert response.headers["Location"].startswith("/embarcacoes/auth/login")
 
 def test_acesso_sem_login_formulario_pedido(client):
     """Teste para verificar que usuários não autenticados são redirecionados (302) ao tentar acessar /formulario-pedido"""
@@ -23,7 +23,7 @@ def test_acesso_sem_login_formulario_pedido(client):
     
     assert response.status_code == 302  # Confirma que há um redirecionamento
     assert "Location" in response.headers  # Confirma que há um cabeçalho de redirecionamento
-    assert response.headers["Location"].startswith("/auth/login")
+    assert response.headers["Location"].startswith("/embarcacoes/auth/login")
   
 def test_acesso_com_login_formulario_pedido(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste

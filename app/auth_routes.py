@@ -8,7 +8,7 @@ from app import limiter
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("7 per minute; 20 per hour")  # 7 tentativas por minuto, 20 por hora
+@limiter.limit("12 per minute; 30 per hour")  # 12 tentativas por minuto, 30 por hora
 def login():
     """Exibe página de login."""
     form = LoginForm()

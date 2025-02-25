@@ -10,6 +10,9 @@ class DevelopmentConfig(Config):
     """Configuração para Desenvolvimento."""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(Config.BASE_DIR, 'instance', 'database.db')}"
+    APPLICATION_ROOT = '/embarcacoes'
+    # Define o caminho do cookie de sessão para incluir o prefixo
+    SESSION_COOKIE_PATH = '/embarcacoes'
 
 class TestingConfig(Config):
     """Configuração para Testes (usada no GitHub Actions e pytest)."""

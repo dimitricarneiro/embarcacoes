@@ -174,7 +174,7 @@
         // Função para agenciar o pedido
         function agenciarPedido(pedidoId) {
             const authKey = "AGENCIA_SECRET"; // Caso necessário, simule autenticação
-            fetch(`api/pedidos-autorizacao/${pedidoId}/agenciar`, {
+            fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/agenciar`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -199,7 +199,7 @@
         // Função para rejeitar o pedido pela agência
         function rejeitarPedidoAgencia(pedidoId) {
             const authKey = "AGENCIA_SECRET"; // Caso necessário, simule autenticação
-            fetch(`api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
+            fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

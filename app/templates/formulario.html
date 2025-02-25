@@ -435,7 +435,7 @@
       pessoas: pessoas
     };
 
-    fetch('api/pedidos-autorizacao', {
+    fetch('/embarcacoes/api/pedidos-autorizacao', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedido)
@@ -556,7 +556,7 @@
       return;
     }
 
-    fetch(`api/pedidos-autorizacao/${pedidoId}`, {
+    fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedido)
