@@ -1,0 +1,5 @@
+site_name: Meu Projeto
+theme: readthedocs
+nav:
+  - Home: index.md
+  - Guia: guia.md

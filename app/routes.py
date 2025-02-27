@@ -17,7 +17,7 @@ from app.forms import AlertaForm, PedidoSearchForm
 
 # Utilitários
 import io
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import csv
 import re
 import logging
@@ -133,6 +133,47 @@ def gerar_qr_code(token):
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return img_str
 
+def validar_horario(horario):
+    """
+    Verifica se o horário está no formato HH:MM e se os valores são válidos.
+
+    Args:
+        horario (str): Horário no formato "HH:MM".
+
+    Returns:
+        bool: True se o horário for válido, False caso contrário.
+    """
+    if not isinstance(horario, str):
+        return False
+
+    # Expressão regular para validar formato HH:MM
+    padrao_horario = re.compile(r"^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$")
+
+    return bool(padrao_horario.match(horario))
+
+def validar_placa(placa):
+    """
+    Valida a placa do veículo considerando dois padrões:
+    - Padrão antigo: 3 letras seguidas de 4 números (ex.: ABC1234)
+    - Padrão Mercosul: 3 letras, 1 número, 1 letra e 2 números (ex.: ABC1D23)
+
+    Args:
+        placa (str): Placa do veículo.
+
+    Returns:
+        bool: True se a placa for válida, False caso contrário.
+    """
+    if not isinstance(placa, str):
+        return False
+
+    # Remove hífens e converte para maiúsculo
+    placa = placa.replace("-", "").upper()
+
+    padrao_antigo = re.compile(r'^[A-Z]{3}[0-9]{4}$')
+    padrao_mercosul = re.compile(r'^[A-Z]{3}[0-9][A-Z][0-9]{2}$')
+
+    return bool(padrao_antigo.match(placa)) or bool(padrao_mercosul.match(placa))
+
 ######### Início de definição das rotas ##########################################################################
 
 pedidos_bp = Blueprint('pedidos', __name__)
@@ -169,10 +210,10 @@ def gerenciar_pedidos():
             if not validar_cnpj(cnpj):
                 return jsonify({"error": "CNPJ inválido!"}), 400
 
-            # Validação do CPF
-            #cpf = data.get("pessoa-cpf", "")
-            #if not validar_cpf(cpf):
-            #    return jsonify({"error": f"CPF {cpf} inválido!"}), 400
+            # Validação do CNPJ da agência
+            cnpj = data.get("cnpj_agencia", "")
+            if not validar_cnpj(cnpj):
+                return jsonify({"error": "CNPJ da agência inválido!"}), 400
 
             # Dicionário com os campos obrigatórios e seus rótulos amigáveis
             campos_obrigatorios = {
@@ -217,6 +258,11 @@ def gerenciar_pedidos():
             hoje = datetime.today().date()
             if data_inicio < hoje:
                 return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
+            
+            # Verifica se a data de início está dentro dos próximos 90 dias
+            if data_inicio > hoje + timedelta(days=90):
+                return jsonify({"error": "A data de início deve estar dentro dos próximos 90 dias."}), 400
+            
             if data_termino < data_inicio:
                 return jsonify({"error": "A data de término deve ser maior ou igual à data de início."}), 400
 
@@ -224,6 +270,16 @@ def gerenciar_pedidos():
             duracao = (data_termino - data_inicio).days
             if duracao > 5:
                 return jsonify({"error": "A duração máxima do serviço é de 5 dias."}), 400
+
+            # Validação de horário de início e término dos serviços
+            horario_inicio = data.get("horario_inicio_servicos", "").strip()
+            horario_termino = data.get("horario_termino_servicos", "").strip()
+
+            if not validar_horario(horario_inicio):
+                return jsonify({"error": "Horário de início inválido! Use o formato HH:MM e valores entre 00:00 e 23:59."}), 400
+
+            if not validar_horario(horario_termino):
+                return jsonify({"error": "Horário de término inválido! Use o formato HH:MM e valores entre 00:00 e 23:59."}), 400
 
             # Criação do novo pedido, incluindo os novos campos
             novo_pedido = PedidoAutorizacao(
@@ -287,15 +343,31 @@ def gerenciar_pedidos():
                         novo_pedido.equipamentos.append(equipamento)
 
             # -------------------------------
-            # Processamento de Pessoas (incluindo novos campos)
+            # Processamento de Pessoas
             # -------------------------------
+            
+            # Verifica duplicidade de CPFs nas pessoas
+            cpfs = [
+                pessoa_data.get("cpf", "").strip()
+                for pessoa_data in data.get("pessoas", [])
+                if pessoa_data.get("cpf", "").strip()
+            ]
+            if len(cpfs) != len(set(cpfs)):
+                return jsonify({"error": "Existem CPFs duplicados na lista de pessoas."}), 400
+            
             for pessoa_data in data["pessoas"]:
                 nome_pessoa = pessoa_data.get("nome", "").strip()
                 cpf_pessoa = pessoa_data.get("cpf", "").strip()
+                
+                # Valida o CPF de cada pessoa
+                if not validar_cpf(cpf_pessoa):
+                    return jsonify({"error": f"CPF {cpf_pessoa} inválido!"}), 400
+
                 isps = pessoa_data.get("isps", "").strip()
                 funcao = pessoa_data.get("funcao", "").strip()
                 local_embarque = pessoa_data.get("local_embarque", "").strip()
                 local_desembarque = pessoa_data.get("local_desembarque", "").strip()
+
                 if nome_pessoa and cpf_pessoa:
                     pessoa = db.session.query(Pessoa).filter_by(cpf=cpf_pessoa).first()
                     if not pessoa:
@@ -327,6 +399,10 @@ def gerenciar_pedidos():
                     modelo_veiculo = veiculo_data.get("modelo", "").strip()
                     placa_veiculo = veiculo_data.get("placa", "").strip()
                     if modelo_veiculo and placa_veiculo:
+                        # Valida a placa antes de continuar
+                        if not validar_placa(placa_veiculo):
+                            return jsonify({"error": f"Placa do veículo '{placa_veiculo}' é inválida. Use o formato AAA1234 ou AAA1A23."}), 400
+
                         veiculo = db.session.query(Veiculo).filter_by(placa=placa_veiculo).first()
                         if not veiculo:
                             veiculo = Veiculo(modelo=modelo_veiculo, placa=placa_veiculo)

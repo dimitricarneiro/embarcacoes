@@ -1,5 +1,6 @@
 import pytest
 from app import create_app
+from datetime import datetime, timedelta
 
 @pytest.fixture
 def client():
@@ -46,24 +47,28 @@ def login_admin(client):
     return response
 
 def test_criar_pedido_autorizacao_com_login(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita a validação do CSRF para os testes
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para os testes
     login(client)  # Garante que o usuário está autenticado
+
+    # Gera datas dinâmicas para que 'data_inicio' seja amanhã e 'data_termino' alguns dias depois (dentro de 90 dias e com duração máxima de 5 dias)
+    hoje = datetime.today()
+    data_inicio = (hoje + timedelta(days=1)).strftime("%Y-%m-%d")
+    data_termino = (hoje + timedelta(days=3)).strftime("%Y-%m-%d")
 
     novo_pedido = {
         "nome_empresa": "Empresa XYZ",
-        "cnpj_empresa": "75.371.927/0001-37",
+        "cnpj_empresa": "75.092.881/0001-17",
         "endereco_empresa": "Rua Exemplo, 123",
-        "motivo_solicitacao": "Manutenção no motor",
-        "data_inicio": "2050-01-01",  # Data no futuro
-        "data_termino": "2050-01-06",  # Máximo 5 dias de duração
+        "motivo_solicitacao": "Inspeção de casco",
+        "data_inicio": data_inicio,
+        "data_termino": data_termino,
         "horario_inicio_servicos": "08:00",
         "horario_termino_servicos": "18:00",
         "certificado_livre_pratica": "ABC123",
         "cidade_servico": "Cidade Exemplo",
         "observacoes": "Serviço sujeito a alteração",
-        # Novos campos do pedido
         "agencia_maritima": "Agência Marítima XYZ",
-        "cnpj_agencia": "12.345.678/0001-99",
+        "cnpj_agencia": "93.474.269/0001-90",
         "termo_responsabilidade": True,
         "embarcacoes": [
             {
@@ -82,8 +87,7 @@ def test_criar_pedido_autorizacao_com_login(client):
         "pessoas": [
             {
                 "nome": "João Silva",
-                "cpf": "823.054.870-61",
-                # Novos campos da pessoa
+                "cpf": "969.281.130-14",
                 "funcao": "Engenheiro",
                 "local_embarque": "Porto A",
                 "local_desembarque": "Porto B"
@@ -92,7 +96,7 @@ def test_criar_pedido_autorizacao_com_login(client):
         "veiculos": [
             {
                 "modelo": "Modelo A",
-                "placa": "ABC-1234"
+                "placa": "ABC1234"
             }
         ]
     }
@@ -100,8 +104,8 @@ def test_criar_pedido_autorizacao_com_login(client):
     response = client.post("/api/pedidos-autorizacao", json=novo_pedido)
 
     # Verificações atualizadas
-    assert response.status_code == 200  # Agora espera 200 
-    assert "redirect_url" in response.json  # Verifica se redirect_url foi retornado
+    assert response.status_code == 200  # Agora espera 200
+    assert "redirect_url" in response.json  # Verifica se 'redirect_url' foi retornado
 
 def test_criar_pedido_autorizacao_sem_login(client):
     """Teste para criar um novo pedido de autorização de serviço sem estar autenticado"""
