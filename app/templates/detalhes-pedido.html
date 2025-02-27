@@ -146,8 +146,8 @@
     <div class="info"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</div>
     <div class="info"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</div>
     <div class="info"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</div>
-    <div class="info"><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%Y-%m-%d') }}</div>
-    <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%Y-%m-%d') }}</div>
+    <div class="info"><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%d-%m-%Y') }}</div>
+    <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%d-%m-%Y') }}</div>
     <div class="info"><strong>Horário de início:</strong> {{ pedido.horario_inicio_servicos }}</div>
     <div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
     
