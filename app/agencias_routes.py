@@ -55,6 +55,15 @@ def agenciar_pedido(pedido_id):
     - O usuário logado deve ter o cnpj igual ao cnpj_agencia do pedido.
     - Se aprovado, atualiza o status do pedido para 'pendente'.
     """
+    
+    # Tenta ler o JSON da requisição, se houver, mas não o utiliza
+    dados = request.get_json(silent=True) or {}
+    
+    # Se o payload tentar enviar o campo "status", rejeita a requisição
+    if "status" in dados:
+        return jsonify({"error": "Modificação do status não é permitida via payload."}), 400
+
+    # Verifica se o usuário logado é do tipo agência marítima
     if current_user.role != "agencia_maritima":
         return jsonify({"error": "Acesso não autorizado."}), 403
 
@@ -96,6 +105,15 @@ def rejeitar_pedido_agencia(pedido_id):
     - O usuário logado deve ter o cnpj igual ao cnpj_agencia do pedido.
     - Se rejeitado, atualiza o status do pedido para 'rejeitado_agencia'.
     """
+    
+    # Tenta ler o JSON da requisição, se houver, mas não o utiliza
+    dados = request.get_json(silent=True) or {}
+    
+    # Se o payload tentar enviar o campo "status", rejeita a requisição
+    if "status" in dados:
+        return jsonify({"error": "Modificação do status não é permitida via payload."}), 400
+
+    # Verifica se o usuário logado é do tipo agência marítima    
     if current_user.role != "agencia_maritima":
         return jsonify({"error": "Acesso não autorizado."}), 403
 
