@@ -9,7 +9,6 @@
 {% else %}
 <title>Minhas Autorizações</title>
 {% endif %}
-
 	
 	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 	
@@ -334,7 +333,7 @@
                     <span>Aprovado ✅ {% if current_user.role == "comum" %}<a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>{% endif %}</span>
                 {% elif pedido.status == "rejeitado" %}
                     <span>Rejeitado ❌</span>
-                {% elif pedido.status == "rejeitado pela agência" %}
+                {% elif pedido.status == "rejeitado_agencia" %}
                     <span>Rejeitado pela agência❌</span>
 					
                 {% elif pedido.status == "aguardando_agencia" %}

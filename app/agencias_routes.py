@@ -94,7 +94,7 @@ def rejeitar_pedido_agencia(pedido_id):
     Regras:
     - Apenas usuários com role "agencia_maritima" podem acessar.
     - O usuário logado deve ter o cnpj igual ao cnpj_agencia do pedido.
-    - Se rejeitado, atualiza o status do pedido para 'rejeitado pela agência'.
+    - Se rejeitado, atualiza o status do pedido para 'rejeitado_agencia'.
     """
     if current_user.role != "agencia_maritima":
         return jsonify({"error": "Acesso não autorizado."}), 403
@@ -109,8 +109,8 @@ def rejeitar_pedido_agencia(pedido_id):
     if pedido.status != "aguardando_agencia":
         return jsonify({"error": "Este pedido não está aguardando agenciamento."}), 400
 
-    # Atualiza o status para 'rejeitado pela agência'
-    pedido.status = "rejeitado pela agência"
+    # Atualiza o status para 'rejeitado_agencia'
+    pedido.status = "rejeitado_agencia"
     db.session.commit()
 
     return jsonify({

@@ -118,6 +118,8 @@ class PedidoSearchForm(FlaskForm):
         ("pendente", "Pendente"),
         ("aprovado", "Aprovado"),
         ("rejeitado", "Rejeitado"),
+        ("aguardando_agencia", "Aguardando agência"),
+        ("rejeitado_agencia", "Rejeitado pela agência"),
         ("exigência", "Com exigência")
     ], validators=[Optional()])
     data_inicio = DateField("Data Início", validators=[Optional()], format='%Y-%m-%d')

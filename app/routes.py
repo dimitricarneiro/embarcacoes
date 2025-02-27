@@ -852,7 +852,7 @@ def exibir_pedidos():
     if form.cnpj_empresa.data:
         query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{form.cnpj_empresa.data}%"))
     
-    if form.status.data in ["pendente", "aprovado", "rejeitado", "exigência"]:
+    if form.status.data in ["pendente", "aprovado", "rejeitado", "aguardando_agencia", "rejeitado_agencia", "exigência"]:
         query = query.filter(PedidoAutorizacao.status == form.status.data)
     
     if form.data_inicio.data:
