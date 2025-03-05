@@ -4,7 +4,7 @@ from app import db
 from app.models import Usuario
 from app.forms import UserRegistrationForm, UserEditForm
 from werkzeug.security import generate_password_hash
-from app.utils import validar_cnpj
+from app.utils import validar_cnpj, normalizar_cnpj
 
 # Segurança
 from app.security import role_required
@@ -33,7 +33,7 @@ def list_users():
 @login_required
 @role_required("RFB")
 def create_user():
-    if not admin_required(): # Verifica se é um usuário RFB 
+    if not admin_required():  # Verifica se o usuário é RFB 
         return redirect(url_for('pedidos.exibir_pedidos'))
 
     form = UserRegistrationForm()
@@ -44,23 +44,29 @@ def create_user():
         cnpj = form.cnpj.data
         role = form.role.data
 
-        # Validações adicionais
+        # Valida se o username já existe
         if Usuario.query.filter_by(username=username).first():
             flash("Usuário já existe.", "error")
             return redirect(url_for('users.create_user'))
 
-        if cnpj and Usuario.query.filter_by(cnpj=cnpj).first():
+        # Normaliza o CNPJ para manter apenas letras e dígitos
+        cnpj_normalizado = normalizar_cnpj(cnpj)
+
+        # Verifica se já existe um usuário com o mesmo CNPJ normalizado
+        if Usuario.query.filter_by(cnpj=cnpj_normalizado).first():
             flash("Já existe um usuário com este CNPJ.", "error")
             return redirect(url_for('users.create_user'))
 
-        if cnpj and not validar_cnpj(cnpj):
+        # Valida se o CNPJ normalizado é válido
+        if not validar_cnpj(cnpj_normalizado):
             flash("CNPJ inválido. Por favor, verifique o valor informado.", "error")
             return redirect(url_for('users.create_user'))
 
+        # Cria o novo usuário com o CNPJ normalizado
         novo_usuario = Usuario(
             username=username,
             nome_empresa=nome_empresa,
-            cnpj=cnpj,
+            cnpj=cnpj_normalizado,
             role=role
         )
         novo_usuario.set_password(password)
@@ -76,7 +82,7 @@ def create_user():
 @role_required("RFB")
 def edit_user(user_id):
     """Edita os dados de um usuário existente (acessível apenas para administradores)."""
-    if not admin_required(): # Verifica se é um usuário RFB
+    if not admin_required():  # Verifica se é um usuário RFB
         return redirect(url_for('pedidos.exibir_pedidos'))
     
     usuario = Usuario.query.get_or_404(user_id)
@@ -85,6 +91,9 @@ def edit_user(user_id):
     if form.validate_on_submit():
         new_username = form.username.data
         new_cnpj = form.cnpj.data
+        
+        # Normaliza o novo CNPJ, mantendo apenas letras e dígitos
+        new_cnpj_normalizado = normalizar_cnpj(new_cnpj)
 
         # Verifica se o novo username já existe em outro registro
         existing_user = Usuario.query.filter_by(username=new_username).first()
@@ -94,15 +103,20 @@ def edit_user(user_id):
 
         # Se o CNPJ for informado, verifica se ele já existe em outro registro
         if new_cnpj:
-            existing_cnpj_user = Usuario.query.filter_by(cnpj=new_cnpj).first()
+            existing_cnpj_user = Usuario.query.filter_by(cnpj=new_cnpj_normalizado).first()
             if existing_cnpj_user and existing_cnpj_user.id != usuario.id:
                 flash("Já existe um usuário com este CNPJ.", "error")
                 return redirect(url_for('users.edit_user', user_id=usuario.id))
 
-        # Atualiza os dados do usuário
+            # Opcional: Valide o novo CNPJ usando a função validar_cnpj, se necessário
+            if not validar_cnpj(new_cnpj_normalizado):
+                flash("CNPJ inválido. Por favor, verifique o valor informado.", "error")
+                return redirect(url_for('users.edit_user', user_id=usuario.id))
+
+        # Atualiza os dados do usuário com o username e CNPJ normalizado
         usuario.username = new_username
         usuario.nome_empresa = form.nome_empresa.data
-        usuario.cnpj = new_cnpj
+        usuario.cnpj = new_cnpj_normalizado
         usuario.role = form.role.data
 
         # Se uma nova senha for informada, atualiza-a
