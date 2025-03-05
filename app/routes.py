@@ -353,7 +353,7 @@ def gerenciar_pedidos():
                 if pessoa_data.get("cpf", "").strip()
             ]
             if len(cpfs) != len(set(cpfs)):
-                return jsonify({"error": "Existem CPFs duplicados na lista de pessoas."}), 400
+                return jsonify({"error": "Há CPFs duplicados na lista de pessoas."}), 400
             
             for pessoa_data in data["pessoas"]:
                 nome_pessoa = pessoa_data.get("nome", "").strip()
@@ -421,6 +421,7 @@ def gerenciar_pedidos():
             #    criar_notificacao(admin.id, mensagem)
 
             return jsonify({
+                "id": novo_pedido.id,  # Inclui o id do pedido criado
                 "redirect_url": url_for('pedidos.exibir_pedidos')
             }), 200
 
@@ -957,18 +958,18 @@ def exigir_pedido(pedido_id):
       - prazo_exigencia: prazo (no formato AAAA-MM-DD) para o cumprimento da exigência.
     O status do pedido é atualizado para "exigência".
     """
-    # 🔹 Verifica se o usuário tem permissão
+    # Verifica se o usuário tem permissão
     if current_user.role != "RFB":
         return jsonify({"error": "Acesso não autorizado"}), 403
 
-    # 🔹 Busca o pedido no banco
+    # Busca o pedido no banco
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
-    # 🔹 Verifica se o pedido está no status pendente
+    # Verifica se o pedido está no status pendente
     if pedido.status != "pendente":
         return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
 
-    # 🔹 Obtém os dados enviados no corpo da requisição (JSON)
+    # Obtém os dados enviados no corpo da requisição (JSON)
     data = request.get_json()
     if not data:
         return jsonify({"error": "Dados inválidos"}), 400
@@ -976,17 +977,21 @@ def exigir_pedido(pedido_id):
     motivo_exigencia = data.get('motivo_exigencia')
     prazo_exigencia = data.get('prazo_exigencia')
 
-    # 🔹 Valida se os campos obrigatórios foram informados
+    # Valida se os campos obrigatórios foram informados
     if not motivo_exigencia or not prazo_exigencia:
         return jsonify({"error": "Os campos 'motivo_exigencia' e 'prazo_exigencia' são obrigatórios."}), 400
 
-    # 🔹 Converte o prazo para o formato de data (AAAA-MM-DD)
+    # Converte o prazo para o formato de data (AAAA-MM-DD)
     try:
         prazo_exigencia_date = datetime.strptime(prazo_exigencia, '%Y-%m-%d').date()
     except ValueError:
         return jsonify({"error": "Formato de prazo_exigencia inválido. Utilize AAAA-MM-DD."}), 400
 
-    # 🔹 Cria o registro da exigência (assumindo que o model Exigencia foi criado)
+    # Verifica se o prazo_exigencia não é anterior à data atual
+    if prazo_exigencia_date < date.today():
+        return jsonify({"error": "O prazo não pode ser anterior a hoje."}), 400
+
+    # Cria o registro da exigência (assumindo que o model Exigencia foi criado)
     exigencia = Exigencia(
         pedido_id=pedido.id,
         motivo_exigencia=motivo_exigencia,
@@ -994,7 +999,7 @@ def exigir_pedido(pedido_id):
     )
     db.session.add(exigencia)
 
-    # 🔹 Atualiza o status do pedido para "exigência"
+    # Atualiza o status do pedido para "exigência"
     pedido.status = "exigência"
     db.session.commit()
 
@@ -1003,7 +1008,6 @@ def exigir_pedido(pedido_id):
         "id_autorizacao": pedido.id,
         "status": pedido.status
     }), 200
-
 
 @pedidos_bp.route('/exigencia/<int:exigencia_id>')
 @login_required
@@ -1131,7 +1135,7 @@ def exportar_csv():
     writer = csv.writer(output)
     
     # Escreve a linha de cabeçalho
-    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"])
+    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitalção", "Status"])
     
     # Escreve cada linha dos pedidos
     for pedido in pedidos:
@@ -1140,8 +1144,9 @@ def exportar_csv():
             pedido.empresa_responsavel,
             pedido.cnpj_empresa,
             pedido.motivo_solicitacao,
-            pedido.data_inicio,
-            pedido.data_termino,
+            pedido.data_inicio.strftime("%d/%m/%Y"),
+            pedido.data_termino.strftime("%d/%m/%Y"),
+            pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
             pedido.status
         ])
     
@@ -1189,7 +1194,7 @@ def exportar_pdf():
     elementos.append(Spacer(1, 12))  # Adiciona um espaço
 
     # Cria a tabela de pedidos
-    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"]]
+    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"]]
     
     for pedido in pedidos:
         dados.append([
@@ -1199,6 +1204,7 @@ def exportar_pdf():
             pedido.motivo_solicitacao, 
             pedido.data_inicio.strftime("%d/%m/%Y"), 
             pedido.data_termino.strftime("%d/%m/%Y"), 
+            pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
             pedido.status
         ])
 
@@ -1268,7 +1274,7 @@ def exportar_excel():
     ws_pedidos.title = "Pedidos"
 
     # Cabeçalho da tabela
-    headers = ["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Status"]
+    headers = ["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"]
     ws_pedidos.append(headers)
 
     # Estilizar o cabeçalho (fonte em negrito)
@@ -1287,6 +1293,7 @@ def exportar_excel():
             pedido.motivo_solicitacao,
             data_inicio,
             data_termino,
+            pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
             pedido.status
         ])
 

@@ -66,16 +66,16 @@
   
   <form id="pedido-form">
     <!-- Campos do pedido principal -->
-    <label>Nome da Empresa:</label>
+    <label>*Nome da Empresa:</label>
     <input type="text" id="nome_empresa" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required>
 
-    <label>CNPJ:</label>
+    <label>*CNPJ do Prestador de Serviço:</label>
     <input type="text" id="cnpj_empresa" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required>
 
-    <label>Endereço:</label>
+    <label>*Endereço:</label>
     <input type="text" id="endereco_empresa" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
 
-	  <label>Motivo:</label>
+	  <label>*Motivo:</label>
 	  <select id="motivo_solicitacao" required>
       <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
       <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
@@ -88,36 +88,35 @@
       <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
 	  </select>
 
-    <label>Data Início:</label>
+    <label>*Data de Início:</label>
     <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
 
-    <label>Data Término:</label>
+    <label>*Data de Término:</label>
     <input type="date" id="data_termino" value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}" required>
 
-    <label>Horário de Início:</label>
+    <label>*Horário de Início:</label>
     <input type="text" id="horario_inicio_servicos" value="{{ pedido.horario_inicio_servicos if pedido else '08:00' }}" required>
 
-    <label>Horário de Término:</label>
+    <label>*Horário de Término:</label>
     <input type="text" id="horario_termino_servicos" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
 
-    <label>Número do Certificado de Livre Prática:</label>
+    <label>*Número do Certificado de Livre Prática:</label>
     <input type="text" id="certificado_livre_pratica" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
 
-    <label>Cidade de Serviço:</label>
+    <label>*Cidade de Serviço:</label>
     <input type="text" id="cidade_servico" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required>
 
     <label>Observações:</label>
     <textarea id="observacoes" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
 
-    <!-- Novos campos para Pedido -->
-    <label>Agência Marítima:</label>
+    <label>*Agência Marítima:</label>
     <input type="text" id="agencia_maritima" value="{{ pedido.agencia_maritima if pedido else '' }}">
 
-    <label>CNPJ da Agência:</label>
+    <label>*CNPJ da Agência:</label>
     <input type="text" id="cnpj_agencia" value="{{ pedido.cnpj_agencia if pedido else '' }}">
 
     <!-- Seção para Embarcações -->
-    <label>Embarcações:</label>
+    <label>*Embarcações:</label>
     <div id="embarcacoes-container">
       {% if pedido and pedido.embarcacoes %}
         {% for embarcacao in pedido.embarcacoes %}
@@ -194,7 +193,7 @@
     <button type="button" class="btn-adicionar" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
 
     <!-- Seção para Pessoas -->
-    <label>Pessoas:</label>
+    <label>*Pessoas:</label>
     <div id="pessoas-container">
       {% if pedido and pedido.pessoas %}
         {% for pessoa in pedido.pessoas %}
@@ -235,7 +234,7 @@
     <!-- Checkbox de aceite dos termos -->
     <label>
       <input type="checkbox" id="termo_responsabilidade" {% if pedido and pedido.termo_responsabilidade %}checked{% endif %}>
-     Declaramos serem verdadeiras as informações prestadas, responsabilizando-nos civil e criminalmente pelos atos praticados pelas pessoas aqui relacionadas. Estamos cientes de que a autorização por parte da Alfândega de Santos não exime o cumprimento de outras obrigações pertinentes aos outros Órgãos da Administração Pública.
+     *Declaramos serem verdadeiras as informações prestadas, responsabilizando-nos civil e criminalmente pelos atos praticados pelas pessoas aqui relacionadas. Estamos cientes de que a autorização por parte da Alfândega de Santos não exime o cumprimento de outras obrigações pertinentes aos outros Órgãos da Administração Pública.
     </label>
 
     <!-- Botão final: se existir 'pedido' chama a função de atualização; caso contrário, envia um novo pedido -->
@@ -511,11 +510,12 @@ for (let el of pessoaElements) {
       return response.json();
     })
     .then(data => {
+	const mensagemSucesso = "Pedido " + data.id + " criado com sucesso!";
       if (data.redirect_url) {
-        alert("Pedido criado com sucesso!");
+        alert(mensagemSucesso);
         window.location.href = data.redirect_url;
       } else {
-        document.getElementById("mensagem").innerText = "Pedido criado com sucesso!";
+        document.getElementById("mensagem").innerText = mensagemSucesso;
         document.getElementById("mensagem").style.color = "green";
       }
     })

@@ -57,7 +57,7 @@ def teste_post_criar_usuario_username_duplicado(client):
         "username": "novo",
         "password": "novopass",
         "nome_empresa": "Empresa Novo",
-        "cnpj": "",
+        "cnpj": "10299541000116",
         "role": "comum"
     }, follow_redirects=True)
     # Tenta criar outro usuário com o mesmo username
@@ -65,12 +65,12 @@ def teste_post_criar_usuario_username_duplicado(client):
         "username": "novo",
         "password": "novopass",
         "nome_empresa": "Empresa Novo",
-        "cnpj": "",
+        "cnpj": "19914841000132",
         "role": "comum"
     }, follow_redirects=True)
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
-    assert "usuário já existe" in texto_resposta.lower()
+    assert "já existe um usuário com este cnpj" in texto_resposta.lower()
 
 def teste_criar_usuario_cnpj_invalido(client):
 

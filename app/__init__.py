@@ -50,6 +50,20 @@ def create_app():
     # Configura o sistema de logging
     from logging_config import setup_logging
     setup_logging(app)
+    
+    # Registra o filter customizado para ajuste de fuso horário
+    @app.template_filter('localize')
+    def localize_time(dt):
+        """
+        Converte a data/hora de GMT para o fuso horário local (GMT-3).
+
+        Args:
+            dt (datetime): Data/hora em GMT.
+        
+        Returns:
+            datetime: Data/hora ajustada para o fuso horário local.
+        """
+        return dt - timedelta(hours=3)
 
     return app
 

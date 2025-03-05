@@ -7,7 +7,6 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 	
     <style>
-        /* Estilização básica */
         body { font-family: Arial, sans-serif; margin: 20px; }
         form { margin-bottom: 20px; }
         input, select { padding: 5px; margin: 5px 0; }
@@ -75,7 +74,7 @@
                 <td>{{ alerta.tipo }}</td>
                 <td>{{ alerta.valor }}</td>
                 <td>{{ 'Sim' if alerta.ativo else 'Não' }}</td>
-                <td>{{ alerta.data_criacao.strftime("%d/%m/%Y %H:%M") }}</td>
+                <td>{{ (alerta.data_criacao | localize).strftime("%d-%m-%Y %H:%M") }}</td>
             </tr>
             {% endfor %}
         </tbody>
