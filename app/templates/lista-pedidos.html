@@ -271,11 +271,9 @@
 <h1>Minhas Autorizações</h1>
 {% endif %}
 
-{% if current_user.role == "RFB" %}    
-	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a> | 
 	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a> | 
-	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a><br><br>
-{% endif %}
+	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a> | 
+	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a><br><br>
 
 <!-- Container principal dos pedidos -->
 <div class="pedidos-container">

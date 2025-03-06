@@ -20,6 +20,9 @@ limiter = Limiter(
 def create_app():
     """Cria a aplicação Flask com base no ambiente configurado."""
     app = Flask(__name__, instance_relative_config=True)
+    
+    # Configura o esquema preferencial para URLs externas
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 
     # Carrega a configuração do ambiente
     env = os.getenv("FLASK_ENV", "development")  # Obtém o ambiente do sistema (default: development)

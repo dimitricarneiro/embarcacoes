@@ -1115,29 +1115,44 @@ def verificar_comprovante(token):
     # Se válido, exiba os dados do pedido
     return render_template('detalhes_comprovante.html', pedido=pedido)
 
+import io
+import csv
+from flask import make_response, redirect, url_for
+from flask_login import login_required, current_user
+
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required
-@role_required("RFB")
+@role_required("RFB", "comum")
 def exportar_csv():
     """Exporta os pedidos como um arquivo CSV."""
-    
+
     # Verifica se o usuário tem a permissão necessária
-    if current_user.role != "RFB":
-        return redirect(url_for("pedidos.exibir_pedidos"))
+    #if current_user.role != "RFB":
+    #    return redirect(url_for("pedidos.exibir_pedidos"))
 
     # Obtém os pedidos utilizando os filtros
-    pedidos = filtrar_pedidos()
+    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
+    if current_user.role == "RFB":
+        pedidos = PedidoAutorizacao.query
+    else:
+        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
 
     # Cria um buffer em memória para armazenar o CSV
     output = io.StringIO()
 
-    # Cria o writer para escrever no buffer
-    writer = csv.writer(output)
+    # 1) Escreve o BOM no início do arquivo
+    #   O BOM ajuda o Excel a reconhecer que o arquivo está em UTF-8
+    output.write('\ufeff')
+
+    # 2) Cria o writer para escrever no buffer
+    #   Você pode alterar o delimitador caso prefira ponto-e-vírgula (;)
+    #   dependendo da localidade do usuário.
+    writer = csv.writer(output, delimiter=',', quoting=csv.QUOTE_MINIMAL)
     
-    # Escreve a linha de cabeçalho
-    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitalção", "Status"])
+    # 3) Escreve a linha de cabeçalho
+    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"])
     
-    # Escreve cada linha dos pedidos
+    # 4) Escreve cada linha dos pedidos
     for pedido in pedidos:
         writer.writerow([
             pedido.id,
@@ -1150,32 +1165,37 @@ def exportar_csv():
             pedido.status
         ])
     
-    # Obtém o conteúdo do CSV a partir do buffer
+    # 5) Obtém o conteúdo do CSV a partir do buffer
     csv_content = output.getvalue()
     
-    # Fecha o buffer (opcional, mas recomendado)
+    # 6) Fecha o buffer (opcional, mas recomendado)
     output.close()
     
-    # Cria a resposta HTTP com o conteúdo do CSV
+    # 7) Cria a resposta HTTP com o conteúdo do CSV
     response = make_response(csv_content)
     response.headers["Content-Disposition"] = "attachment; filename=relatorio_pedidos.csv"
-    response.headers["Content-Type"] = "text/csv"
+    # 8) Especifica o charset UTF-8
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
     
     return response
 
 @pedidos_bp.route('/admin/exportar-pdf')
 @login_required
-@role_required("RFB")
+@role_required("RFB", "comum")
 def exportar_pdf():
     """ Exporta os pedidos como um arquivo PDF formatado com sumário estatístico """
     
-    if current_user.role != "RFB":
-        return redirect(url_for("pedidos.exibir_pedidos"))
+    #if current_user.role != "RFB":
+    #    return redirect(url_for("pedidos.exibir_pedidos"))
 
     #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
     
     # Utiliza os filtros para obter os pedidos
-    pedidos = filtrar_pedidos()
+    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
+    if current_user.role == "RFB":
+        pedidos = PedidoAutorizacao.query.all()
+    else:
+        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id).all()
 
     # Estatísticas gerais
     total_pedidos = len(pedidos)
@@ -1240,7 +1260,7 @@ def exportar_pdf():
 
 @pedidos_bp.route('/admin/exportar-excel')
 @login_required
-@role_required("RFB")
+@role_required("RFB", "comum")
 def exportar_excel():
     """ 
     Exporta os pedidos cadastrados como um arquivo Excel (.xlsx).
@@ -1250,13 +1270,17 @@ def exportar_excel():
       2. 'Sumário': Estatísticas gerais dos pedidos.
     """
     # Apenas usuários com role "RFB" podem acessar esta rota.
-    if current_user.role != "RFB":
-        return redirect(url_for("pedidos.exibir_pedidos"))
+    #if current_user.role != "RFB":
+    #    return redirect(url_for("pedidos.exibir_pedidos"))
 
     #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
     
     # Utiliza os filtros para obter os pedidos
-    pedidos = filtrar_pedidos()
+    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
+    if current_user.role == "RFB":
+        pedidos = PedidoAutorizacao.query.all()
+    else:
+        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id).all()
 
     # Calcular estatísticas
     total_pedidos = len(pedidos)
