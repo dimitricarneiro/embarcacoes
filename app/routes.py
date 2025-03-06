@@ -33,7 +33,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
-from app.utils import validar_cnpj, validar_cpf
+from app.utils import validar_cnpj, validar_cpf, normalizar_cnpj
 
 # Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
@@ -104,8 +104,8 @@ def verificar_alertas(novo_pedido):
 
         # Se o alerta for do tipo "cnpj", comparamos com o CNPJ da empresa do pedido
         elif alerta.tipo == "cnpj":
-            if novo_pedido.cnpj_empresa == alerta.valor:
-                mensagem = (f"Novo pedido {novo_pedido.id} criado por CNPJ "
+            if normalizar_cnpj(novo_pedido.cnpj_empresa) == normalizar_cnpj(alerta.valor):
+                mensagem = (f"Novo pedido {novo_pedido.id} criado pelo CNPJ "
                             f"'{novo_pedido.cnpj_empresa}' corresponde ao seu alerta.")
                 criar_notificacao(alerta.usuario_id, mensagem)
 

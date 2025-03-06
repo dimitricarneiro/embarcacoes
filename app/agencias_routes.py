@@ -5,7 +5,7 @@ from app import db
 from app.models import PedidoAutorizacao, Usuario
 
 # Importa a função de notificação
-from app.routes import criar_notificacao  
+from app.routes import criar_notificacao, verificar_alertas
 
 # Segurança
 from app.security import role_required
@@ -82,6 +82,7 @@ def agenciar_pedido(pedido_id):
     db.session.commit()
 
     # Agora, notifica os administradores (RFB)
+    verificar_alertas(pedido)
     administradores = Usuario.query.filter_by(role="RFB").all()
     mensagem = f"O pedido {pedido.id} foi aceito pela agência {current_user.nome_empresa}."
     for admin in administradores:
