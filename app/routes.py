@@ -863,7 +863,8 @@ def exibir_pedidos():
         query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
     
     if form.nome_embarcacao.data:
-        query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{form.nome_embarcacao.data}%"))
+        #query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{form.nome_embarcacao.data}%"))
+        query = query.join(PedidoAutorizacao.embarcacoes).filter(func.lower(Embarcacao.nome) == form.nome_embarcacao.data.lower())
     
     # Ordenação e paginação
     query = query.order_by(PedidoAutorizacao.id.desc())
