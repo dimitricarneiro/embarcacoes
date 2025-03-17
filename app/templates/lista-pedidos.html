@@ -285,7 +285,9 @@
             <span class="value">{{ pedido.id }}</span>
         </div>
         <div class="pedido-item">
-            <span class="label">Empresa:</span> <span class="value">{{ pedido.empresa_responsavel }}, </span>
+            <span class="label">Empresa:</span> <span class="value">{{ pedido.empresa_responsavel }}</span>
+        </div>
+        <div class="pedido-item">
 			<span class="label">CNPJ:</span> <span class="value">{{ pedido.cnpj_empresa }}</span>
         </div>
 
@@ -294,29 +296,48 @@
             <span class="value">{{ pedido.motivo_solicitacao }}</span>
         </div>
         <div class="pedido-item">
-            <span class="label">Data de abertura da Solicitação:</span>
+            <span class="label">Data de abertura da solicitação:</span>
             <span class="value">{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
         </div>
         <div class="pedido-item">
-            <span class="label">Data Início Serviço:</span>
-            <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}, </span>
-			<span class="label">Data Término Serviço:</span>
-            <span class="value">{{ pedido.data_termino.strftime('%d/%m/%Y') }}</span>
-			
+            <span class="label">Data de início do serviço:</span>
+            <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}</span>
+        </div>
+		<div class="pedido-item">
+			<span class="label">Data de término do serviço:</span>
+			<span class="value">
+				{{ pedido.data_termino.strftime('%d/%m/%Y') }}
+				{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
+					(prorrogado)
+				{% endif %}
+			</span>
+		</div>
+		<div class="pedido-item">
 			{% if current_user.role == "RFB" and pedido.prorrogacoes|selectattr('status_prorrogacao', 'equalto', 'pendente')|list|length > 0 %}
-    {% for prorrogacao in pedido.prorrogacoes %}
-        {% if prorrogacao.status_prorrogacao == 'pendente' %}
-            <button class="btn-aprovar" onclick="aprovarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✔ Aprovar Prorrogação</button>
-            <button class="btn-rejeitar" onclick="rejeitarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✖ Rejeitar Prorrogação</button>
-        {% endif %}
-    {% endfor %}
-{% endif %}
+				{% for prorrogacao in pedido.prorrogacoes %}
+					{% if prorrogacao.status_prorrogacao == 'pendente' %}
+						<div style="margin-bottom: 10px;">
+							<strong>PRORROGAÇÃO SOLICITADA</strong><br>
+							Novo prazo: {{ prorrogacao.data_termino_nova.strftime('%d/%m/%Y') }}<br>
+							Justificativa: {{ prorrogacao.justificativa }}<br>
+						</div>
+						<button class="btn-aprovar" onclick="aprovarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✔ Aprovar Prorrogação</button>
+						<button class="btn-rejeitar" onclick="rejeitarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✖ Rejeitar Prorrogação</button>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
 			
 			{% if pedido.status == "aprovado" and current_user.role == "comum" and (pedido.data_termino - hoje).days < 3 %}
-				<a href="#" onclick="abrirModalProrrogacao({{ pedido.id }}, '{{ pedido.data_termino.strftime('%Y-%m-%d') }}'); return false;" style="margin-left:10px;">Solicitar prorrogação</a>
+				{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'pendente') | list | length > 0 %}
+					<!-- Se já existir uma prorrogação pendente, exibe a mensagem -->
+					<br><span>Prorrogação solicitada</span>
+				{% else %}
+					<!-- Caso contrário, exibe o link para solicitar -->
+					<a href="#" onclick="abrirModalProrrogacao({{ pedido.id }}, '{{ pedido.data_termino.strftime('%Y-%m-%d') }}'); return false;">Solicitar prorrogação</a>
+				{% endif %}
 			{% endif %}
-        </div>
-		
+		</div>
+		<br>
         <div class="pedido-item">
             <span class="label">Certificado de Livre Prática:</span>
             <span class="value">{{ pedido.certificado_livre_pratica }}</span>
@@ -393,6 +414,10 @@
             <div>
                 <label for="data_termino_nova">Novo Prazo (até 5 dias a partir de hoje):</label>
                 <input type="date" id="data_termino_nova" name="data_termino_nova" required>
+            </div>
+            <div>
+                <label for="justificativa">Justificativa:</label>
+                <textarea id="justificativa" name="justificativa" required></textarea>
             </div>
             <button type="submit">Solicitar prorrogação</button>
         </form>
@@ -641,6 +666,7 @@ document.getElementById('form-prorrogacao').addEventListener('submit', function(
     e.preventDefault();
     let pedidoId = document.getElementById('pedido_id_prorrogacao').value;
     let novaData = document.getElementById('data_termino_nova').value;
+    let justificativa = document.getElementById('justificativa').value;
     
     // Validação extra: verifica se a nova data não ultrapassa 5 dias a partir de hoje
     let today = new Date();
@@ -652,13 +678,16 @@ document.getElementById('form-prorrogacao').addEventListener('submit', function(
         return;
     }
     
+    // Constrói os dados para o envio no formato x-www-form-urlencoded
+    let params = `data_termino_nova=${encodeURIComponent(novaData)}&justificativa=${encodeURIComponent(justificativa)}`;
+    
     // Envia os dados via fetch para a rota de prorrogação
     fetch(`pedido/${pedidoId}/prorrogar`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `data_termino_nova=${novaData}`
+        body: params
     })
     .then(response => {
         if (response.redirected) {
@@ -677,6 +706,7 @@ document.getElementById('form-prorrogacao').addEventListener('submit', function(
         alert("Erro ao solicitar prorrogação.");
     });
 });
+
 </script>
 
 </html>

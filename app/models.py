@@ -101,6 +101,9 @@ class Prorrogacao(db.Model):
     # Campo para indicar o status da prorrogação:
     # Possíveis valores: 'pendente', 'aprovada', 'rejeitada'
     status_prorrogacao = db.Column(db.String(20), nullable=False, default='pendente')
+    
+    # Novo campo: justificativa para a prorrogação
+    justificativa = db.Column(db.Text, nullable=False)
 
     # Relacionamento com o modelo PedidoAutorizacao.
     # O backref 'prorrogacoes' permite acessar todas as prorrogações de um pedido: pedido.prorrogacoes
