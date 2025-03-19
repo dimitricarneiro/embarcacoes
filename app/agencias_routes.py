@@ -106,8 +106,8 @@ def agenciar_pedido(pedido_id):
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
     # Verifica se o cnpj do usuário é igual ao cnpj_agencia do pedido
-    if pedido.cnpj_agencia != current_user.cnpj:
-        return jsonify({"error": "Você não tem permissão para agenciar este pedido."}), 403
+#    if pedido.cnpj_agencia != current_user.cnpj:
+#        return jsonify({"error": "Você não tem permissão para agenciar este pedido."}), 403
 
     # Verifica se o pedido está no status esperado
     if pedido.status != "aguardando_agencia":
@@ -157,8 +157,8 @@ def rejeitar_pedido_agencia(pedido_id):
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
     # Verifica se o cnpj do usuário é igual ao cnpj_agencia do pedido
-    if pedido.cnpj_agencia != current_user.cnpj:
-        return jsonify({"error": "Você não tem permissão para rejeitar este pedido."}), 403
+#    if pedido.cnpj_agencia != current_user.cnpj:
+#        return jsonify({"error": "Você não tem permissão para rejeitar este pedido."}), 403
 
     # Verifica se o pedido está no status esperado
     if pedido.status != "aguardando_agencia":
