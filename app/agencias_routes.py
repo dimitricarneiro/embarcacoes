@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 from datetime import date
 from app import db
 from app.models import PedidoAutorizacao, Usuario
+from app.utils import normalizar_cnpj
+from sqlalchemy import func
 
 # Importa a função de notificação
 from app.routes import criar_notificacao, verificar_alertas
@@ -32,9 +34,22 @@ def agenciar_pedidos():
     per_page = request.args.get("per_page", default=10, type=int)
     
     # Base da query: filtra os pedidos pelo cnpj_agencia
-    query = PedidoAutorizacao.query.filter(
-        PedidoAutorizacao.cnpj_agencia == current_user.cnpj
+    cnpj_normalizado = normalizar_cnpj(current_user.cnpj)
+
+    cnpj_normalizado_db = func.replace(
+        func.replace(
+            func.replace(PedidoAutorizacao.cnpj_agencia, '.', ''),
+            '-', ''
+        ),
+        '/', ''
     )
+
+#    query = PedidoAutorizacao.query.filter(
+#        cnpj_normalizado_db == cnpj_normalizado
+#    )
+    
+    #Exibir todos os pedidos sem filtrar por CNPJ
+    query = PedidoAutorizacao.query
     
     # Aplicando os filtros do formulário
     if form.nome_empresa.data:
