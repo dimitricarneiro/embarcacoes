@@ -74,6 +74,14 @@
             background-color: #ddd;
             pointer-events: none;
         }
+		.form-row {
+			display: flex;
+			align-items: center;  /* Alinha verticalmente os itens */
+			gap: 5px; /* Espaçamento entre os elementos */
+		}
+		.form-row > div {
+			margin: 0;
+		}
     </style>
 </head>
 <body>
@@ -92,14 +100,55 @@
   </div>
 </header>
 
-        <h1>Pedidos de agenciamento</h1>
     <div class="container">
+
+    <!-- Formulário de busca -->
+    <form method="GET" action="{{ url_for('agencias.agenciar_pedidos') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-row">
+            {# Se desejar, mantenha ou remova os campos abaixo conforme a necessidade #}
+            {% if current_user.role == "RFB" %}
+                <div>
+                    {{ form.nome_empresa.label }}<br>
+                    {{ form.nome_empresa(size=32) }}
+                </div>
+                <div>
+                    {{ form.cnpj_empresa.label }}<br>
+                    {{ form.cnpj_empresa(size=32) }}
+                </div>
+            {% endif %}
+            <div>
+                {{ form.nome_embarcacao.label }}<br>
+                {{ form.nome_embarcacao(size=32) }}
+            </div>
+            <div>
+                {{ form.status.label }}<br>
+                {{ form.status() }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                {{ form.data_inicio.label }}<br>
+                {{ form.data_inicio() }}
+            </div>
+            <div>
+                {{ form.data_termino.label }}<br>
+                {{ form.data_termino() }}
+            </div>
+            <div>
+                {{ form.submit() }}
+            </div>
+        </div>
+    </form>
+
+        <h1>Pedidos de agenciamento</h1>
+	
         <!-- Container dos pedidos -->
         <div class="pedidos-container">
             {% for pedido in pedidos.items %}
                 <div class="pedido-card">
                     <div class="pedido-item">
-                        <span class="label">ID do Pedido:</span>
+                        <span class="label">Identificação do pedido:</span>
                         <span class="value">{{ pedido.id }}</span>
                     </div>
                     <div class="pedido-item">
@@ -114,14 +163,27 @@
                         <span class="label">Motivo:</span>
                         <span class="value">{{ pedido.motivo_solicitacao }}</span>
                     </div>
+					<div class="pedido-item">
+						<span class="label">Data de abertura da solicitação:</span>
+						<span class="value">{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
+					</div>
                     <div class="pedido-item">
-                        <span class="label">Data de Início:</span>
+                        <span class="label">Data de início do serviço:</span>
                         <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}</span>
                     </div>
-                    <div class="pedido-item">
-                        <span class="label">Data de Término:</span>
-                        <span class="value">{{ pedido.data_termino.strftime('%d/%m/%Y') }}</span>
-                    </div>
+					<div class="pedido-item">
+						<span class="label">Data de término do serviço:</span>
+						<span class="value">
+							{{ pedido.data_termino.strftime('%d/%m/%Y') }}
+							{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
+								(prorrogado)
+							{% endif %}
+						</span>
+					</div>
+					<div class="pedido-item">
+						<span class="label">Certificado de Livre Prática:</span>
+						<span class="value">{{ pedido.certificado_livre_pratica }}</span>
+					</div>						
             <div class="pedido-item">
             <span class="label">Situação:</span>
             <span class="value">
@@ -145,7 +207,7 @@
                         </div>
                     {% endif %}
             </span>
-        </div>
+		</div>
                 </div>
             {% else %}
                 <p>Nenhum pedido encontrado.</p>

@@ -7,6 +7,9 @@ from app.models import PedidoAutorizacao, Usuario
 # Importa a função de notificação
 from app.routes import criar_notificacao, verificar_alertas
 
+# Formulários
+from app.forms import PedidoSearchForm
+
 # Segurança
 from app.security import role_required
 
@@ -20,28 +23,46 @@ agencias_bp = Blueprint('agencias', __name__)
 def agenciar_pedidos():
     """
     Exibe os pedidos destinados à agência marítima autenticada.
-    
-    Regras:
-    - Apenas usuários com role 'agencia_maritima' podem acessar esta rota.
-    - São listados os pedidos cujo cnpj_agencia seja igual ao cnpj do usuário.
     """
-    if current_user.role != "agencia_maritima":
-        flash("Acesso não autorizado.", "danger")
-        return redirect(url_for("pedidos.exibir_pedidos"))
-    
+    # Instancia o formulário de busca com os parâmetros da query string
+    form = PedidoSearchForm(request.args)
+
     # Parâmetros de paginação
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
     
-    # Consulta os pedidos filtrados conforme as regras
+    # Base da query: filtra os pedidos pelo cnpj_agencia
     query = PedidoAutorizacao.query.filter(
         PedidoAutorizacao.cnpj_agencia == current_user.cnpj
-    ).order_by(PedidoAutorizacao.id.desc())
+    )
     
+    # Aplicando os filtros do formulário
+    if form.nome_empresa.data:
+        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{form.nome_empresa.data}%"))
+    
+    if form.cnpj_empresa.data:
+        query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{form.cnpj_empresa.data}%"))
+    
+    if form.status.data in ["pendente", "aprovado", "rejeitado", "aguardando_agencia", "rejeitado_agencia", "exigência"]:
+        query = query.filter(PedidoAutorizacao.status == form.status.data)
+    
+    if form.data_inicio.data:
+        query = query.filter(PedidoAutorizacao.data_inicio >= form.data_inicio.data)
+    
+    if form.data_termino.data:
+        query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
+    
+    if form.nome_embarcacao.data:
+        # Filtra pelo nome da embarcação (ajustando para caixa baixa)
+        query = query.join(PedidoAutorizacao.embarcacoes).filter(func.lower(Embarcacao.nome) == form.nome_embarcacao.data.lower())
+    
+    # Ordena e pagina
+    query = query.order_by(PedidoAutorizacao.id.desc())
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
+    
     hoje = date.today()
     
-    return render_template("agenciar.html", pedidos=pedidos_paginados, hoje=hoje)
+    return render_template("agenciar.html", pedidos=pedidos_paginados, form=form, hoje=hoje)
 
 @agencias_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/agenciar', methods=['PUT'])
 @login_required

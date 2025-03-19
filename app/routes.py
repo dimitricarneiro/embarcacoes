@@ -689,6 +689,7 @@ def prorrogar_pedido(pedido_id):
     - Somente o criador do pedido pode solicitar a prorrogação.
     - O pedido deve ter status "aprovado".
     - A solicitação só pode ser feita se faltarem menos de 3 dias para o término.
+    - Não é permitida a solicitação se já houver uma prorrogação pendente.
     - Por padrão, o status da prorrogação é 'pendente'.
     """
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
@@ -709,14 +710,25 @@ def prorrogar_pedido(pedido_id):
         flash("A prorrogação só pode ser solicitada quando faltam menos de 3 dias para o término.", "warning")
         return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
 
+    # Verifica se já existe uma prorrogação pendente para esse pedido
+    if any(prorrogacao.status_prorrogacao == 'pendente' for prorrogacao in pedido.prorrogacoes):
+        flash("Você já solicitou uma prorrogação que ainda está pendente.", "warning")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
     # Se for GET, exibe o formulário para solicitar a prorrogação
     if request.method == 'GET':
         return render_template('formulario_prorrogacao.html', pedido=pedido)
 
     # Se for POST, processa os dados do formulário
     nova_data_str = request.form.get('data_termino_nova')
+    justificativa = request.form.get('justificativa')
+
     if not nova_data_str:
         flash("A nova data de término é obrigatória.", "danger")
+        return render_template('formulario_prorrogacao.html', pedido=pedido)
+    
+    if not justificativa:
+        flash("A justificativa é obrigatória.", "danger")
         return render_template('formulario_prorrogacao.html', pedido=pedido)
 
     try:
@@ -735,7 +747,8 @@ def prorrogar_pedido(pedido_id):
         pedido_id=pedido.id,
         data_termino_antiga=pedido.data_termino,
         data_termino_nova=nova_data,
-        status_prorrogacao='pendente'
+        status_prorrogacao='pendente',
+        justificativa=justificativa
     )
     db.session.add(nova_prorrogacao)
     db.session.commit()
