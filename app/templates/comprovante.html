@@ -34,7 +34,7 @@
   
 <div style="margin-top: 20px; text-align: center; font-size: 0.9em; color: #555;">
   <p>URL para verificação: <br>
-    <code>{{ url_for('pedidos.verificar_comprovante', token=pedido.token_comprovante, _external=True) }}</code>
+    <code>https://10.61.8.171/embarcacoes/verificar-comprovante/{{ pedido.token_comprovante }}</code>
   </p>
   <p>Você pode copiar e colar essa URL no seu navegador para testar a autenticidade do comprovante.</p>
 </div>
