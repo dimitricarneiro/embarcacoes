@@ -127,14 +127,14 @@
 
 ---
 
-### História 15: Cadastrar Alertas
+### História 16: Cadastrar Alertas
 **Como** um usuário RFB,  
 **Quero** cadastrar alertas para quando determinadas pessoas, veículos ou embarcações fizerem cadastro de pedido de autorização,  
 **Para que** eu possa monitorar atividades de interesse.
 
 ---
 
-### História 16: Receber Alertas de Risco
+### História 17: Receber Alertas de Risco
 **Como** um usuário RFB,  
 **Quero** receber alertas quando alguma autorização com algum parâmetro de risco for cadastrada no sistema,  
 **Para que** eu possa tomar as medidas necessárias rapidamente.
@@ -143,7 +143,7 @@
 
 ## Funcionalidades para Usuários externos
 
-### História 17: Consultar autenticidade
+### História 18: Consultar autenticidade
 **Como** um usuário externo,  
 **Quero** consultar a autenticidade de um documento de autorização,  
 **Para que** eu possa liberar a entrada no porto.
