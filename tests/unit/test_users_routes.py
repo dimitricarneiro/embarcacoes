@@ -30,6 +30,12 @@ def teste_acessar_criar_usuario_nao_admin(client):
     # Usuário não administrador deve ser redirecionado
     assert resposta.status_code == 302
 
+def teste_acessar_criar_usuario_sem_login(client):
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
+    resposta = client.get("/users/create")
+    # Usuário não logado deve ser redirecionado
+    assert resposta.status_code == 302
+
 def teste_acessar_criar_usuario_admin(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
     login_admin(client)
@@ -127,6 +133,13 @@ def teste_acessar_editar_usuario_admin(client):
     assert resposta.status_code == 200
     texto_resposta = resposta.get_data(as_text=True)
     assert "editar" in texto_resposta.lower()
+
+def teste_acessar_editar_usuario_sem_login(client):
+    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
+    # Supondo que o usuário com id 2 exista (usuário regular criado na fixture)
+    resposta = client.get("/users/edit/2")
+    # Usuário não logado deve ser redirecionado
+    assert resposta.status_code == 302
 
 def teste_post_editar_usuario_admin(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
