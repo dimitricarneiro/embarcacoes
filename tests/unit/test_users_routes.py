@@ -160,3 +160,8 @@ def teste_excluir_usuario_nao_admin(client):
     resposta = client.post("/users/delete/2")
     texto_resposta = resposta.get_data(as_text=True)
     assert resposta.status_code == 302
+
+def teste_excluir_usuario_sem_login(client):
+    resposta = client.post("/users/delete/2")
+    texto_resposta = resposta.get_data(as_text=True)
+    assert resposta.status_code == 302
