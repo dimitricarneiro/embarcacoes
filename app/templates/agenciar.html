@@ -217,7 +217,7 @@
         <!-- Paginação -->
         <div class="pagination">
             {% if pedidos.has_prev %}
-                <a href="{{ url_for('pedidos.agenciar_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
+                <a href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
             {% else %}
                 <a class="disabled">⏪ Anterior</a>
             {% endif %}
@@ -225,7 +225,7 @@
             Página {{ pedidos.page }} de {{ pedidos.pages }}
 
             {% if pedidos.has_next %}
-                <a href="{{ url_for('pedidos.agenciar_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
+                <a href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
             {% else %}
                 <a class="disabled">Próxima ⏩</a>
             {% endif %}
