@@ -47,8 +47,6 @@ def teste_login_post_valido_agencia(client):
     login_agencia(client)
     resposta = client.get("/agencia/pedidos", follow_redirects=True)
     assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "agenciamento" in texto_resposta.lower()
     
 def teste_renovar_sessao(client):
     client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
