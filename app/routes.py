@@ -1129,11 +1129,6 @@ def verificar_comprovante(token):
     # Se válido, exiba os dados do pedido
     return render_template('detalhes_comprovante.html', pedido=pedido)
 
-import io
-import csv
-from flask import make_response, redirect, url_for
-from flask_login import login_required, current_user
-
 @pedidos_bp.route('/admin/exportar-csv')
 @login_required
 @role_required("RFB", "comum")

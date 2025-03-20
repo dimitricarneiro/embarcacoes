@@ -50,8 +50,14 @@ def teste_post_criar_usuario_campos_obrigatorios(client):
 
 
 def teste_post_criar_usuario_username_duplicado(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
+    """
+    Verifica que ao tentar criar um usuário com username duplicado,
+    é exibida a mensagem de erro 'Usuário já existe.'
+    """
+    # Desabilita o CSRF para o teste
+    client.application.config['WTF_CSRF_ENABLED'] = False
     login_admin(client)
+
     # Cria um usuário com username "novo"
     client.post("/users/create", data={
         "username": "novo",
@@ -60,6 +66,7 @@ def teste_post_criar_usuario_username_duplicado(client):
         "cnpj": "10299541000116",
         "role": "comum"
     }, follow_redirects=True)
+
     # Tenta criar outro usuário com o mesmo username
     resposta = client.post("/users/create", data={
         "username": "novo",
@@ -68,9 +75,15 @@ def teste_post_criar_usuario_username_duplicado(client):
         "cnpj": "19914841000132",
         "role": "comum"
     }, follow_redirects=True)
+
+    # Verifica se a resposta HTTP foi bem-sucedida
     assert resposta.status_code == 200
+
     texto_resposta = resposta.get_data(as_text=True)
-    assert "já existe um usuário com este cnpj" in texto_resposta.lower()
+
+    # Verifica se a mensagem de erro para username duplicado foi exibida
+    assert "usuário já existe" in texto_resposta.lower(), \
+        "A mensagem de erro esperada 'Usuário já existe.' não foi encontrada na resposta."
 
 def teste_criar_usuario_cnpj_invalido(client):
 

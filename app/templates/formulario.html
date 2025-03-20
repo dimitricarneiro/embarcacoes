@@ -88,6 +88,11 @@
       <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
 	  </select>
 
+	  <div id="campo-outros" style="display: none;">
+		<label>Especifique o motivo:</label>
+		<input type="text" id="motivo_outros" placeholder="Especifique o serviço">
+	  </div>
+
     <label>*Data de Início:</label>
     <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
 
@@ -364,7 +369,12 @@
 	}
 
   // Função para criar novo pedido via fetch
-  function enviarPedido() {
+function enviarPedido() {
+  // Processa o motivo: se "Outros", usa o valor do campo de texto
+  let motivo = document.getElementById("motivo_solicitacao").value;
+  if (motivo === "Outros") {
+    motivo = document.getElementById("motivo_outros").value;
+  }
   
     const dataInicioStr = document.getElementById("data_inicio").value;
     const dataTerminoStr = document.getElementById("data_termino").value;
@@ -479,7 +489,7 @@ for (let el of pessoaElements) {
       nome_empresa: document.getElementById("nome_empresa").value,
       cnpj_empresa: cnpj,
       endereco_empresa: document.getElementById("endereco_empresa").value,
-      motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+      motivo_solicitacao: motivo,
       data_inicio: dataInicioStr,
       data_termino: dataTerminoStr,
       horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
@@ -753,6 +763,28 @@ function validarCPF(cpf) {
   return true;
 }
 
+</script>
+
+<script>
+  document.getElementById("motivo_solicitacao").addEventListener("change", function() {
+    const campoOutros = document.getElementById("campo-outros");
+    if (this.value === "Outros") {
+      campoOutros.style.display = "block";
+      document.getElementById("motivo_outros").setAttribute("required", "required");
+    } else {
+      campoOutros.style.display = "none";
+      document.getElementById("motivo_outros").removeAttribute("required");
+    }
+  });
+
+  // Se o formulário for carregado com 'Outros' já selecionado (ex: edição), exibe o campo
+  document.addEventListener("DOMContentLoaded", function() {
+    const selectMotivo = document.getElementById("motivo_solicitacao");
+    if (selectMotivo.value === "Outros") {
+      document.getElementById("campo-outros").style.display = "block";
+      document.getElementById("motivo_outros").setAttribute("required", "required");
+    }
+  });
 </script>
 
 </body>

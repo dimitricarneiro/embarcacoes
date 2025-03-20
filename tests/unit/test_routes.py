@@ -120,16 +120,41 @@ def teste_get_alertas_nao_admin(client):
 
 def teste_exportar_csv_nao_admin(client):
     """
-    Verifica que um usuário não administrador é redirecionado ao tentar acessar a rota de exportação de CSV.
+    Verifica que um usuário não administrador consegue acessar e baixar o relatório CSV.
+    
+    Nesse novo comportamento, ao acessar a rota, o usuário receberá o arquivo CSV
+    contendo o cabeçalho e os dados dos pedidos.
     """
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    # Autentica como usuário comum
+    # Desabilita o CSRF para o teste
+    client.application.config['WTF_CSRF_ENABLED'] = False
+
+    # Autentica como usuário comum (não admin)
     login(client)
     
     # Faz a requisição à rota de exportação de CSV, seguindo redirecionamentos
     resposta = client.get("/admin/exportar-csv", follow_redirects=True)
-    # Como o usuário não é admin, ele será redirecionado para a página de login
+    
+    # Verifica se a resposta foi bem-sucedida (código 200)
     assert resposta.status_code == 200
+    
+    # Verifica se os headers indicam que o conteúdo é um arquivo CSV para download
+    content_disp = resposta.headers.get("Content-Disposition", "")
+    assert "attachment; filename=relatorio_pedidos.csv" in content_disp, \
+        "O header 'Content-Disposition' não indica o arquivo CSV esperado."
+    
+    content_type = resposta.headers.get("Content-Type", "")
+    assert "text/csv" in content_type, "O header 'Content-Type' não indica um CSV."
+    
+    # Obtém o conteúdo do CSV e remove o BOM (se presente)
     texto = resposta.get_data(as_text=True)
-    assert "login" in texto.lower()
+    if texto.startswith('\ufeff'):
+        texto = texto[1:]
+    
+    # Verifica se a primeira linha do CSV contém o cabeçalho esperado
+    linhas = texto.splitlines()
+    assert linhas, "O CSV não possui linhas."
+    cabecalho_esperado = "ID,Empresa,CNPJ,Motivo,Data Início,Data Término,Data Solicitação,Status"
+    assert linhas[0] == cabecalho_esperado, \
+        f"O cabeçalho do CSV está incorreto. Esperado: '{cabecalho_esperado}'. Obtido: '{linhas[0]}'"
+
 
