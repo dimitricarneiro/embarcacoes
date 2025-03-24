@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# arquiva_exigencias.py
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from datetime import date
 from sqlalchemy import or_
@@ -20,14 +22,9 @@ with app.app_context():
     # Para cada exigência não atendida, atualiza o status do pedido para "rejeitado".
     for exigencia in exigencias:
         pedido = exigencia.pedido
-        # Opcional: atualiza somente se o status não for "rejeitado" já
         if pedido.status != "rejeitado":
             pedido.status = "rejeitado"
-            app.logger.info(
-                f"Pedido {pedido.id} arquivado/rejeitado pois a exigência {exigencia.id} não foi atendida."
-            )
+            app.logger.info(f"Pedido {pedido.id} arquivado/rejeitado pois a exigência {exigencia.id} não foi atendida.")
 
-    # Comita as alterações no banco de dados
     db.session.commit()
-
     app.logger.info("Script de arquivamento de exigências concluído com sucesso.")
