@@ -1,345 +1,281 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
-	
-	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-	
-    <style>
-        body { font-family: Arial, margin: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px;
-                     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
-        h1 { text-align: center; color: #333; }
-        .stats { display: flex; justify-content: space-around; margin-top: 20px; }
-        .card { background: #007bff; color: white; padding: 15px; border-radius: 8px; text-align: center; width: 45%; }
-        .card h2 { margin: 0; }
-        .logout { text-align: center; margin-top: 20px; }
-        .logout a { text-decoration: none; background-color: red; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold; }
-
-    .export-buttons {
-        text-align: center;
-        margin-top: 20px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo</title>
+  
+  <!-- CSS base do sistema -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Estilos customizados que ainda não possuem equivalente direto no Bootstrap -->
+  <style>
+    /* Estes estilos podem ser mantidos ou ajustados conforme a necessidade */
+    .notificacoes-container {
+      position: fixed;
+      top: 100px;
+      right: 80px;
+      z-index: 1000;
     }
-    .btn-export {
-        text-decoration: none;
-        background-color: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
-        margin: 5px;
-    }
-    .btn-export:hover {
-        background-color: #0056b3;
-    }
-.notificacoes-container {
-    position: fixed; /* 🔹 Fixa o sino na tela */
-    top: 100px; /* 🔹 Ajusta a posição no topo */
-    right: 80px; /* 🔹 Ajusta a posição à direita */
-    z-index: 1000; /* 🔹 Garante que fique acima dos outros elementos */
-}
-    
     .notificacoes {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 24px;
-        cursor: pointer;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
     }
-
     .notificacoes span {
-        background: red;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 50%;
-        font-size: 14px;
+      background: red;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 50%;
+      font-size: 14px;
     }
-
-.notificacoes-dropdown {
-    position: absolute;
-    top: 30px; /* 🔹 Para que o dropdown apareça logo abaixo do sino */
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    width: 300px;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    display: none;
-}
-
+    .notificacoes-dropdown {
+      position: absolute;
+      top: 30px;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      width: 300px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: none;
+    }
     .notificacoes-dropdown p {
-        padding: 10px;
-        margin: 0;
-        border-bottom: 1px solid #eee;
+      padding: 10px;
+      margin: 0;
+      border-bottom: 1px solid #eee;
     }
-
     .notificacao-item {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        cursor: pointer;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
     }
-
     .notificacao-item:hover {
-        background: #f5f5f5;
+      background: #f5f5f5;
     }
-	    .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        margin-bottom: 20px;
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    .btn-logout {
-        text-decoration: none;
-        background-color: red;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-weight: bold;
+    .form-row > div {
+      margin: 0;
     }
-    .btn-logout:hover {
-        background-color: darkred;
-    }
-    </style>
+  </style>
 </head>
-<body>
+<body class="bg-light">
 
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
+  <!-- Cabeçalho -->
+  <header class="mb-4" id="header" data-sticky="data-sticky">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img class="img-fluid" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="max-width: 200px;">
+        </div>
+        <div class="navbar d-flex justify-content-between align-items-center">
+          <span class="me-3">Olá, {{ current_user.username }} </span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
+      </div>
+    </div>
+  </header>
 
-<div class="navbar">
-  <span>Olá, {{ current_user.username }} </span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
-
-</div>
-</div>
-</header>
-
-    <div class="container">
-
-<div class="notificacoes-container">
-    <div class="notificacoes" onclick="toggleNotificacoes()">
+  <div class="container bg-white p-4 rounded shadow-sm">
+    <!-- Notificações -->
+    <div class="notificacoes-container">
+      <div class="notificacoes" onclick="toggleNotificacoes()">
         🔔 <span id="contador-notificacoes">0</span>
-    </div>
-    <div id="lista-notificacoes" class="notificacoes-dropdown">
+      </div>
+      <div id="lista-notificacoes" class="notificacoes-dropdown">
         <p>Carregando notificações...</p>
+      </div>
     </div>
-</div>
 
+    <!-- Link para gerenciar alertas -->
+    <div class="text-center my-3">
+      <a href="{{ url_for('pedidos.gerenciar_alertas') }}" class="btn btn-export" style="background-color: #28a745;">Gerenciar Alertas</a>
+    </div>
+    
+    <h1 class="text-center">Painel Administrativo</h1>
+    <div class="text-center">
+      <h2><a href="lista-pedidos" class="text-decoration-none">Ver lista de pedidos de autorização</a></h2>
+    </div>
 
-<!-- Link para gerenciar alertas -->
-<div style="text-align: center; margin-top: 15px;">
-    <a href="{{ url_for('pedidos.gerenciar_alertas') }}" class="btn-export" style="background-color: #28a745;">Gerenciar Alertas</a>
-</div>
-	
-        <h1>Painel Administrativo</h1>
-		
-		<div><h2><a href="lista-pedidos">Ver lista de pedidos de autorização</a><br></h2></div>
+    <!-- Estatísticas -->
+    <div class="d-flex justify-content-around mt-4 stats">
+      <div class="card" style="width: 45%;">
+        <h2 class="mb-0">{{ total_pedidos }}</h2>
+        <p class="mb-0">Total de Pedidos</p>
+      </div>
+      <div class="card" style="width: 45%;">
+        <h2 class="mb-0">{{ total_usuarios }}</h2>
+        <p class="mb-0">Total de Usuários</p>
+      </div>
+    </div>
 
-        <div class="stats">
-            <div class="card">
-                <h2>{{ total_pedidos }}</h2>
-                <p>Total de Pedidos</p>
-            </div>
-            <div class="card">
-                <h2>{{ total_usuarios }}</h2>
-                <p>Total de Usuários</p>
-            </div>
-        </div>
+    <div class="d-flex justify-content-around mt-4 stats">
+      <div class="card" style="width: 45%; background: green;">
+        <h2 class="mb-0">{{ pedidos_aprovados }}</h2>
+        <p class="mb-0">Pedidos Aprovados</p>
+      </div>
+      <div class="card" style="width: 45%; background: red;">
+        <h2 class="mb-0">{{ pedidos_rejeitados }}</h2>
+        <p class="mb-0">Pedidos Rejeitados</p>
+      </div>
+    </div>
 
-        <div class="stats">
-            <div class="card" style="background: green;">
-                <h2>{{ pedidos_aprovados }}</h2>
-                <p>Pedidos Aprovados</p>
-            </div>
-            <div class="card" style="background: red;">
-                <h2>{{ pedidos_rejeitados }}</h2>
-                <p>Pedidos Rejeitados</p>
-            </div>
-        </div>
+    <!-- Gráfico de Linha -->
+    <div class="mt-4 stats">
+      <h2 class="text-center">Pedidos por dia</h2>
+      <canvas id="graficoLinha"></canvas>
+    </div>
 
-<div class="stats">
-    <h2>Pedidos por dia</h2>
-    <canvas id="graficoLinha"></canvas>
-</div>
+    <!-- Gráficos adicionais e links -->
+    <div class="container mt-4">
+      <h1 class="text-center">Painel Administrativo</h1>
+      <p class="text-center">Bem-vindo, {{ current_user.username }}</p>
 
-<div class="container">
-    <h1>Painel Administrativo</h1>
-    <p>Bem-vindo, {{ current_user.username }}</p>
-
-    <div class="stats">
+      <div class="mt-4 stats">
         <canvas id="graficoPizza"></canvas>
-    </div>
+      </div>
 
-    <div class="stats">
+      <div class="mt-4 stats">
         <canvas id="graficoBarras"></canvas>
+      </div>
+      
+      <div class="mt-4 text-center">
+        <a href="{{ url_for('users.list_users') }}" class="text-decoration-none">Listar usuários</a><br>
+        <a href="{{ url_for('users.create_user') }}" class="text-decoration-none">Criar novo usuário</a><br>
+      </div>
     </div>
-	
-	<div>
-		<a href="{{ url_for('users.list_users') }}">Listar usuários</a><br>
-		<a href="{{ url_for('users.create_user') }}">Criar novo usuário</a><br>
-	</div>
 
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    // Dados vindos do Flask (passados pelo render_template)
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Dados vindos do Flask
     let pedidosAprovados = {{ pedidos_aprovados }};
     let pedidosRejeitados = {{ pedidos_rejeitados }};
     let pedidosPendentes = {{ pedidos_pendentes }};
     let totalPedidos = {{ total_pedidos }};
     let totalUsuarios = {{ total_usuarios }};
 
-    // Gráfico de Pizza - Distribuição dos Pedidos
+    // Gráfico de Pizza
     const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
     new Chart(ctxPizza, {
-        type: 'pie',
-        data: {
-            labels: ['Aprovados', 'Rejeitados', 'Pendentes'],
-            datasets: [{
-                data: [pedidosAprovados, pedidosRejeitados, pedidosPendentes],
-                backgroundColor: ['green', 'red', 'orange']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            }
+      type: 'pie',
+      data: {
+        labels: ['Aprovados', 'Rejeitados', 'Pendentes'],
+        datasets: [{
+          data: [pedidosAprovados, pedidosRejeitados, pedidosPendentes],
+          backgroundColor: ['green', 'red', 'orange']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
         }
+      }
     });
 
-    // Gráfico de Barras - Usuários x Pedidos
+    // Gráfico de Barras
     const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
     new Chart(ctxBarras, {
-        type: 'bar',
-        data: {
-            labels: ['Total de Pedidos', 'Total de Usuários'],
-            datasets: [{
-                label: 'Quantidade',
-                data: [totalPedidos, totalUsuarios],
-                backgroundColor: ['blue', 'purple']
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+      type: 'bar',
+      data: {
+        labels: ['Total de Pedidos', 'Total de Usuários'],
+        datasets: [{
+          label: 'Quantidade',
+          data: [totalPedidos, totalUsuarios],
+          backgroundColor: ['blue', 'purple']
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
-</script>
 
-<script>
+    // Gráfico de Linha
     let datas = {{ datas|tojson }};
     let pedidosQuantidade = {{ pedidos_quantidade|tojson }};
-
-    // Gráfico de Linha - Pedidos por Dia
     const ctxLinha = document.getElementById('graficoLinha').getContext('2d');
     new Chart(ctxLinha, {
-        type: 'line',
-        data: {
-            labels: datas,
-            datasets: [{
-                label: 'Pedidos por Dia',
-                data: pedidosQuantidade,
-                borderColor: 'blue',
-                backgroundColor: 'rgba(0, 123, 255, 0.2)',
-                fill: true,
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+      type: 'line',
+      data: {
+        labels: datas,
+        datasets: [{
+          label: 'Pedidos por Dia',
+          data: pedidosQuantidade,
+          borderColor: 'blue',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          fill: true,
+          tension: 0.1
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
-</script>
+  </script>
 
-<script>
+  <!-- Notificações -->
+  <script>
     function atualizarNotificacoes() {
-        fetch('api/notificacoes')
-            .then(response => response.json())
-            .then(data => {
-                let contador = document.getElementById("contador-notificacoes");
-                contador.innerText = data.length;
-                contador.style.display = data.length > 0 ? "inline" : "none";
-            })
-            .catch(error => console.error("Erro ao buscar notificações:", error));
+      fetch('api/notificacoes')
+        .then(response => response.json())
+        .then(data => {
+          let contador = document.getElementById("contador-notificacoes");
+          contador.innerText = data.length;
+          contador.style.display = data.length > 0 ? "inline" : "none";
+        })
+        .catch(error => console.error("Erro ao buscar notificações:", error));
     }
-
-    setInterval(atualizarNotificacoes, 5000); // Atualiza a cada 5 segundos
+    setInterval(atualizarNotificacoes, 5000);
     atualizarNotificacoes();
-</script>
+  </script>
 
-<script>
+  <script>
     function toggleNotificacoes() {
-        let lista = document.getElementById("lista-notificacoes");
-        lista.style.display = lista.style.display === "block" ? "none" : "block";
-
-        if (lista.style.display === "block") {
-            carregarNotificacoes();  // 🔹 Busca as notificações ao abrir
-        }
+      let lista = document.getElementById("lista-notificacoes");
+      lista.style.display = lista.style.display === "block" ? "none" : "block";
+      if (lista.style.display === "block") { carregarNotificacoes(); }
     }
-
     function carregarNotificacoes() {
-        fetch('api/notificacoes')
-            .then(response => response.json())
-            .then(data => {
-                let lista = document.getElementById("lista-notificacoes");
-                lista.innerHTML = ""; // Limpa a lista antes de exibir
-
-                if (data.length === 0) {
-                    lista.innerHTML = "<p>Sem notificações novas.</p>";
-                } else {
-                    data.forEach(notificacao => {
-                        let item = document.createElement("div");
-                        item.className = "notificacao-item";
-                        item.innerText = notificacao.mensagem;
-                        item.onclick = () => marcarComoLida(notificacao.id);
-                        lista.appendChild(item);
-                    });
-                }
-
-                document.getElementById("contador-notificacoes").innerText = data.length;
-            })
-            .catch(error => console.error("Erro ao buscar notificações:", error));
+      fetch('api/notificacoes')
+        .then(response => response.json())
+        .then(data => {
+          let lista = document.getElementById("lista-notificacoes");
+          lista.innerHTML = "";
+          if (data.length === 0) {
+            lista.innerHTML = "<p>Sem notificações novas.</p>";
+          } else {
+            data.forEach(notificacao => {
+              let item = document.createElement("div");
+              item.className = "notificacao-item";
+              item.innerText = notificacao.mensagem;
+              item.onclick = () => marcarComoLida(notificacao.id);
+              lista.appendChild(item);
+            });
+          }
+          document.getElementById("contador-notificacoes").innerText = data.length;
+        })
+        .catch(error => console.error("Erro ao buscar notificações:", error));
     }
-
     function marcarComoLida(notificacaoId) {
-        fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, { method: "PUT" })
-            .then(() => {
-                carregarNotificacoes();  // 🔹 Atualiza a lista de notificações
-            })
-            .catch(error => console.error("Erro ao marcar como lida:", error));
+      fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, { method: "PUT" })
+        .then(() => { carregarNotificacoes(); })
+        .catch(error => console.error("Erro ao marcar como lida:", error));
     }
+    setInterval(carregarNotificacoes, 5000);
+    carregarNotificacoes();
+  </script>
 
-    setInterval(carregarNotificacoes, 5000);  // Atualiza a cada 5 segundos
-    carregarNotificacoes();  // 🔹 Busca as notificações ao carregar a página
-</script>
-
-
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

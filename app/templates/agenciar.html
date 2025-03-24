@@ -1,287 +1,248 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenciar Pedidos</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .pedidos-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .pedido-card {
-            background: #fff;
-            border: 1px solid #ddd;
-            padding: 1rem;
-            border-radius: 4px;
-            flex: 1 1 300px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .pedido-item {
-            margin-bottom: 0.5rem;
-        }
-        .pedido-item .label {
-            font-weight: bold;
-        }
-        .actions button {
-            margin-right: 0.5rem;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-agenciar {
-            background-color: green;
-            color: white;
-        }
-        .btn-rejeitar {
-            background-color: red;
-            color: white;
-        }
-        .pagination {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .pagination a {
-            margin: 0 5px;
-            padding: 8px 12px;
-            text-decoration: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-        }
-        .pagination a.disabled {
-            background-color: #ddd;
-            pointer-events: none;
-        }
-		.form-row {
-			display: flex;
-			align-items: center;  /* Alinha verticalmente os itens */
-			gap: 5px; /* Espaçamento entre os elementos */
-		}
-		.form-row > div {
-			margin: 0;
-		}
-    </style>
+  <meta charset="UTF-8">
+  <title>Agenciar Pedidos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Importa o Bootstrap via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS customizado, se necessário -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+  <style>
+    /* Ajuste para o layout do formulário */
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .form-row > div {
+      margin: 0;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-light">
 
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-  <div class="container-lg">
-    <div class="header-top">
-      <div class="header-logo">
-        <img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-      </div>
-      <div class="navbar">
-        <span>Olá, {{ current_user.username }} </span>
-        <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+  <!-- Cabeçalho -->
+  <header class="mb-4">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" class="img-fluid" style="max-width: 200px;">
+        </div>
+        <div class="d-flex align-items-center">
+          <span class="me-3">Olá, {{ current_user.username }} </span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
-    <div class="container">
-
-    <!-- Formulário de busca -->
-    <form method="GET" action="{{ url_for('agencias.agenciar_pedidos') }}">
-        {{ form.hidden_tag() }}
-        <div class="form-row">
-            {# Se desejar, mantenha ou remova os campos abaixo conforme a necessidade #}
-            {% if current_user.role == "RFB" %}
-                <div>
-                    {{ form.nome_empresa.label }}<br>
-                    {{ form.nome_empresa(size=32) }}
-                </div>
-                <div>
-                    {{ form.cnpj_empresa.label }}<br>
-                    {{ form.cnpj_empresa(size=32) }}
-                </div>
-            {% endif %}
-            <div>
-                {{ form.nome_embarcacao.label }}<br>
-                {{ form.nome_embarcacao(size=32) }}
-            </div>
-            <div>
-                {{ form.status.label }}<br>
-                {{ form.status() }}
-            </div>
+  <!-- Container Principal -->
+  <div class="container bg-white p-4 rounded shadow-sm mb-4" style="max-width: 1200px;">
+    
+    <!-- Formulário de Busca -->
+    <form method="GET" action="{{ url_for('agencias.agenciar_pedidos') }}" class="mb-4">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-end">
+        {% if current_user.role == "RFB" %}
+          <div class="col-md-3">
+            <label class="form-label">{{ form.nome_empresa.label }}</label>
+            {{ form.nome_empresa(class="form-control", size=32) }}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">{{ form.cnpj_empresa.label }}</label>
+            {{ form.cnpj_empresa(class="form-control", size=32) }}
+          </div>
+        {% endif %}
+        <div class="col-md-3">
+          <label class="form-label">{{ form.nome_embarcacao.label }}</label>
+          {{ form.nome_embarcacao(class="form-control", size=32) }}
         </div>
-        <div class="form-row">
-            <div>
-                {{ form.data_inicio.label }}<br>
-                {{ form.data_inicio() }}
-            </div>
-            <div>
-                {{ form.data_termino.label }}<br>
-                {{ form.data_termino() }}
-            </div>
-            <div>
-                {{ form.submit() }}
-            </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ form.status.label }}</label>
+          {{ form.status(class="form-control") }}
         </div>
+      </div>
+      <div class="row g-3 align-items-end mt-2">
+        <div class="col-md-4">
+          <label class="form-label">{{ form.data_inicio.label }}</label>
+          {{ form.data_inicio(class="form-control") }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.data_termino.label }}</label>
+          {{ form.data_termino(class="form-control") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.submit(class="btn btn-primary w-100") }}
+        </div>
+      </div>
     </form>
 
-        <h1>Pedidos de agenciamento</h1>
-	
-        <!-- Container dos pedidos -->
-        <div class="pedidos-container">
-            {% for pedido in pedidos.items %}
-                <div class="pedido-card">
-                    <div class="pedido-item">
-                        <span class="label">Identificação do pedido:</span>
-                        <span class="value">{{ pedido.id }}</span>
-                    </div>
-                    <div class="pedido-item">
-                        <span class="label">Empresa:</span>
-                        <span class="value">{{ pedido.empresa_responsavel }}</span>
-                    </div>
-                    <div class="pedido-item">
-                        <span class="label">CNPJ da Empresa:</span>
-                        <span class="value">{{ pedido.cnpj_empresa }}</span>
-                    </div>
-                    <div class="pedido-item">
-                        <span class="label">Motivo:</span>
-                        <span class="value">{{ pedido.motivo_solicitacao }}</span>
-                    </div>
-					<div class="pedido-item">
-						<span class="label">Data de abertura da solicitação:</span>
-						<span class="value">{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
-					</div>
-                    <div class="pedido-item">
-                        <span class="label">Data de início do serviço:</span>
-                        <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}</span>
-                    </div>
-					<div class="pedido-item">
-						<span class="label">Data de término do serviço:</span>
-						<span class="value">
-							{{ pedido.data_termino.strftime('%d/%m/%Y') }}
-							{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
-								(prorrogado)
-							{% endif %}
-						</span>
-					</div>
-					<div class="pedido-item">
-						<span class="label">Certificado de Livre Prática:</span>
-						<span class="value">{{ pedido.certificado_livre_pratica }}</span>
-					</div>						
-            <div class="pedido-item">
-            <span class="label">Situação:</span>
-            <span class="value">
-                {% if pedido.status == "pendente" %}
-                    <span>Pendente de análise pela RFB ⏳ </span>
-                {% elif pedido.status == "aprovado" %}
-                    <span>Aprovado ✅ {% if current_user.role == "comum" %}<a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>{% endif %}</span>
-                {% elif pedido.status == "rejeitado" %}
-                    <span>Rejeitado ❌</span>
-                {% elif pedido.status == "rejeitado_agencia" %}
-                    <span>Rejeitado pela agência ❌</span>
-				{% elif pedido.status == "exigência" %}
-					<span>Com exigência ⚠</span>							
-                {% elif pedido.status == "aguardando_agencia" %}
-                    <span>Aguardando agência ⏳ </span>
-				{% endif %}
-                    {% if pedido.status == "aguardando_agencia" and current_user.role == "agencia_maritima" %}
-                        <div class="actions">
-                            <button class="btn-agenciar" onclick="agenciarPedido({{ pedido.id }})">Agenciar</button>
-                            <button class="btn-rejeitar" onclick="rejeitarPedidoAgencia({{ pedido.id }})">Rejeitar</button>
-                        </div>
+    <h1 class="mb-4 text-center">Pedidos de agenciamento</h1>
+
+    <!-- Container dos pedidos -->
+    <div class="row g-3">
+      {% for pedido in pedidos.items %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="mb-2">
+                <span class="fw-bold">Identificação do pedido:</span>
+                <span>{{ pedido.id }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Empresa:</span>
+                <span>{{ pedido.empresa_responsavel }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">CNPJ da Empresa:</span>
+                <span>{{ pedido.cnpj_empresa }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Motivo:</span>
+                <span>{{ pedido.motivo_solicitacao }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Data de abertura da solicitação:</span>
+                <span>{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Data de início do serviço:</span>
+                <span>{{ pedido.data_inicio.strftime('%d/%m/%Y') }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Data de término do serviço:</span>
+                <span>
+                  {{ pedido.data_termino.strftime('%d/%m/%Y') }}
+                  {% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
+                    (prorrogado)
+                  {% endif %}
+                </span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Certificado de Livre Prática:</span>
+                <span>{{ pedido.certificado_livre_pratica }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="fw-bold">Situação:</span>
+                <span>
+                  {% if pedido.status == "pendente" %}
+                    Pendente de análise pela RFB ⏳
+                  {% elif pedido.status == "aprovado" %}
+                    Aprovado ✅ 
+                    {% if current_user.role == "comum" %}
+                      <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>
                     {% endif %}
-            </span>
-		</div>
+                  {% elif pedido.status == "rejeitado" %}
+                    Rejeitado ❌
+                  {% elif pedido.status == "rejeitado_agencia" %}
+                    Rejeitado pela agência ❌
+                  {% elif pedido.status == "exigência" %}
+                    Com exigência ⚠
+                  {% elif pedido.status == "aguardando_agencia" %}
+                    Aguardando agência ⏳
+                  {% endif %}
+                </span>
+              </div>
+              {% if pedido.status == "aguardando_agencia" and current_user.role == "agencia_maritima" %}
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-success btn-sm" onclick="agenciarPedido({{ pedido.id }})">Agenciar</button>
+                  <button class="btn btn-danger btn-sm" onclick="rejeitarPedidoAgencia({{ pedido.id }})">Rejeitar</button>
                 </div>
-            {% else %}
-                <p>Nenhum pedido encontrado.</p>
-            {% endfor %}
+              {% endif %}
+            </div>
+          </div>
         </div>
-
-        <!-- Paginação -->
-        <div class="pagination">
-            {% if pedidos.has_prev %}
-                <a href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
-            {% else %}
-                <a class="disabled">⏪ Anterior</a>
-            {% endif %}
-
-            Página {{ pedidos.page }} de {{ pedidos.pages }}
-
-            {% if pedidos.has_next %}
-                <a href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
-            {% else %}
-                <a class="disabled">Próxima ⏩</a>
-            {% endif %}
+      {% else %}
+        <div class="col-12">
+          <p class="text-center">Nenhum pedido encontrado.</p>
         </div>
+      {% endfor %}
     </div>
 
-    <script>
-        // Função para agenciar o pedido
-        function agenciarPedido(pedidoId) {
-            const authKey = "AGENCIA_SECRET"; // Caso necessário, simule autenticação
-            fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/agenciar`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": authKey
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.error) {
-                    alert("Erro: " + data.error);
-                } else {
-                    alert("Pedido agenciado com sucesso!");
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error("Erro ao agenciar pedido:", error);
-                alert("Erro ao agenciar pedido.");
-            });
-        }
+    <!-- Paginação -->
+    <nav aria-label="Paginação" class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if pedidos.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">⏪ Anterior</span>
+          </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">Página {{ pedidos.page }} de {{ pedidos.pages }}</span>
+        </li>
+        {% if pedidos.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('agencias.agenciar_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Próxima ⏩</span>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
 
-        // Função para rejeitar o pedido pela agência
-        function rejeitarPedidoAgencia(pedidoId) {
-            const authKey = "AGENCIA_SECRET"; // Caso necessário, simule autenticação
-            fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": authKey
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.error) {
-                    alert("Erro: " + data.error);
-                } else {
-                    alert("Pedido rejeitado com sucesso!");
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error("Erro ao rejeitar pedido:", error);
-                alert("Erro ao rejeitar pedido.");
-            });
-        }
-    </script>
+  <!-- JavaScript para ações de agenciamento e rejeição -->
+  <script>
+    // Função para agenciar o pedido
+    function agenciarPedido(pedidoId) {
+      const authKey = "AGENCIA_SECRET"; // Simulação de autenticação, se necessário
+      fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/agenciar`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if(data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Pedido agenciado com sucesso!");
+              location.reload();
+          }
+      })
+      .catch(error => {
+          console.error("Erro ao agenciar pedido:", error);
+          alert("Erro ao agenciar pedido.");
+      });
+    }
+
+    // Função para rejeitar o pedido pela agência
+    function rejeitarPedidoAgencia(pedidoId) {
+      const authKey = "AGENCIA_SECRET"; // Simulação de autenticação, se necessário
+      fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if(data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Pedido rejeitado com sucesso!");
+              location.reload();
+          }
+      })
+      .catch(error => {
+          console.error("Erro ao rejeitar pedido:", error);
+          alert("Erro ao rejeitar pedido.");
+      });
+    }
+  </script>
+  
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

@@ -1,291 +1,241 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes da Autorização</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-  
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            text-align: center;
-            color: #333;
-        }
-        .info {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 5px;
-        }
-        .info strong {
-            display: inline-block;
-            width: 180px;
-            color: #007bff;
-        }
-        .status {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        .status-pendente {
-            background-color: orange;
-            color: white;
-        }
-        .status-aprovado {
-            background-color: green;
-            color: white;
-        }
-        .status-rejeitado {
-            background-color: red;
-            color: white;
-        }
-        .back {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back a {
-            text-decoration: none;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .back a:hover {
-            background-color: #0056b3;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .btn-logout {
-            text-decoration: none;
-            background-color: red;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .btn-logout:hover {
-            background-color: darkred;
-        }
-        /* Estilização do Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        button {
-            margin: 10px;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            opacity: 0.8;
-        }
-    </style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes da Autorização</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Estilos que não foram substituídos pelo Bootstrap permanecem */
+    .status {
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .status-pendente { background-color: orange; color: white; }
+    .status-aprovado { background-color: green; color: white; }
+    .status-rejeitado { background-color: red; color: white; }
+    .back a {
+      text-decoration: none;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .back a:hover { background-color: #0056b3; }
+    /* Modal customizado permanece */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
-<body>
+<body class="bg-light">
 
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-    <div class="container-lg">
-        <div class="header-top">
-            <div class="header-logo">
-                <img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-            </div>
-            <div class="navbar">
-                <span>Olá, {{ current_user.username }} </span>
-                <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-            </div>
+  <!-- Cabeçalho -->
+  <header class="mb-4">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" class="img-fluid" style="max-width: 200px;">
         </div>
+        <div class="d-flex align-items-center">
+          <span class="me-3">Olá, {{ current_user.username }}</span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
+      </div>
     </div>
-</header>
+  </header>
 
-<div class="container">
-    <h1>Detalhes da Autorização</h1>
-    
+  <!-- Container Principal -->
+  <div class="container bg-white p-4 rounded shadow-sm" style="max-width: 600px;">
+    <h1 class="text-center mb-4">Detalhes da Autorização</h1>
+
     <!-- Informações básicas do pedido -->
-    <div class="info"><strong>ID do pedido:</strong> {{ pedido.id }}</div>
-    <div class="info"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</div>
-    <div class="info"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</div>
-    <div class="info"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</div>
-    <div class="info"><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%d-%m-%Y') }}</div>
-    <div class="info"><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%d-%m-%Y') }}</div>
-    <div class="info"><strong>Horário de início:</strong> {{ pedido.horario_inicio_servicos }}</div>
-    <div class="info"><strong>Horário de término:</strong> {{ pedido.horario_termino_servicos }}</div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">ID do pedido:</span> {{ pedido.id }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Empresa:</span> {{ pedido.empresa_responsavel }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CNPJ:</span> {{ pedido.cnpj_empresa }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Motivo:</span> {{ pedido.motivo_solicitacao }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Data de início:</span> {{ pedido.data_inicio.strftime('%d-%m-%Y') }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Data de término:</span> {{ pedido.data_termino.strftime('%d-%m-%Y') }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Horário de início:</span> {{ pedido.horario_inicio_servicos }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Horário de término:</span> {{ pedido.horario_termino_servicos }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Agência Marítima:</span> {{ pedido.agencia_maritima or 'N/A' }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CNPJ da Agência:</span> {{ pedido.cnpj_agencia or 'N/A' }}
+    </div>
     
-    <div class="info"><strong>Agência Marítima:</strong> {{ pedido.agencia_maritima or 'N/A' }}</div>
-    <div class="info"><strong>CNPJ da Agência:</strong> {{ pedido.cnpj_agencia or 'N/A' }}</div>
-    
-    <div class="info">
-        <strong>Situação:</strong>
-        {% if pedido.status == "pendente" %}
-            <span>Pendente de análise pela RFB ⏳</span>
-        {% elif pedido.status == "aguardando_agencia" %}
-            <span>Aguardando agência ⏳</span>
-        {% elif pedido.status == "aprovado" %}
-            <span>Aprovado ✅</span>
-        {% elif pedido.status == "rejeitado" %}
-            <span>Rejeitado ❌</span>
-        {% elif pedido.status == "exigência" %}
-            <span>Com exigência ⚠</span>			
-        {% elif pedido.status == "rejeitado_agencia" %}
-            <span>Rejeitado pela agência❌</span>	
-        {% endif %}
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Situação:</span>
+      {% if pedido.status == "pendente" %}
+        <span class="status status-pendente">Pendente de análise pela RFB ⏳</span>
+      {% elif pedido.status == "aguardando_agencia" %}
+        <span class="status">Aguardando agência ⏳</span>
+      {% elif pedido.status == "aprovado" %}
+        <span class="status status-aprovado">Aprovado ✅</span>
+      {% elif pedido.status == "rejeitado" %}
+        <span class="status status-rejeitado">Rejeitado ❌</span>
+      {% elif pedido.status == "exigência" %}
+        <span class="status">Com exigência ⚠</span>
+      {% elif pedido.status == "rejeitado_agencia" %}
+        <span class="status status-rejeitado">Rejeitado pela agência❌</span>
+      {% endif %}
     </div>
     
     <!-- Seção para Embarcações -->
-    <h2>Embarcações</h2>
+    <h2 class="text-center mt-4">Embarcações</h2>
     {% if pedido.embarcacoes %}
-        {% for embarcacao in pedido.embarcacoes %}
-            <div class="info">
-                <strong>Nome:</strong> {{ embarcacao.nome }}<br>
-                <strong>IMO:</strong> {{ embarcacao.imo or 'N/A' }}<br>
-                <strong>Bandeira:</strong> {{ embarcacao.bandeira or 'N/A' }}
-            </div>
-        {% endfor %}
+      {% for embarcacao in pedido.embarcacoes %}
+        <div class="p-2 bg-light rounded mb-3">
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Nome:</span> {{ embarcacao.nome }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">IMO:</span> {{ embarcacao.imo or 'N/A' }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Bandeira:</span> {{ embarcacao.bandeira or 'N/A' }}
+        </div>
+      {% endfor %}
     {% else %}
-        <div class="info"><strong>Embarcações:</strong> Nenhuma embarcação associada.</div>
+      <div class="p-2 bg-light rounded mb-3 text-center fw-bold">Embarcações: Nenhuma embarcação associada.</div>
     {% endif %}
     
     <!-- Seção para Equipamentos -->
-    <h2>Equipamentos</h2>
+    <h2 class="text-center mt-4">Equipamentos</h2>
     {% if pedido.equipamentos %}
-        {% for equipamento in pedido.equipamentos %}
-            <div class="info">
-                <strong>Descrição:</strong> {{ equipamento.descricao }}<br>
-                <strong>Número de Série:</strong> {{ equipamento.numero_serie }}<br>
-                <strong>Quantidade:</strong> {{ equipamento.quantidade }}
-            </div>
-        {% endfor %}
+      {% for equipamento in pedido.equipamentos %}
+        <div class="p-2 bg-light rounded mb-3">
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Descrição:</span> {{ equipamento.descricao }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Número de Série:</span> {{ equipamento.numero_serie }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Quantidade:</span> {{ equipamento.quantidade }}
+        </div>
+      {% endfor %}
     {% else %}
-        <div class="info"><strong>Equipamentos:</strong> Nenhum equipamento associado.</div>
+      <div class="p-2 bg-light rounded mb-3 text-center fw-bold">Equipamentos: Nenhum equipamento associado.</div>
     {% endif %}
     
     <!-- Seção para Pessoas -->
-    <h2>Pessoas</h2>
+    <h2 class="text-center mt-4">Pessoas</h2>
     {% if pedido.pessoas %}
-        {% for pessoa in pedido.pessoas %}
-            <div class="info">
-                <strong>Nome:</strong> {{ pessoa.nome }}<br>
-                <strong>CPF:</strong> {{ pessoa.cpf }}<br>
-                {% if pessoa.isps %}
-                    <strong>ISPS:</strong> {{ pessoa.isps }}<br>
-                {% endif %}
-                {% if pessoa.funcao %}
-                    <strong>Função:</strong> {{ pessoa.funcao }}<br>
-                {% endif %}
-                {% if pessoa.local_embarque %}
-                    <strong>Local de Embarque:</strong> {{ pessoa.local_embarque }}<br>
-                {% endif %}
-                {% if pessoa.local_desembarque %}
-                    <strong>Local de Desembarque:</strong> {{ pessoa.local_desembarque }}<br>
-                {% endif %}
-            </div>
-        {% endfor %}
+      {% for pessoa in pedido.pessoas %}
+        <div class="p-2 bg-light rounded mb-3">
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Nome:</span> {{ pessoa.nome }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CPF:</span> {{ pessoa.cpf }}<br>
+          {% if pessoa.isps %}
+            <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">ISPS:</span> {{ pessoa.isps }}<br>
+          {% endif %}
+          {% if pessoa.funcao %}
+            <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Função:</span> {{ pessoa.funcao }}<br>
+          {% endif %}
+          {% if pessoa.local_embarque %}
+            <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Local de Embarque:</span> {{ pessoa.local_embarque }}<br>
+          {% endif %}
+          {% if pessoa.local_desembarque %}
+            <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Local de Desembarque:</span> {{ pessoa.local_desembarque }}<br>
+          {% endif %}
+        </div>
+      {% endfor %}
     {% else %}
-        <div class="info"><strong>Pessoas:</strong> Nenhuma pessoa associada.</div>
+      <div class="p-2 bg-light rounded mb-3 text-center fw-bold">Pessoas: Nenhuma pessoa associada.</div>
     {% endif %}
     
     <!-- Seção para Veículos -->
-    <h2>Veículos</h2>
+    <h2 class="text-center mt-4">Veículos</h2>
     {% if pedido.veiculos %}
-        {% for veiculo in pedido.veiculos %}
-            <div class="info">
-                <strong>Modelo:</strong> {{ veiculo.modelo }}<br>
-                <strong>Placa:</strong> {{ veiculo.placa }}
-            </div>
-        {% endfor %}
+      {% for veiculo in pedido.veiculos %}
+        <div class="p-2 bg-light rounded mb-3">
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Modelo:</span> {{ veiculo.modelo }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Placa:</span> {{ veiculo.placa }}
+        </div>
+      {% endfor %}
     {% else %}
-        <div class="info"><strong>Veículos:</strong> Nenhum veículo associado.</div>
+      <div class="p-2 bg-light rounded mb-3 text-center fw-bold">Veículos: Nenhum veículo associado.</div>
     {% endif %}
-
-    <div class="back">
-        <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
+    
+    <!-- Link para voltar -->
+    <div class="back text-center mt-4">
+      <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
     </div>
-</div>
+  </div>
 
-<!-- Modal de Expiração de Sessão -->
-<div id="session-modal" class="modal">
+  <!-- Modal de Expiração de Sessão -->
+  <div id="session-modal" class="modal d-none">
     <div class="modal-content">
-        <h2>Aviso de Sessão</h2>
-        <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
-        <button onclick="continuarSessao()">Continuar Logado</button>
-        <button onclick="sairSessao()">Sair</button>
+      <h2>Aviso de Sessão</h2>
+      <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
+      <button onclick="continuarSessao()" class="btn btn-primary">Continuar Logado</button>
+      <button onclick="sairSessao()" class="btn btn-danger">Sair</button>
     </div>
-</div>
+  </div>
 
-<script>
-    let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
-    let avisoExpiracao = 28 * 60 * 1000; // Exibir modal 2 minutos antes da expiração
-
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    let tempoExpiracao = 30 * 60 * 1000; // 30 minutos
+    let avisoExpiracao = 28 * 60 * 1000; // Aviso 2 minutos antes
     let modal = document.getElementById("session-modal");
     let sessionTimeout;
-
+  
     function iniciarMonitoramentoSessao() {
-        setTimeout(() => {
-            modal.style.display = "flex";
-        }, avisoExpiracao);
-
-        sessionTimeout = setTimeout(() => {
-            window.location.href = "auth/logout";
-        }, tempoExpiracao);
-    }
-
-    function continuarSessao() {
-        modal.style.display = "none";
-        clearTimeout(sessionTimeout);
-
-        fetch("auth/renovar-sessao", { method: "GET" })
-            .then(response => console.log("Sessão renovada"))
-            .catch(error => console.error("Erro ao renovar sessão", error));
-
-        iniciarMonitoramentoSessao();
-    }
-
-    function sairSessao() {
+      setTimeout(() => {
+        let modal = document.getElementById("session-modal");
+        modal.classList.remove("d-none");
+        modal.classList.add("d-flex");
+      }, avisoExpiracao);
+  
+      sessionTimeout = setTimeout(() => {
         window.location.href = "auth/logout";
+      }, tempoExpiracao);
     }
-
+  
+    function continuarSessao() {
+      modal.style.display = "none";
+      clearTimeout(sessionTimeout);
+      fetch("auth/renovar-sessao", { method: "GET" })
+        .then(response => console.log("Sessão renovada"))
+        .catch(error => console.error("Erro ao renovar sessão", error));
+      iniciarMonitoramentoSessao();
+    }
+  
+    function sairSessao() {
+      window.location.href = "auth/logout";
+    }
+  
     document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
-</script>
-
-</body>
+  </script>
+  </body>
 </html>

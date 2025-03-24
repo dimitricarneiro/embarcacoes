@@ -1,76 +1,96 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Editar Usuário</title>
-	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-        input, select { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { width: 100%; padding: 10px; margin-top: 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-		.navbar { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; margin-bottom: 20px; }
-		.btn-logout { text-decoration: none; background-color: red; color: white; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
-		.btn-logout:hover { background-color: darkred; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Editar Usuário</title>
+  <!-- Importando o CSS do Bootstrap via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS customizado, se necessário -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 </head>
 <body>
+  <!-- Cabeçalho com logo e informações do usuário -->
+  <header>
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width:200px;">
+        </div>
+        <div>
+          <span class="me-3">Olá, {{ current_user.username }}</span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
+      </div>
+    </div>
+  </header>
 
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
+  <!-- Conteúdo principal -->
+  <div class="container">
+    <div class="card mx-auto my-4" style="max-width: 400px;">
+      <div class="card-body">
+        <!-- Título do formulário -->
+        <h1 class="card-title mb-4">Editar Usuário</h1>
 
-<div class="navbar">
-  <span>Olá, {{ current_user.username }} </span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
+        <!-- Exibição de mensagens de alerta -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-</div>
-</div>
-</header>
+        <!-- Formulário -->
+        <form method="POST">
+          {{ form.hidden_tag() }}
 
-<div class="container">
-    <h1>Editar Usuário</h1>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <p style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ message }}</p>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div>
-            <label>{{ form.username.label }}</label>
-            {{ form.username() }}
-        </div>
-        <div>
-            <label>{{ form.password.label }}</label>
-            {{ form.password() }}
-        </div>
-        <div>
-            <label>{{ form.nome_empresa.label }}</label>
-            {{ form.nome_empresa() }}
-        </div>
-        <div>
-            <label>{{ form.cnpj.label }}</label>
-            {{ form.cnpj() }}
-        </div>
-        <div>
-            <label>{{ form.role.label }}</label>
-            {{ form.role() }}
-        </div>
-        <div>
-            <button type="submit">{{ form.submit.label.text }}</button>
-        </div>
-    </form>
-    <br>
-    <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
-</div>
+          <!-- Campo para o username -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.username.label }}</label>
+            {{ form.username(class="form-control") }}
+          </div>
 
+          <!-- Campo para a senha -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.password.label }}</label>
+            {{ form.password(class="form-control") }}
+          </div>
+
+          <!-- Campo para o nome da empresa -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.nome_empresa.label }}</label>
+            {{ form.nome_empresa(class="form-control") }}
+          </div>
+
+          <!-- Campo para o CNPJ -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.cnpj.label }}</label>
+            {{ form.cnpj(class="form-control") }}
+          </div>
+
+          <!-- Campo para selecionar o role -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.role.label }}</label>
+            {{ form.role(class="form-select") }}
+          </div>
+
+          <!-- Botão de submit -->
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+          </div>
+        </form>
+
+        <!-- Link para voltar à lista -->
+        <div class="mt-3">
+          <a href="{{ url_for('users.list_users') }}">Voltar à Lista</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Importando o JS do Bootstrap via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

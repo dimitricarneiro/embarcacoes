@@ -5,22 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* Estilos gerais inalterados */
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
-    h1 { text-align: center; color: #333; }
-    label { font-weight: bold; display: block; margin-top: 10px; }
-    input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
-    button { width: 100%; padding: 10px; margin-top: 20px; border: none; background-color: #007bff; color: white; font-size: 16px; border-radius: 5px; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-    #mensagem { text-align: center; font-weight: bold; margin-top: 20px; }
-    .navbar { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; margin-bottom: 20px; }
-    .btn-logout { text-decoration: none; background-color: red; color: white; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
-    .btn-logout:hover { background-color: darkred; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); }
-    
-    /* Estilos para blocos dinâmicos */
     .bloco {
       border: 1px solid #ddd;
       padding: 10px;
@@ -28,764 +15,872 @@
       margin-bottom: 10px;
     }
     .bloco label { margin-top: 0; }
-    .btn-adicionar {
-      width: auto;
-      padding: 8px 12px;
-      background-color: #28a745;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    .btn-adicionar:hover { background-color: #218838; }
   </style>
 </head>
-<body>
-
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-  <div class="container-lg">
-    <div class="header-top">
-      <div class="header-logo">
-        <img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
+<body class="bg-light">
+  <!-- Cabeçalho -->
+  <header class="mb-4">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img class="img-fluid" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="max-width: 200px;">
+        </div>
+        <div>
+          <span class="me-3">Olá, {{ current_user.username }} </span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
       </div>
-      <div class="navbar">
-        <span>Olá, {{ current_user.username }} </span>
-        <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
+    </div>
+  </header>
+  
+  <!-- Container Principal -->
+  <div class="container bg-white p-4 rounded shadow-sm" style="max-width: 600px;">
+    <h1 class="text-center">{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</h1>
+    
+    <div class="mb-3">
+      <a href="{{ url_for('pedidos.exibir_pedidos') }}" class="btn btn-link">&larr; Voltar à Lista</a>
+    </div>
+    
+    <form id="pedido-form">
+      <!-- Campos do pedido principal -->
+      <div class="mb-3">
+        <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
+        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required>
       </div>
+      
+      <div class="mb-3">
+        <label for="cnpj_empresa" class="form-label">*CNPJ do Prestador de Serviço:</label>
+        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="endereco_empresa" class="form-label">*Endereço:</label>
+        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="motivo_solicitacao" class="form-label">*Motivo:</label>
+        <select id="motivo_solicitacao" class="form-select" required>
+          <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
+          <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
+          <option value="Inspeção de hélice" {% if pedido and pedido.motivo_solicitacao == "Inspeção de hélice" %}selected{% endif %}>Inspeção de hélice</option>
+          <option value="Inspeção subaquática" {% if pedido and pedido.motivo_solicitacao == "Inspeção subaquática" %}selected{% endif %}>Inspeção subaquática</option>
+          <option value="Limpeza de casco" {% if pedido and pedido.motivo_solicitacao == "Limpeza de casco" %}selected{% endif %}>Limpeza de casco</option>
+          <option value="Limpeza de porão" {% if pedido and pedido.motivo_solicitacao == "Limpeza de porão" %}selected{% endif %}>Limpeza de porão</option>
+          <option value="Ressuprimento de bordo" {% if pedido and pedido.motivo_solicitacao == "Ressuprimento de bordo" %}selected{% endif %}>Ressuprimento de bordo</option>
+          <option value="Atendimento Médico" {% if pedido and pedido.motivo_solicitacao == "Atendimento Médico" %}selected{% endif %}>Atendimento Médico</option>
+          <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
+        </select>
+      </div>
+      
+      <div class="mb-3" id="campo-outros" style="display: none;">
+        <label for="motivo_outros" class="form-label">Especifique o motivo:</label>
+        <input type="text" id="motivo_outros" class="form-control" placeholder="Especifique o serviço">
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="data_inicio" class="form-label">*Data de Início:</label>
+          <input type="date" id="data_inicio" class="form-control" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="data_termino" class="form-label">*Data de Término:</label>
+          <input type="date" id="data_termino" class="form-control" value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}" required>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="horario_inicio_servicos" class="form-label">*Horário de Início:</label>
+          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '08:00' }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="horario_termino_servicos" class="form-label">*Horário de Término:</label>
+          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="certificado_livre_pratica" class="form-label">*Número do Certificado de Livre Prática:</label>
+        <input type="text" id="certificado_livre_pratica" class="form-control" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="cidade_servico" class="form-label">*Cidade de Serviço:</label>
+        <input type="text" id="cidade_servico" class="form-control" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="observacoes" class="form-label">Observações:</label>
+        <textarea id="observacoes" class="form-control" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="agencia_maritima" class="form-label">*Agência Marítima:</label>
+          <input type="text" id="agencia_maritima" class="form-control" value="{{ pedido.agencia_maritima if pedido else '' }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="cnpj_agencia" class="form-label">*CNPJ da Agência:</label>
+          <input type="text" id="cnpj_agencia" class="form-control" value="{{ pedido.cnpj_agencia if pedido else '' }}">
+        </div>
+      </div>
+      
+      <!-- Seção para Embarcações -->
+      <div class="mb-3">
+        <label class="form-label">*Embarcações:</label>
+        <div id="embarcacoes-container">
+          {% if pedido and pedido.embarcacoes %}
+            {% for embarcacao in pedido.embarcacoes %}
+              <div class="bloco">
+                <div class="mb-2">
+                  <label class="form-label">Nome da Embarcação:</label>
+                  <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">IMO:</label>
+                  <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO" value="{{ embarcacao.imo }}">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Bandeira:</label>
+                  <input type="text" class="embarcacao-bandeira form-control" placeholder="Bandeira" value="{{ embarcacao.bandeira }}">
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="bloco">
+              <div class="mb-2">
+                <label class="form-label">Nome da Embarcação:</label>
+                <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">IMO:</label>
+                <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Bandeira:</label>
+                <input type="text" class="embarcacao-bandeira form-control" placeholder="Bandeira">
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-success" onclick="adicionarEmbarcacao()">Adicionar mais embarcações</button>
+      </div>
+      
+      <!-- Seção para Veículos -->
+      <div class="mb-3">
+        <label class="form-label">Veículos:</label>
+        <div id="veiculos-container">
+          {% if pedido and pedido.veiculos %}
+            {% for veiculo in pedido.veiculos %}
+              <div class="bloco">
+                <div class="mb-2">
+                  <label class="form-label">Modelo do Veículo:</label>
+                  <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" value="{{ veiculo.modelo }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Placa do Veículo:</label>
+                  <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" value="{{ veiculo.placa }}" required>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="bloco">
+              <div class="mb-2">
+                <label class="form-label">Modelo do Veículo:</label>
+                <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Placa do Veículo:</label>
+                <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" required>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-success" onclick="adicionarVeiculo()">Adicionar mais veículos</button>
+      </div>
+      
+      <!-- Seção para Equipamentos -->
+      <div class="mb-3">
+        <label class="form-label">Equipamentos:</label>
+        <div id="equipamentos-container">
+          {% if pedido and pedido.equipamentos %}
+            {% for equipamento in pedido.equipamentos %}
+              <div class="bloco">
+                <div class="mb-2">
+                  <label class="form-label">Descrição do Equipamento:</label>
+                  <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Número de Série:</label>
+                  <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Quantidade:</label>
+                  <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" value="{{ equipamento.quantidade if equipamento.quantidade else 1 }}" min="1" required>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="bloco">
+              <div class="mb-2">
+                <label class="form-label">Descrição do Equipamento:</label>
+                <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Número de Série:</label>
+                <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Quantidade:</label>
+                <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" min="1" required>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-success" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
+      </div>
+      
+      <!-- Seção para Pessoas -->
+      <div class="mb-3">
+        <label class="form-label">*Pessoas:</label>
+        <div id="pessoas-container">
+          {% if pedido and pedido.pessoas %}
+            {% for pessoa in pedido.pessoas %}
+              <div class="bloco">
+                <div class="mb-2">
+                  <label class="form-label">Nome da Pessoa:</label>
+                  <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">CPF:</label>
+                  <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">ISPS:</label>
+                  <input type="text" class="pessoa-isps form-control" placeholder="ISPS" value="{{ pessoa.isps if pessoa.isps else '' }}">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Função:</label>
+                  <input type="text" class="pessoa-funcao form-control" placeholder="Função" value="{{ pessoa.funcao if pessoa.funcao else '' }}">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Local de Embarque:</label>
+                  <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque" value="{{ pessoa.local_embarque if pessoa.local_embarque else '' }}">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Local de Desembarque:</label>
+                  <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque" value="{{ pessoa.local_desembarque if pessoa.local_desembarque else '' }}">
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="bloco">
+              <div class="mb-2">
+                <label class="form-label">Nome da Pessoa:</label>
+                <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">CPF:</label>
+                <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ISPS:</label>
+                <input type="text" class="pessoa-isps form-control" placeholder="ISPS">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Função:</label>
+                <input type="text" class="pessoa-funcao form-control" placeholder="Função">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Local de Embarque:</label>
+                <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Local de Desembarque:</label>
+                <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque">
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-success" onclick="adicionarPessoa()">Adicionar mais pessoas</button>
+      </div>
+      
+      <!-- Checkbox de aceite dos termos -->
+      <div class="mb-3 form-check">
+        <input type="checkbox" id="termo_responsabilidade" class="form-check-input" {% if pedido and pedido.termo_responsabilidade %}checked{% endif %}>
+        <label for="termo_responsabilidade" class="form-check-label">
+          *Declaramos serem verdadeiras as informações prestadas, responsabilizando-nos civil e criminalmente pelos atos praticados pelas pessoas aqui relacionadas. Estamos cientes de que a autorização por parte da Alfândega de Santos não exime o cumprimento de outras obrigações pertinentes aos outros Órgãos da Administração Pública.
+        </label>
+      </div>
+      
+      <!-- Botão final -->
+      <div class="mb-3">
+        {% if pedido %}
+          <button type="button" class="btn btn-primary w-100" onclick="atualizarPedido()">Atualizar Pedido</button>
+        {% else %}
+          <button type="button" class="btn btn-primary w-100" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
+        {% endif %}
+      </div>
+    </form>
+    
+    <p id="mensagem" class="text-center fw-bold mt-3"></p>
+  </div>
+  
+  <!-- Modal de Expiração de Sessão -->
+  <div id="session-modal" class="modal d-none">
+    <div class="modal-content">
+      <h2>Aviso de Sessão</h2>
+      <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
+      <button onclick="continuarSessao()" class="btn btn-primary">Continuar Logado</button>
+      <button onclick="sairSessao()" class="btn btn-danger">Sair</button>
     </div>
   </div>
-</header>
-
-<div class="container">
-  <h1>{{ 'Atualizar Pedido de Autorização' if pedido else 'Cadastrar Pedido de Autorização' }}</h1>
   
-  <div class="back">
-      <a href="{{ url_for('pedidos.exibir_pedidos') }}">⬅ Voltar à Lista</a>
-  </div>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   
-  <form id="pedido-form">
-    <!-- Campos do pedido principal -->
-    <label>*Nome da Empresa:</label>
-    <input type="text" id="nome_empresa" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required>
-
-    <label>*CNPJ do Prestador de Serviço:</label>
-    <input type="text" id="cnpj_empresa" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required>
-
-    <label>*Endereço:</label>
-    <input type="text" id="endereco_empresa" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
-
-	  <label>*Motivo:</label>
-	  <select id="motivo_solicitacao" required>
-      <option value="Inspeção de porão" {% if pedido and pedido.motivo_solicitacao == "Inspeção de porão" %}selected{% endif %}>Inspeção de porão</option>
-      <option value="Inspeção de casco" {% if (pedido and pedido.motivo_solicitacao == "Inspeção de casco") or not pedido %}selected{% endif %}>Inspeção de casco</option>
-      <option value="Inspeção de hélice" {% if pedido and pedido.motivo_solicitacao == "Inspeção de hélice" %}selected{% endif %}>Inspeção de hélice</option>
-      <option value="Inspeção subaquática" {% if pedido and pedido.motivo_solicitacao == "Inspeção subaquática" %}selected{% endif %}>Inspeção subaquática</option>
-      <option value="Limpeza de casco" {% if pedido and pedido.motivo_solicitacao == "Limpeza de casco" %}selected{% endif %}>Limpeza de casco</option>
-      <option value="Limpeza de porão" {% if pedido and pedido.motivo_solicitacao == "Limpeza de porão" %}selected{% endif %}>Limpeza de porão</option>
-      <option value="Ressuprimento de bordo" {% if pedido and pedido.motivo_solicitacao == "Ressuprimento de bordo" %}selected{% endif %}>Ressuprimento de bordo</option>
-      <option value="Atendimento Médico" {% if pedido and pedido.motivo_solicitacao == "Atendimento Médico" %}selected{% endif %}>Atendimento Médico</option>
-      <option value="Outros" {% if pedido and pedido.motivo_solicitacao == "Outros" %}selected{% endif %}>Outros</option>
-	  </select>
-
-	  <div id="campo-outros" style="display: none;">
-		<label>Especifique o motivo:</label>
-		<input type="text" id="motivo_outros" placeholder="Especifique o serviço">
-	  </div>
-
-    <label>*Data de Início:</label>
-    <input type="date" id="data_inicio" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
-
-    <label>*Data de Término:</label>
-    <input type="date" id="data_termino" value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}" required>
-
-    <label>*Horário de Início:</label>
-    <input type="text" id="horario_inicio_servicos" value="{{ pedido.horario_inicio_servicos if pedido else '08:00' }}" required>
-
-    <label>*Horário de Término:</label>
-    <input type="text" id="horario_termino_servicos" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
-
-    <label>*Número do Certificado de Livre Prática:</label>
-    <input type="text" id="certificado_livre_pratica" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
-
-    <label>*Cidade de Serviço:</label>
-    <input type="text" id="cidade_servico" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required>
-
-    <label>Observações:</label>
-    <textarea id="observacoes" placeholder="Observações">{{ pedido.observacoes if pedido else '' }}</textarea>
-
-    <label>*Agência Marítima:</label>
-    <input type="text" id="agencia_maritima" value="{{ pedido.agencia_maritima if pedido else '' }}">
-
-    <label>*CNPJ da Agência:</label>
-    <input type="text" id="cnpj_agencia" value="{{ pedido.cnpj_agencia if pedido else '' }}">
-
-    <!-- Seção para Embarcações -->
-    <label>*Embarcações:</label>
-    <div id="embarcacoes-container">
-      {% if pedido and pedido.embarcacoes %}
-        {% for embarcacao in pedido.embarcacoes %}
-          <div class="bloco">
-            <label>Nome da Embarcação:</label>
-            <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required>
-            <label>IMO:</label>
-            <input type="text" class="embarcacao-imo" placeholder="Número IMO" value="{{ embarcacao.imo }}">
-            <label>Bandeira:</label>
-            <input type="text" class="embarcacao-bandeira" placeholder="Bandeira" value="{{ embarcacao.bandeira }}">
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="bloco">
-          <label>Nome da Embarcação:</label>
-          <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" required>
-          <label>IMO:</label>
-          <input type="text" class="embarcacao-imo" placeholder="Número IMO">
-          <label>Bandeira:</label>
-          <input type="text" class="embarcacao-bandeira" placeholder="Bandeira">
-        </div>
-      {% endif %}
-    </div>
-    <button type="button" class="btn-adicionar" onclick="adicionarEmbarcacao()">Adicionar mais embarcações</button>
-
-    <!-- Seção para Veículos -->
-    <label>Veículos:</label>
-    <div id="veiculos-container">
-      {% if pedido and pedido.veiculos %}
-        {% for veiculo in pedido.veiculos %}
-          <div class="bloco">
-            <label>Modelo do Veículo:</label>
-            <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" value="{{ veiculo.modelo }}" required>
-            <label>Placa do Veículo:</label>
-            <input type="text" class="veiculo-placa" placeholder="Placa do veículo" value="{{ veiculo.placa }}" required>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="bloco">
-          <label>Modelo do Veículo:</label>
-          <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
-          <label>Placa do Veículo:</label>
-          <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
-        </div>
-      {% endif %}
-    </div>
-    <button type="button" class="btn-adicionar" onclick="adicionarVeiculo()">Adicionar mais veículos</button>
-
-    <!-- Seção para Equipamentos -->
-    <label>Equipamentos:</label>
-    <div id="equipamentos-container">
-      {% if pedido and pedido.equipamentos %}
-        {% for equipamento in pedido.equipamentos %}
-          <div class="bloco">
-            <label>Descrição do Equipamento:</label>
-            <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required>
-            <label>Número de Série:</label>
-            <input type="text" class="equipamento-numero-serie" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required>
-            <label>Quantidade:</label>
-            <input type="number" class="equipamento-quantidade" placeholder="Quantidade" value="{{ equipamento.quantidade if equipamento.quantidade else 1 }}" min="1" required>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="bloco">
-          <label>Descrição do Equipamento:</label>
-          <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
-          <label>Número de Série:</label>
-          <input type="text" class="equipamento-numero-serie" placeholder="Número de série" required>
-          <label>Quantidade:</label>
-          <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
-        </div>
-      {% endif %}
-    </div>
-    <button type="button" class="btn-adicionar" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
-
-    <!-- Seção para Pessoas -->
-    <label>*Pessoas:</label>
-    <div id="pessoas-container">
-      {% if pedido and pedido.pessoas %}
-        {% for pessoa in pedido.pessoas %}
-          <div class="bloco">
-            <label>Nome da Pessoa:</label>
-            <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required>
-            <label>CPF:</label>
-            <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
-            <label>ISPS:</label>
-            <input type="text" class="pessoa-isps" placeholder="ISPS" value="{{ pessoa.isps if pessoa.isps else '' }}">
-            <label>Função:</label>
-            <input type="text" class="pessoa-funcao" placeholder="Função" value="{{ pessoa.funcao if pessoa.funcao else '' }}">
-            <label>Local de Embarque:</label>
-            <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque" value="{{ pessoa.local_embarque if pessoa.local_embarque else '' }}">
-            <label>Local de Desembarque:</label>
-            <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque" value="{{ pessoa.local_desembarque if pessoa.local_desembarque else '' }}">
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="bloco">
-          <label>Nome da Pessoa:</label>
-          <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
-          <label>CPF:</label>
-          <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
-          <label>ISPS:</label>
-          <input type="text" class="pessoa-isps" placeholder="ISPS">
-          <label>Função:</label>
-          <input type="text" class="pessoa-funcao" placeholder="Função">
-          <label>Local de Embarque:</label>
-          <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque">
-          <label>Local de Desembarque:</label>
-          <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque">
-        </div>
-      {% endif %}
-    </div>
-    <button type="button" class="btn-adicionar" onclick="adicionarPessoa()">Adicionar mais pessoas</button>
-
-    <!-- Checkbox de aceite dos termos -->
-    <label>
-      <input type="checkbox" id="termo_responsabilidade" {% if pedido and pedido.termo_responsabilidade %}checked{% endif %}>
-     *Declaramos serem verdadeiras as informações prestadas, responsabilizando-nos civil e criminalmente pelos atos praticados pelas pessoas aqui relacionadas. Estamos cientes de que a autorização por parte da Alfândega de Santos não exime o cumprimento de outras obrigações pertinentes aos outros Órgãos da Administração Pública.
-    </label>
-
-    <!-- Botão final: se existir 'pedido' chama a função de atualização; caso contrário, envia um novo pedido -->
-    {% if pedido %}
-      <button type="button" onclick="atualizarPedido()">Atualizar Pedido</button>
-    {% else %}
-      <button type="button" onclick="enviarPedido()">Enviar Pedido de Autorização</button>
-    {% endif %}
-  </form>
-
-  <p id="mensagem"></p>
-</div>
-
-<!-- Modal de Expiração de Sessão -->
-<div id="session-modal" class="modal">
-  <div class="modal-content">
-    <h2>Aviso de Sessão</h2>
-    <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
-    <button onclick="continuarSessao()">Continuar Logado</button>
-    <button onclick="sairSessao()">Sair</button>
-  </div>
-</div>
-
-<script>
-  // Monitoramento de sessão
-  let tempoExpiracao = 30 * 60 * 1000;
-  let avisoExpiracao = 28 * 60 * 1000;
-  let modal = document.getElementById("session-modal");
-  let sessionTimeout;
-  function iniciarMonitoramentoSessao() {
-    setTimeout(() => { modal.style.display = "flex"; }, avisoExpiracao);
-    sessionTimeout = setTimeout(() => { window.location.href = "auth/logout"; }, tempoExpiracao);
-  }
-  function continuarSessao() {
-    modal.style.display = "none";
-    clearTimeout(sessionTimeout);
-    fetch("auth/renovar-sessao", { method: "GET" })
-      .then(response => console.log("Sessão renovada"))
-      .catch(error => console.error("Erro ao renovar sessão", error));
-    iniciarMonitoramentoSessao();
-  }
-  function sairSessao() { window.location.href = "auth/logout"; }
-  document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
-
-  // Funções para adicionar novos blocos de inputs dinamicamente
-  function adicionarEmbarcacao() {
-    const novaEmbarcacao = document.createElement("div");
-    novaEmbarcacao.className = "bloco";
-    novaEmbarcacao.innerHTML = `
-      <label>Nome da Embarcação:</label>
-      <input type="text" class="embarcacao-nome" placeholder="Nome da embarcação" required>
-      <label>IMO:</label>
-      <input type="text" class="embarcacao-imo" placeholder="Número IMO">
-      <label>Bandeira:</label>
-      <input type="text" class="embarcacao-bandeira" placeholder="Bandeira">
-    `;
-    document.getElementById("embarcacoes-container").appendChild(novaEmbarcacao);
-  }
-
-  function adicionarVeiculo() {
-    const novoVeiculo = document.createElement("div");
-    novoVeiculo.className = "bloco";
-    novoVeiculo.innerHTML = `
-      <label>Modelo do Veículo:</label>
-      <input type="text" class="veiculo-modelo" placeholder="Modelo do veículo" required>
-      <label>Placa do Veículo:</label>
-      <input type="text" class="veiculo-placa" placeholder="Placa do veículo" required>
-    `;
-    document.getElementById("veiculos-container").appendChild(novoVeiculo);
-  }
-
-  function adicionarEquipamento() {
-    const novoEquipamento = document.createElement("div");
-    novoEquipamento.className = "bloco";
-    novoEquipamento.innerHTML = `
-      <label>Descrição do Equipamento:</label>
-      <input type="text" class="equipamento-descricao" placeholder="Descrição do equipamento" required>
-      <label>Número de Série:</label>
-      <input type="text" class="equipamento-numero-serie" placeholder="Número de série" required>
-      <label>Quantidade:</label>
-      <input type="number" class="equipamento-quantidade" placeholder="Quantidade" min="1" required>
-    `;
-    document.getElementById("equipamentos-container").appendChild(novoEquipamento);
-  }
-
-  function adicionarPessoa() {
-    const novaPessoa = document.createElement("div");
-    novaPessoa.className = "bloco";
-    novaPessoa.innerHTML = `
-      <label>Nome da Pessoa:</label>
-      <input type="text" class="pessoa-nome" placeholder="Nome da pessoa" required>
-      <label>CPF:</label>
-      <input type="text" class="pessoa-cpf" placeholder="CPF da pessoa" required>
-      <label>ISPS:</label>
-      <input type="text" class="pessoa-isps" placeholder="ISPS">
-      <label>Função:</label>
-      <input type="text" class="pessoa-funcao" placeholder="Função">
-      <label>Local de Embarque:</label>
-      <input type="text" class="pessoa-local-embarque" placeholder="Local de embarque">
-      <label>Local de Desembarque:</label>
-      <input type="text" class="pessoa-local-desembarque" placeholder="Local de desembarque">
-    `;
-    document.getElementById("pessoas-container").appendChild(novaPessoa);
-  }
-
-  // Função para calcular a diferença de dias entre duas datas
-  function calcularDiferencaEmDias(dataInicioStr, dataTerminoStr) {
-    const dataInicio = new Date(dataInicioStr);
-    const dataTermino = new Date(dataTerminoStr);
-    const diffMs = dataTermino - dataInicio;
-    const diffDias = diffMs / (1000 * 60 * 60 * 24);
-    return diffDias;
-  }
-  
-  function validarHorario(horario) {
-  // Expressão regular para horas de 00 a 23 e minutos de 00 a 59
-  const regex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
-  return regex.test(horario);
-  }
-
-	function validarPlaca(placa) {
-	// Remove hífens e converte para maiúsculo
-		placa = placa.replace(/-/g, "").toUpperCase();
-		const regexAntiga = /^[A-Z]{3}[0-9]{4}$/;
-		const regexMercosul = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
-		return regexAntiga.test(placa) || regexMercosul.test(placa);
-	}
-
-  // Função para criar novo pedido via fetch
-function enviarPedido() {
-  // Processa o motivo: se "Outros", usa o valor do campo de texto
-  let motivo = document.getElementById("motivo_solicitacao").value;
-  if (motivo === "Outros") {
-    motivo = document.getElementById("motivo_outros").value;
-  }
-  
-    const dataInicioStr = document.getElementById("data_inicio").value;
-    const dataTerminoStr = document.getElementById("data_termino").value;
-    const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
-    if(diffDias > 5) {
-      document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-
-	if (new Date(dataInicioStr) > new Date(dataTerminoStr)) {
-		document.getElementById("mensagem").innerText = "A data de início não pode ser posterior à data de término.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
+  <script>
+    // Monitoramento de sessão
+    let tempoExpiracao = 30 * 60 * 1000;
+    let avisoExpiracao = 28 * 60 * 1000;
+    let modal = document.getElementById("session-modal");
+    let sessionTimeout;
 	
-	// Obtém a data atual no formato "YYYY-MM-DD"
-	const hojeStr = new Date().toISOString().split('T')[0];
-
-	// Calcula a diferença de dias entre hoje e a data de início
-	const diffParaInicio = calcularDiferencaEmDias(hojeStr, dataInicioStr);
-
-	// Se a data de início estiver a mais de 90 dias de hoje, exibe mensagem de erro
-	if (diffParaInicio > 90) {
-		document.getElementById("mensagem").innerText = "A data de início deve estar dentro dos próximos 90 dias.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-	const horarioInicio = document.getElementById("horario_inicio_servicos").value;
-	const horarioTermino = document.getElementById("horario_termino_servicos").value;
-	if (!validarHorario(horarioInicio) || !validarHorario(horarioTermino)) {
-		document.getElementById("mensagem").innerText = "Horário inválido! Use o formato HH:MM.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-    const cnpj = document.getElementById("cnpj_empresa").value;
-    if (!validarCNPJ(cnpj)) {
-      document.getElementById("mensagem").innerText = "CNPJ inválido!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
+    function iniciarMonitoramentoSessao() {
+  setTimeout(() => {
+    let modal = document.getElementById("session-modal");
+    modal.classList.remove("d-none");
+    modal.classList.add("d-flex");
+  }, avisoExpiracao);
+  
+      sessionTimeout = setTimeout(() => {
+        window.location.href = "auth/logout";
+      }, tempoExpiracao);
     }
-
-	const cnpjAgencia = document.getElementById("cnpj_agencia").value;
-	if (cnpjAgencia.trim() !== "" && !validarCNPJ(cnpjAgencia)) {
-		document.getElementById("mensagem").innerText = "CNPJ da Agência inválido!";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-    const embarcacoes = [];
-    document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
-      const nome = el.querySelector('.embarcacao-nome').value.trim();
-      const imo = el.querySelector('.embarcacao-imo').value.trim();
-      const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
-      if (nome) {
-        embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
-      }
-    });
-
-const veiculos = [];
-const veiculoElements = document.querySelectorAll("#veiculos-container .bloco");
-for (let el of veiculoElements) {
-  const modelo = el.querySelector('.veiculo-modelo').value.trim();
-  const placa = el.querySelector('.veiculo-placa').value.trim();
-  if (modelo && placa) {
-    if (!validarPlaca(placa)) {
-      document.getElementById("mensagem").innerText = "Placa do veículo inválida!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
+	
+    function continuarSessao() {
+      modal.style.display = "none";
+      clearTimeout(sessionTimeout);
+      fetch("auth/renovar-sessao", { method: "GET" })
+        .then(response => console.log("Sessão renovada"))
+        .catch(error => console.error("Erro ao renovar sessão", error));
+      iniciarMonitoramentoSessao();
     }
-    veiculos.push({ modelo: modelo, placa: placa });
-  }
-}
-
-    const equipamentos = [];
-    document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
-      const descricao = el.querySelector('.equipamento-descricao').value.trim();
-      const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
-      const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
-      if (descricao && numeroSerie && quantidade) {
-        equipamentos.push({
-          descricao: descricao,
-          numero_serie: numeroSerie,
-          quantidade: parseInt(quantidade)
-        });
-      }
-    });
-
-const pessoas = [];
-const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
-for (let el of pessoaElements) {
-  const nome = el.querySelector('.pessoa-nome').value.trim();
-  const cpf = el.querySelector('.pessoa-cpf').value.trim();
-  if (nome && cpf) {
-    if (!validarCPF(cpf)) {
-      document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
+    function sairSessao() { window.location.href = "auth/logout"; }
+    document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
+  
+    // Funções para adicionar novos blocos de inputs dinamicamente
+    function adicionarEmbarcacao() {
+      const novaEmbarcacao = document.createElement("div");
+      novaEmbarcacao.className = "bloco";
+      novaEmbarcacao.innerHTML = `
+        <div class="mb-2">
+          <label class="form-label">Nome da Embarcação:</label>
+          <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">IMO:</label>
+          <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Bandeira:</label>
+          <input type="text" class="embarcacao-bandeira form-control" placeholder="Bandeira">
+        </div>
+      `;
+      document.getElementById("embarcacoes-container").appendChild(novaEmbarcacao);
     }
-    // Continue extraindo outros campos...
-    const isps = el.querySelector('.pessoa-isps').value.trim();
-    const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
-    const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
-    const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
-    pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
-  }
-}
-
-    const pedido = {
-      nome_empresa: document.getElementById("nome_empresa").value,
-      cnpj_empresa: cnpj,
-      endereco_empresa: document.getElementById("endereco_empresa").value,
-      motivo_solicitacao: motivo,
-      data_inicio: dataInicioStr,
-      data_termino: dataTerminoStr,
-      horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
-      horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
-      certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
-      cidade_servico: document.getElementById("cidade_servico").value,
-      observacoes: document.getElementById("observacoes").value,
-      agencia_maritima: document.getElementById("agencia_maritima").value,
-      cnpj_agencia: document.getElementById("cnpj_agencia").value,
-      termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
-      embarcacoes: embarcacoes,
-      veiculos: veiculos,
-      equipamentos: equipamentos,
-      pessoas: pessoas
-    };
-
-    fetch('/embarcacoes/api/pedidos-autorizacao', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pedido)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.error || 'Erro ao criar pedido.');
-        });
+  
+    function adicionarVeiculo() {
+      const novoVeiculo = document.createElement("div");
+      novoVeiculo.className = "bloco";
+      novoVeiculo.innerHTML = `
+        <div class="mb-2">
+          <label class="form-label">Modelo do Veículo:</label>
+          <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Placa do Veículo:</label>
+          <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" required>
+        </div>
+      `;
+      document.getElementById("veiculos-container").appendChild(novoVeiculo);
+    }
+  
+    function adicionarEquipamento() {
+      const novoEquipamento = document.createElement("div");
+      novoEquipamento.className = "bloco";
+      novoEquipamento.innerHTML = `
+        <div class="mb-2">
+          <label class="form-label">Descrição do Equipamento:</label>
+          <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Número de Série:</label>
+          <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Quantidade:</label>
+          <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" min="1" required>
+        </div>
+      `;
+      document.getElementById("equipamentos-container").appendChild(novoEquipamento);
+    }
+  
+    function adicionarPessoa() {
+      const novaPessoa = document.createElement("div");
+      novaPessoa.className = "bloco";
+      novaPessoa.innerHTML = `
+        <div class="mb-2">
+          <label class="form-label">Nome da Pessoa:</label>
+          <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">CPF:</label>
+          <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">ISPS:</label>
+          <input type="text" class="pessoa-isps form-control" placeholder="ISPS">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Função:</label>
+          <input type="text" class="pessoa-funcao form-control" placeholder="Função">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Local de Embarque:</label>
+          <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Local de Desembarque:</label>
+          <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque">
+        </div>
+      `;
+      document.getElementById("pessoas-container").appendChild(novaPessoa);
+    }
+  
+    // Função para calcular a diferença de dias entre duas datas
+    function calcularDiferencaEmDias(dataInicioStr, dataTerminoStr) {
+      const dataInicio = new Date(dataInicioStr);
+      const dataTermino = new Date(dataTerminoStr);
+      const diffMs = dataTermino - dataInicio;
+      const diffDias = diffMs / (1000 * 60 * 60 * 24);
+      return diffDias;
+    }
+    
+    function validarHorario(horario) {
+      const regex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
+      return regex.test(horario);
+    }
+    
+    function validarPlaca(placa) {
+      placa = placa.replace(/-/g, "").toUpperCase();
+      const regexAntiga = /^[A-Z]{3}[0-9]{4}$/;
+      const regexMercosul = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
+      return regexAntiga.test(placa) || regexMercosul.test(placa);
+    }
+    
+    // Função para criar novo pedido via fetch
+    function enviarPedido() {
+      let motivo = document.getElementById("motivo_solicitacao").value;
+      if (motivo === "Outros") {
+        motivo = document.getElementById("motivo_outros").value;
       }
-      return response.json();
-    })
-    .then(data => {
-	const mensagemSucesso = "Pedido " + data.id + " criado com sucesso!";
-      if (data.redirect_url) {
-        alert(mensagemSucesso);
-        window.location.href = data.redirect_url;
+      
+      const dataInicioStr = document.getElementById("data_inicio").value;
+      const dataTerminoStr = document.getElementById("data_termino").value;
+      const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
+      if(diffDias > 5) {
+        document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      if (new Date(dataInicioStr) > new Date(dataTerminoStr)) {
+        document.getElementById("mensagem").innerText = "A data de início não pode ser posterior à data de término.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+      
+      const hojeStr = new Date().toISOString().split('T')[0];
+      const diffParaInicio = calcularDiferencaEmDias(hojeStr, dataInicioStr);
+      if (diffParaInicio > 90) {
+        document.getElementById("mensagem").innerText = "A data de início deve estar dentro dos próximos 90 dias.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const horarioInicio = document.getElementById("horario_inicio_servicos").value;
+      const horarioTermino = document.getElementById("horario_termino_servicos").value;
+      if (!validarHorario(horarioInicio) || !validarHorario(horarioTermino)) {
+        document.getElementById("mensagem").innerText = "Horário inválido! Use o formato HH:MM.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const cnpj = document.getElementById("cnpj_empresa").value;
+      if (!validarCNPJ(cnpj)) {
+        document.getElementById("mensagem").innerText = "CNPJ inválido!";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const cnpjAgencia = document.getElementById("cnpj_agencia").value;
+      if (cnpjAgencia.trim() !== "" && !validarCNPJ(cnpjAgencia)) {
+        document.getElementById("mensagem").innerText = "CNPJ da Agência inválido!";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const embarcacoes = [];
+      document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
+        const nome = el.querySelector('.embarcacao-nome').value.trim();
+        const imo = el.querySelector('.embarcacao-imo').value.trim();
+        const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
+        if (nome) {
+          embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
+        }
+      });
+    
+      const veiculos = [];
+      const veiculoElements = document.querySelectorAll("#veiculos-container .bloco");
+      for (let el of veiculoElements) {
+        const modelo = el.querySelector('.veiculo-modelo').value.trim();
+        const placa = el.querySelector('.veiculo-placa').value.trim();
+        if (modelo && placa) {
+          if (!validarPlaca(placa)) {
+            document.getElementById("mensagem").innerText = "Placa do veículo inválida!";
+            document.getElementById("mensagem").style.color = "red";
+            return;
+          }
+          veiculos.push({ modelo: modelo, placa: placa });
+        }
+      }
+    
+      const equipamentos = [];
+      document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
+        const descricao = el.querySelector('.equipamento-descricao').value.trim();
+        const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
+        const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+        if (descricao && numeroSerie && quantidade) {
+          equipamentos.push({
+            descricao: descricao,
+            numero_serie: numeroSerie,
+            quantidade: parseInt(quantidade)
+          });
+        }
+      });
+    
+      const pessoas = [];
+      const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
+      for (let el of pessoaElements) {
+        const nome = el.querySelector('.pessoa-nome').value.trim();
+        const cpf = el.querySelector('.pessoa-cpf').value.trim();
+        if (nome && cpf) {
+          if (!validarCPF(cpf)) {
+            document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
+            document.getElementById("mensagem").style.color = "red";
+            return;
+          }
+          const isps = el.querySelector('.pessoa-isps').value.trim();
+          const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+          const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+          const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
+          pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
+        }
+      }
+    
+      const pedido = {
+        nome_empresa: document.getElementById("nome_empresa").value,
+        cnpj_empresa: cnpj,
+        endereco_empresa: document.getElementById("endereco_empresa").value,
+        motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+        data_inicio: dataInicioStr,
+        data_termino: dataTerminoStr,
+        horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
+        horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
+        certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
+        cidade_servico: document.getElementById("cidade_servico").value,
+        observacoes: document.getElementById("observacoes").value,
+        agencia_maritima: document.getElementById("agencia_maritima").value,
+        cnpj_agencia: document.getElementById("cnpj_agencia").value,
+        termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
+        embarcacoes: embarcacoes,
+        veiculos: veiculos,
+        equipamentos: equipamentos,
+        pessoas: pessoas
+      };
+    
+      fetch('/embarcacoes/api/pedidos-autorizacao', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pedido)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            throw new Error(errorData.error || 'Erro ao criar pedido.');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        const mensagemSucesso = "Pedido " + data.id + " criado com sucesso!";
+        if (data.redirect_url) {
+          alert(mensagemSucesso);
+          window.location.href = data.redirect_url;
+        } else {
+          document.getElementById("mensagem").innerText = mensagemSucesso;
+          document.getElementById("mensagem").style.color = "green";
+        }
+      })
+      .catch(error => {
+        document.getElementById("mensagem").innerText = error.message;
+        document.getElementById("mensagem").style.color = "red";
+        console.error("Erro:", error);
+      });
+    }
+    
+    // Função para atualizar o pedido via fetch
+    function atualizarPedido() {
+      const dataInicioStr = document.getElementById("data_inicio").value;
+      const dataTerminoStr = document.getElementById("data_termino").value;
+      const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
+      if(diffDias > 5) {
+        document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      if (new Date(dataInicioStr) > new Date(dataTerminoStr)) {
+        document.getElementById("mensagem").innerText = "A data de início não pode ser posterior à data de término.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const hojeStr = new Date().toISOString().split('T')[0];
+      const diffParaInicio = calcularDiferencaEmDias(hojeStr, dataInicioStr);
+      if (diffParaInicio > 90) {
+        document.getElementById("mensagem").innerText = "A data de início deve estar dentro dos próximos 90 dias.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const horarioInicio = document.getElementById("horario_inicio_servicos").value;
+      const horarioTermino = document.getElementById("horario_termino_servicos").value;
+      if (!validarHorario(horarioInicio) || !validarHorario(horarioTermino)) {
+        document.getElementById("mensagem").innerText = "Horário inválido! Use o formato HH:MM.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const cnpj = document.getElementById("cnpj_empresa").value;
+      if (!validarCNPJ(cnpj)) {
+        document.getElementById("mensagem").innerText = "CNPJ inválido!";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const cnpjAgencia = document.getElementById("cnpj_agencia").value;
+      if (cnpjAgencia.trim() !== "" && !validarCNPJ(cnpjAgencia)) {
+        document.getElementById("mensagem").innerText = "CNPJ da Agência inválido!";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      const embarcacoes = [];
+      document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
+        const nome = el.querySelector('.embarcacao-nome').value.trim();
+        const imo = el.querySelector('.embarcacao-imo').value.trim();
+        const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
+        if (nome) {
+          embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
+        }
+      });
+    
+      const veiculos = [];
+      const veiculoElements = document.querySelectorAll("#veiculos-container .bloco");
+      for (let el of veiculoElements) {
+        const modelo = el.querySelector('.veiculo-modelo').value.trim();
+        const placa = el.querySelector('.veiculo-placa').value.trim();
+        if (modelo && placa) {
+          if (!validarPlaca(placa)) {
+            document.getElementById("mensagem").innerText = "Placa do veículo inválida!";
+            document.getElementById("mensagem").style.color = "red";
+            return;
+          }
+          veiculos.push({ modelo: modelo, placa: placa });
+        }
+      }
+    
+      const equipamentos = [];
+      document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
+        const descricao = el.querySelector('.equipamento-descricao').value.trim();
+        const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
+        const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+        if (descricao && numeroSerie && quantidade) {
+          equipamentos.push({
+            descricao: descricao,
+            numero_serie: numeroSerie,
+            quantidade: parseInt(quantidade)
+          });
+        }
+      });
+    
+      const pessoas = [];
+      const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
+      for (let el of pessoaElements) {
+        const nome = el.querySelector('.pessoa-nome').value.trim();
+        const cpf = el.querySelector('.pessoa-cpf').value.trim();
+        if (nome && cpf) {
+          if (!validarCPF(cpf)) {
+            document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
+            document.getElementById("mensagem").style.color = "red";
+            return;
+          }
+          const isps = el.querySelector('.pessoa-isps').value.trim();
+          const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+          const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+          const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
+          pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
+        }
+      }
+    
+      const pedido = {
+        nome_empresa: document.getElementById("nome_empresa").value,
+        cnpj_empresa: cnpj,
+        endereco_empresa: document.getElementById("endereco_empresa").value,
+        motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
+        data_inicio: dataInicioStr,
+        data_termino: dataTerminoStr,
+        horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
+        horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
+        certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
+        cidade_servico: document.getElementById("cidade_servico").value,
+        observacoes: document.getElementById("observacoes").value,
+        agencia_maritima: document.getElementById("agencia_maritima").value,
+        cnpj_agencia: document.getElementById("cnpj_agencia").value,
+        termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
+        embarcacoes: embarcacoes,
+        veiculos: veiculos,
+        equipamentos: equipamentos,
+        pessoas: pessoas
+      };
+    
+      const pedidoId = {{ pedido.id if pedido else 'null' }};
+      if (!pedidoId) {
+        document.getElementById("mensagem").innerText = "ID do pedido não encontrado para atualização.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
+      }
+    
+      fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pedido)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            throw new Error(errorData.error || 'Erro ao atualizar pedido.');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.redirect_url) {
+          alert("Pedido atualizado com sucesso!");
+          window.location.href = data.redirect_url;
+        } else {
+          document.getElementById("mensagem").innerText = "Pedido atualizado com sucesso!";
+          document.getElementById("mensagem").style.color = "green";
+        }
+      })
+      .catch(error => {
+        document.getElementById("mensagem").innerText = error.message;
+        document.getElementById("mensagem").style.color = "red";
+        console.error("Erro:", error);
+      });
+    }
+    
+    // Função de validação de CNPJ
+    function validarCNPJ(cnpj) {
+      cnpj = cnpj.replace(/[^\d]+/g, "");
+      if (cnpj.length !== 14) return false;
+      if (/^(\d)\1+$/.test(cnpj)) return false;
+      let tamanho = cnpj.length - 2;
+      let numeros = cnpj.substring(0, tamanho);
+      let digitos = cnpj.substring(tamanho);
+      let soma = 0;
+      let pos = tamanho - 7;
+      for (let i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+      if (resultado !== parseInt(digitos.charAt(0))) return false;
+      tamanho += 1;
+      numeros = cnpj.substring(0, tamanho);
+      soma = 0;
+      pos = tamanho - 7;
+      for (let i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+      if (resultado !== parseInt(digitos.charAt(1))) return false;
+      return true;
+    }
+    
+    /**
+     * Valida o CPF
+     * @param {string} cpf - O CPF a ser validado.
+     * @returns {boolean} - Retorna true se o CPF for válido.
+     */
+    function validarCPF(cpf) {
+      cpf = cpf.replace(/[^\d]+/g, "");
+      if (cpf.length !== 11) return false;
+      if (/^(\d)\1+$/.test(cpf)) return false;
+      
+      let soma = 0, resto;
+      for (let i = 1; i <= 9; i++) {
+        soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+      }
+      resto = (soma * 10) % 11;
+      if (resto === 10 || resto === 11) resto = 0;
+      if (resto !== parseInt(cpf.substring(9, 10))) return false;
+      
+      soma = 0;
+      for (let i = 1; i <= 10; i++) {
+        soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+      }
+      resto = (soma * 10) % 11;
+      if (resto === 10 || resto === 11) resto = 0;
+      if (resto !== parseInt(cpf.substring(10, 11))) return false;
+      
+      return true;
+    }
+  </script>
+  
+  <script>
+    document.getElementById("motivo_solicitacao").addEventListener("change", function() {
+      const campoOutros = document.getElementById("campo-outros");
+      if (this.value === "Outros") {
+        campoOutros.style.display = "block";
+        document.getElementById("motivo_outros").setAttribute("required", "required");
       } else {
-        document.getElementById("mensagem").innerText = mensagemSucesso;
-        document.getElementById("mensagem").style.color = "green";
-      }
-    })
-    .catch(error => {
-      document.getElementById("mensagem").innerText = error.message;
-      document.getElementById("mensagem").style.color = "red";
-      console.error("Erro:", error);
-    });
-  }
-
-  // Função para atualizar o pedido via fetch
-  function atualizarPedido() {
-  
-    const dataInicioStr = document.getElementById("data_inicio").value;
-    const dataTerminoStr = document.getElementById("data_termino").value;
-    const diffDias = calcularDiferencaEmDias(dataInicioStr, dataTerminoStr);
-    if(diffDias > 5) {
-      document.getElementById("mensagem").innerText = "A duração máxima do serviço é de 5 dias.";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-
-	if (new Date(dataInicioStr) > new Date(dataTerminoStr)) {
-		document.getElementById("mensagem").innerText = "A data de início não pode ser posterior à data de término.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-	// Obtém a data atual no formato "YYYY-MM-DD"
-	const hojeStr = new Date().toISOString().split('T')[0];
-
-	// Calcula a diferença de dias entre hoje e a data de início
-	const diffParaInicio = calcularDiferencaEmDias(hojeStr, dataInicioStr);
-
-	// Se a data de início estiver a mais de 90 dias de hoje, exibe mensagem de erro
-	if (diffParaInicio > 90) {
-		document.getElementById("mensagem").innerText = "A data de início deve estar dentro dos próximos 90 dias.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-	const horarioInicio = document.getElementById("horario_inicio_servicos").value;
-	const horarioTermino = document.getElementById("horario_termino_servicos").value;
-	if (!validarHorario(horarioInicio) || !validarHorario(horarioTermino)) {
-		document.getElementById("mensagem").innerText = "Horário inválido! Use o formato HH:MM.";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-    const cnpj = document.getElementById("cnpj_empresa").value;
-    if (!validarCNPJ(cnpj)) {
-      document.getElementById("mensagem").innerText = "CNPJ inválido!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-
-	const cnpjAgencia = document.getElementById("cnpj_agencia").value;
-	if (cnpjAgencia.trim() !== "" && !validarCNPJ(cnpjAgencia)) {
-		document.getElementById("mensagem").innerText = "CNPJ da Agência inválido!";
-		document.getElementById("mensagem").style.color = "red";
-		return;
-	}
-
-    const embarcacoes = [];
-    document.querySelectorAll("#embarcacoes-container .bloco").forEach(el => {
-      const nome = el.querySelector('.embarcacao-nome').value.trim();
-      const imo = el.querySelector('.embarcacao-imo').value.trim();
-      const bandeira = el.querySelector('.embarcacao-bandeira').value.trim();
-      if (nome) {
-        embarcacoes.push({ nome: nome, imo: imo, bandeira: bandeira });
+        campoOutros.style.display = "none";
+        document.getElementById("motivo_outros").removeAttribute("required");
       }
     });
-
-const veiculos = [];
-const veiculoElements = document.querySelectorAll("#veiculos-container .bloco");
-for (let el of veiculoElements) {
-  const modelo = el.querySelector('.veiculo-modelo').value.trim();
-  const placa = el.querySelector('.veiculo-placa').value.trim();
-  if (modelo && placa) {
-    if (!validarPlaca(placa)) {
-      document.getElementById("mensagem").innerText = "Placa do veículo inválida!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-    veiculos.push({ modelo: modelo, placa: placa });
-  }
-}
-
-    const equipamentos = [];
-    document.querySelectorAll("#equipamentos-container .bloco").forEach(el => {
-      const descricao = el.querySelector('.equipamento-descricao').value.trim();
-      const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
-      const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
-      if (descricao && numeroSerie && quantidade) {
-        equipamentos.push({
-          descricao: descricao,
-          numero_serie: numeroSerie,
-          quantidade: parseInt(quantidade)
-        });
+  
+    document.addEventListener("DOMContentLoaded", function() {
+      const selectMotivo = document.getElementById("motivo_solicitacao");
+      if (selectMotivo.value === "Outros") {
+        document.getElementById("campo-outros").style.display = "block";
+        document.getElementById("motivo_outros").setAttribute("required", "required");
       }
     });
-
-const pessoas = [];
-const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
-for (let el of pessoaElements) {
-  const nome = el.querySelector('.pessoa-nome').value.trim();
-  const cpf = el.querySelector('.pessoa-cpf').value.trim();
-  if (nome && cpf) {
-    if (!validarCPF(cpf)) {
-      document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-    // Continue extraindo outros campos...
-    const isps = el.querySelector('.pessoa-isps').value.trim();
-    const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
-    const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
-    const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
-    pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
-  }
-}
-
-    const pedido = {
-      nome_empresa: document.getElementById("nome_empresa").value,
-      cnpj_empresa: cnpj,
-      endereco_empresa: document.getElementById("endereco_empresa").value,
-      motivo_solicitacao: document.getElementById("motivo_solicitacao").value,
-      data_inicio: dataInicioStr,
-      data_termino: dataTerminoStr,
-      horario_inicio_servicos: document.getElementById("horario_inicio_servicos").value,
-      horario_termino_servicos: document.getElementById("horario_termino_servicos").value,
-      certificado_livre_pratica: document.getElementById("certificado_livre_pratica").value,
-      cidade_servico: document.getElementById("cidade_servico").value,
-      observacoes: document.getElementById("observacoes").value,
-      agencia_maritima: document.getElementById("agencia_maritima").value,
-      cnpj_agencia: document.getElementById("cnpj_agencia").value,
-      termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
-      embarcacoes: embarcacoes,
-      veiculos: veiculos,
-      equipamentos: equipamentos,
-      pessoas: pessoas
-    };
-
-    const pedidoId = {{ pedido.id if pedido else 'null' }};
-    if (!pedidoId) {
-      document.getElementById("mensagem").innerText = "ID do pedido não encontrado para atualização.";
-      document.getElementById("mensagem").style.color = "red";
-      return;
-    }
-
-    fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pedido)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.error || 'Erro ao atualizar pedido.');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.redirect_url) {
-        alert("Pedido atualizado com sucesso!");
-        window.location.href = data.redirect_url;
-      } else {
-        document.getElementById("mensagem").innerText = "Pedido atualizado com sucesso!";
-        document.getElementById("mensagem").style.color = "green";
-      }
-    })
-    .catch(error => {
-      document.getElementById("mensagem").innerText = error.message;
-      document.getElementById("mensagem").style.color = "red";
-      console.error("Erro:", error);
-    });
-  }
-
-  // Função de validação de CNPJ
-  function validarCNPJ(cnpj) {
-    cnpj = cnpj.replace(/[^\d]+/g, "");
-    if (cnpj.length !== 14) return false;
-    if (/^(\d)\1+$/.test(cnpj)) return false;
-    let tamanho = cnpj.length - 2;
-    let numeros = cnpj.substring(0, tamanho);
-    let digitos = cnpj.substring(tamanho);
-    let soma = 0;
-    let pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    if (resultado !== parseInt(digitos.charAt(0))) return false;
-    tamanho += 1;
-    numeros = cnpj.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    if (resultado !== parseInt(digitos.charAt(1))) return false;
-    return true;
-  }
-
-/**
- * Valida o CPF
- * @param {string} cpf - O CPF a ser validado.
- * @returns {boolean} - Retorna true se o CPF for válido.
- */
-function validarCPF(cpf) {
-  cpf = cpf.replace(/[^\d]+/g, "");
-  if (cpf.length !== 11) return false;
-  if (/^(\d)\1+$/.test(cpf)) return false;
-  
-  let soma = 0, resto;
-  for (let i = 1; i <= 9; i++) {
-    soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
-  }
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(9, 10))) return false;
-  
-  soma = 0;
-  for (let i = 1; i <= 10; i++) {
-    soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
-  }
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(10, 11))) return false;
-  
-  return true;
-}
-
-</script>
-
-<script>
-  document.getElementById("motivo_solicitacao").addEventListener("change", function() {
-    const campoOutros = document.getElementById("campo-outros");
-    if (this.value === "Outros") {
-      campoOutros.style.display = "block";
-      document.getElementById("motivo_outros").setAttribute("required", "required");
-    } else {
-      campoOutros.style.display = "none";
-      document.getElementById("motivo_outros").removeAttribute("required");
-    }
-  });
-
-  // Se o formulário for carregado com 'Outros' já selecionado (ex: edição), exibe o campo
-  document.addEventListener("DOMContentLoaded", function() {
-    const selectMotivo = document.getElementById("motivo_solicitacao");
-    if (selectMotivo.value === "Outros") {
-      document.getElementById("campo-outros").style.display = "block";
-      document.getElementById("motivo_outros").setAttribute("required", "required");
-    }
-  });
-</script>
-
+  </script>
 </body>
 </html>

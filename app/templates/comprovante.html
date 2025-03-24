@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Comprovante de autorização</title>
-  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* Opcional: estilos para ocultar o botão na impressão */
     @media print {
@@ -12,37 +13,43 @@
       }
     }
   </style>
-  
 </head>
-<body>
-  <h1>Comprovante de autorizacao #{{ pedido.id }}</h1>
-  <p><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</p>
+<body class="bg-light">
+  <div class="container my-4 p-4 bg-white rounded shadow-sm">
+    <h1 class="text-center mb-4">Comprovante de autorização #{{ pedido.id }}</h1>
+    
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Empresa:</strong> {{ pedido.empresa_responsavel }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">CNPJ:</strong> {{ pedido.cnpj_empresa }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Motivo da solicitação:</strong> {{ pedido.motivo_solicitacao }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Data de início:</strong> {{ pedido.data_inicio.strftime('%d/%m/%Y') }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Data de término:</strong> {{ pedido.data_termino.strftime('%d/%m/%Y') }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Horário de Início dos Serviços:</strong> {{ pedido.horario_inicio_servicos }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Horário de Término dos Serviços:</strong> {{ pedido.horario_termino_servicos }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Situação:</strong> {{ pedido.status }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Cidade:</strong> {{ pedido.cidade_servico }}</p>
+    <p><strong class="text-primary" style="width:200px; display:inline-block;">Agência marítima:</strong> {{ pedido.agencia_maritima }}</p>
+    
+    <h2 class="mt-4">QR Code para Verificação</h2>
+    <div class="text-center my-3">
+      <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid">
+    </div>
+    <p class="text-center">Ao escanear este QR Code, você será direcionado para a página de verificação do comprovante.</p>
+    
+    <div class="mt-4 text-center" style="font-size: 0.9em; color: #555;">
+      <p>
+        URL para verificação: <br>
+        <code>https://10.61.8.171/embarcacoes/verificar-comprovante/{{ pedido.token_comprovante }}</code>
+      </p>
+      <p>Você pode copiar e colar essa URL no seu navegador para testar a autenticidade do comprovante.</p>
+    </div>
+    
+    <!-- Botão de impressão -->
+    <div class="no-print text-center mt-4">
+      <button class="btn btn-primary" onclick="window.print()">Imprimir esta página</button>
+    </div>
+  </div>
 
-  <p><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</p>
-  <p><strong>Motivo da solicitação:</strong> {{ pedido.motivo_solicitacao }}</p>
-  <p><strong>Data de início:</strong> {{ pedido.data_inicio.strftime('%d/%m/%Y') }}</p>
-  <p><strong>Data de término:</strong> {{ pedido.data_termino.strftime('%d/%m/%Y') }}</p>
-  <p><strong>Horário de Início dos Serviços:</strong> {{ pedido.horario_inicio_servicos }}</p>
-  <p><strong>Horário de Término dos Serviços:</strong> {{ pedido.horario_termino_servicos }}</p>
-  <p><strong>Situação:</strong> {{ pedido.status }}</p>
-  <p><strong>Cidade:</strong> {{ pedido.cidade_servico }}</p>
-  <p><strong>Agência marítima:</strong> {{ pedido.agencia_maritima }}</p>
-
-  <h2>QR Code para Verificação</h2>
-  <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
-  <p>Ao escanear este QR Code, você será direcionado para a página de verificação do comprovante.</p>
-  
-<div style="margin-top: 20px; text-align: center; font-size: 0.9em; color: #555;">
-  <p>URL para verificação: <br>
-    <code>https://10.61.8.171/embarcacoes/verificar-comprovante/{{ pedido.token_comprovante }}</code>
-  </p>
-  <p>Você pode copiar e colar essa URL no seu navegador para testar a autenticidade do comprovante.</p>
-</div>
-
-  <!-- Botão de impressão -->
-<div class="no-print" style="text-align: center; margin-top: 20px;">
-  <button onclick="window.print()">Imprimir esta página</button>
-</div>
-  
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,564 +1,445 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-{% if current_user.role == "RFB" %}
-<title>Lista de Autorizações</title>
-{% else %}
-<title>Minhas Autorizações</title>
-{% endif %}
-	
-	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-	
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    h1 {
-        text-align: center;
-        color: #333;
-    }
-    .container {
-        width: 90%;
-        max-width: 1200px;
-        margin: auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    }
-.pedidos-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.pedido-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 1rem;
-    border-radius: 4px;
-    flex: 1 1 300px; /* permite que o card se expanda e encolha */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-.pedido-item {
-    margin-bottom: 0.5rem;
-}
-.pedido-item .label {
-    font-weight: bold;
-}
-.actions button {
-    margin-right: 0.5rem;
-}
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% if current_user.role == "RFB" %}
+    <title>Lista de Autorizações</title>
+  {% else %}
+    <title>Minhas Autorizações</title>
+  {% endif %}
+  
+  <!-- Importando o CSS do Bootstrap via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS customizado, se necessário -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
+  
+  <!-- Estilos customizados (para elementos específicos não cobertos pelo Bootstrap) -->
+  <style>
+    /* Manutenção de estilos específicos */
     .status {
-        font-weight: bold;
-        padding: 5px 10px;
-        border-radius: 5px;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
     }
-    .status-pendente {
-        background-color: orange;
-        color: white;
-    }
-    .status-aprovado {
-        background-color: green;
-        color: white;
-    }
-    .status-rejeitado {
-        background-color: red;
-        color: white;
-    }
-    .status-exigencia {
-        background-color: yellow;
-        color: black;
-    }
-    .actions button {
-        padding: 8px 12px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-right: 5px;
-        font-weight: bold;
-    }
-    .btn-aprovar {
-        background-color: green;
-        color: white;
-    }
-    .btn-rejeitar {
-        background-color: red;
-        color: white;
-    }
-    .btn-exigencia {
-        background-color: yellow;
-        color: black;
-    }	
+    .status-pendente { background-color: orange; color: white; }
+    .status-aprovado { background-color: green; color: white; }
+    .status-rejeitado { background-color: red; color: white; }
+    .status-exigencia { background-color: yellow; color: black; }
+    /* Botões de ação customizados (além das classes Bootstrap adicionadas) */
+    .btn-aprovar { background-color: green; color: white; }
+    .btn-rejeitar { background-color: red; color: white; }
+    .btn-exigencia { background-color: yellow; color: black; }
     .btn-detalhes {
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        display: inline-block;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      display: inline-block;
     }
-    .pagination {
-        margin-top: 20px;
-        text-align: center;
+    /* Estilização do container dos pedidos para complemento ao grid do Bootstrap */
+    .pedidos-container { }
+    
+    /* Ajustes para os modais customizados */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
     }
-    .pagination a {
-        margin: 0 5px;
-        padding: 8px 12px;
-        text-decoration: none;
-        background-color: #007bff;
-        color: white;
-        border-radius: 5px;
+    .modal .modal-dialog {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
-    .pagination a.disabled {
-        background-color: #ddd;
-        pointer-events: none;
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+      width: 100%;
+      max-width: 500px;
     }
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        margin-bottom: 20px;
+    .modal-content .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
     }
-    .btn-logout {
-        text-decoration: none;
-        background-color: red;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-    .btn-logout:hover {
-        background-color: darkred;
-    }
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 9999; /* Aumente para ficar na frente do header */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 50%;
-    position: relative;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    /* Se ainda ficar atrás, defina aqui também */
-    z-index: 10000;
-}
-
-/* Botão de fechar (X) no canto superior direito */
-.modal-content .close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-}
-
-/* Campo de observações (textarea) maior e com estilo */
-.modal-content textarea {
-    width: 100%;
-    height: 150px;
-    resize: vertical;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-    button {
-        margin: 10px;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover {
-        opacity: 0.8;
-    }
-    .form-row {
-        display: flex;
-        align-items: center;  /* Alinha verticalmente os itens */
-        gap: 5px; /* Espaçamento entre os elementos */
-    }
-    .form-row > div {
-        margin: 0;
-    }
-</style>
-
+  </style>
 </head>
-<body>
-
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
-
-<div class="navbar">
-  <span>Olá, {{ current_user.username }} </span><a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
-
-</div>
-</div>
-</header>
-
-<div class="container">
-
-<form method="GET" action="{{ url_for('pedidos.exibir_pedidos') }}">
-    {{ form.hidden_tag() }}
-    <div class="form-row">
-        {% if current_user.role == "RFB" %}
-            <div>
-                {{ form.nome_empresa.label }}<br>
-                {{ form.nome_empresa(size=32) }}
-            </div>
-            <div>
-                {{ form.cnpj_empresa.label }}<br>
-                {{ form.cnpj_empresa(size=32) }}
-            </div>
-        {% endif %}
+<body class="bg-light">
+  <!-- Cabeçalho -->
+  <header class="mb-4">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center py-3">
         <div>
-            {{ form.nome_embarcacao.label }}<br>
-            {{ form.nome_embarcacao(size=32) }}
+          <img src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px;">
         </div>
-        <div>
-            {{ form.status.label }}<br>
-            {{ form.status() }}
+        <div class="d-flex align-items-center">
+          <span class="me-3">Olá, {{ current_user.username }}</span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
         </div>
-	</div>
-	<div class="form-row">
-        <div>
-            {{ form.data_inicio.label }}<br>
-            {{ form.data_inicio() }}
-        </div>
-        <div>
-            {{ form.data_termino.label }}<br>
-            {{ form.data_termino() }}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
+      </div>
     </div>
-</form>
+  </header>
 
-{% if current_user.role == "comum" %}
-<h2><a href="formulario-pedido">Cadastrar novo pedido de autorização</a></h2><br><br>
-{% endif %}
+  <!-- Container principal -->
+  <div class="container my-4 p-4 bg-white rounded shadow-sm">
+    <!-- Formulário de filtros -->
+    <form method="GET" action="{{ url_for('pedidos.exibir_pedidos') }}">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-end">
+        {% if current_user.role == "RFB" %}
+          <div class="col-md-3">
+            <label class="form-label">{{ form.nome_empresa.label }}</label>
+            {{ form.nome_empresa(class="form-control", size=32) }}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">{{ form.cnpj_empresa.label }}</label>
+            {{ form.cnpj_empresa(class="form-control", size=32) }}
+          </div>
+        {% endif %}
+        <div class="col-md-3">
+          <label class="form-label">{{ form.nome_embarcacao.label }}</label>
+          {{ form.nome_embarcacao(class="form-control", size=32) }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ form.status.label }}</label>
+          {{ form.status(class="form-control") }}
+        </div>
+      </div>
+      <div class="row g-3 align-items-end mt-2">
+        <div class="col-md-4">
+          <label class="form-label">{{ form.data_inicio.label }}</label>
+          {{ form.data_inicio(class="form-control") }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.data_termino.label }}</label>
+          {{ form.data_termino(class="form-control") }}
+        </div>
+        <div class="col-md-4">
+          {{ form.submit(class="btn btn-primary w-100") }}
+        </div>
+      </div>
+    </form>
 
-{% if current_user.role == "RFB" %}
-<h1>Lista de Autorizações</h1>
-{% else %}
-<h1>Minhas Autorizações</h1>
-{% endif %}
+    <!-- Link para cadastro de novo pedido (para usuários comuns) -->
+    {% if current_user.role == "comum" %}
+      <div class="text-center my-4">
+        <a href="formulario-pedido" class="btn btn-secondary">Cadastrar novo pedido de autorização</a>
+      </div>
+    {% endif %}
 
-	<a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}">Exportar PDF</a> | 
-	<a href="{{ url_for('pedidos.exportar_excel', **request.args) }}">Exportar Excel</a> | 
-	<a href="{{ url_for('pedidos.exportar_csv', **request.args) }}">Exportar CSV</a><br><br>
+    <!-- Título da listagem -->
+    <h1 class="text-center my-4">
+      {% if current_user.role == "RFB" %}
+        Lista de Autorizações
+      {% else %}
+        Minhas Autorizações
+      {% endif %}
+    </h1>
 
-<!-- Container principal dos pedidos -->
-<div class="pedidos-container">
-    {% for pedido in pedidos.items %}
-    <!-- Card de cada pedido -->
-    <div class="pedido-card">
-        <div class="pedido-item">
-            <span class="label">Identificação do pedido:</span>
-            <span class="value">{{ pedido.id }}</span>
-        </div>
-        <div class="pedido-item">
-            <span class="label">Empresa:</span> <span class="value">{{ pedido.empresa_responsavel }}</span>
-        </div>
-        <div class="pedido-item">
-			<span class="label">CNPJ:</span> <span class="value">{{ pedido.cnpj_empresa }}</span>
-        </div>
+    <!-- Links de exportação -->
+    <div class="text-center mb-4">
+      <a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}" class="btn btn-outline-primary me-2">Exportar PDF</a>
+      <a href="{{ url_for('pedidos.exportar_excel', **request.args) }}" class="btn btn-outline-primary me-2">Exportar Excel</a>
+      <a href="{{ url_for('pedidos.exportar_csv', **request.args) }}" class="btn btn-outline-primary">Exportar CSV</a>
+    </div>
 
-        <div class="pedido-item">
-            <span class="label">Motivo:</span>
-            <span class="value">{{ pedido.motivo_solicitacao }}</span>
-        </div>
-        <div class="pedido-item">
-            <span class="label">Data de abertura da solicitação:</span>
-            <span class="value">{{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</span>
-        </div>
-        <div class="pedido-item">
-            <span class="label">Data de início do serviço:</span>
-            <span class="value">{{ pedido.data_inicio.strftime('%d/%m/%Y') }}</span>
-        </div>
-		<div class="pedido-item">
-			<span class="label">Data de término do serviço:</span>
-			<span class="value">
-				{{ pedido.data_termino.strftime('%d/%m/%Y') }}
-				{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
-					(prorrogado)
-				{% endif %}
-			</span>
-		</div>
-		<div class="pedido-item">
-			{% if current_user.role == "RFB" and pedido.prorrogacoes|selectattr('status_prorrogacao', 'equalto', 'pendente')|list|length > 0 %}
-				{% for prorrogacao in pedido.prorrogacoes %}
-					{% if prorrogacao.status_prorrogacao == 'pendente' %}
-						<div style="margin-bottom: 10px;">
-							<strong>PRORROGAÇÃO SOLICITADA</strong><br>
-							Novo prazo: {{ prorrogacao.data_termino_nova.strftime('%d/%m/%Y') }}<br>
-							Justificativa: {{ prorrogacao.justificativa }}<br>
-						</div>
-						<button class="btn-aprovar" onclick="aprovarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✔ Aprovar Prorrogação</button>
-						<button class="btn-rejeitar" onclick="rejeitarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✖ Rejeitar Prorrogação</button>
-					{% endif %}
-				{% endfor %}
-			{% endif %}
-			
-			{% if pedido.status == "aprovado" and current_user.role == "comum" and (pedido.data_termino - hoje).days < 3 %}
-				{% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'pendente') | list | length > 0 %}
-					<!-- Se já existir uma prorrogação pendente, exibe a mensagem -->
-					<br><span>Prorrogação solicitada</span>
-				{% else %}
-					<!-- Caso contrário, exibe o link para solicitar -->
-					<a href="#" onclick="abrirModalProrrogacao({{ pedido.id }}, '{{ pedido.data_termino.strftime('%Y-%m-%d') }}'); return false;">Solicitar prorrogação</a>
-				{% endif %}
-			{% endif %}
-		</div>
-		<br>
-        <div class="pedido-item">
-            <span class="label">Certificado de Livre Prática:</span>
-            <span class="value">{{ pedido.certificado_livre_pratica }}</span>
-        </div>		
-		
-        <div class="pedido-item">
-            <span class="label">Situação:</span>
-            <span class="value">
-                {% if pedido.status == "pendente" %}
-                    <span>Pendente de análise pela RFB ⏳ </span>
-                {% elif pedido.status == "aprovado" %}
-                    <span>Aprovado ✅ {% if current_user.role == "comum" %}<a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>{% endif %}</span>
-                {% elif pedido.status == "rejeitado" %}
-                    <span>Rejeitado ❌</span>
-                {% elif pedido.status == "rejeitado_agencia" %}
-                    <span>Rejeitado pela agência❌</span>
-					
-                {% elif pedido.status == "aguardando_agencia" %}
-                    <span>Aguardando agência ⏳ </span>
-					
-			            {% if current_user.role == "comum" %}
-                            <a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
-                        {% endif %}
-				
-				{% elif pedido.status == "exigência" %}
-                    <span>Com exigência ⚠ <a href="{{ url_for('pedidos.detalhes_exigencia', exigencia_id=pedido.exigencias[0].id) }}">🔍 Ver detalhes da Exigência</a></span>
+    <!-- Listagem dos pedidos em formato de cards -->
+    <div class="row g-3">
+      {% for pedido in pedidos.items %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="mb-1"><strong>Identificação do pedido:</strong> {{ pedido.id }}</p>
+              <p class="mb-1"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</p>
+              <p class="mb-1"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</p>
+              <p class="mb-1"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</p>
+              <p class="mb-1"><strong>Data de abertura:</strong> {{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</p>
+              <p class="mb-1"><strong>Início do serviço:</strong> {{ pedido.data_inicio.strftime('%d/%m/%Y') }}</p>
+              <p class="mb-1">
+                <strong>Término do serviço:</strong> 
+                {{ pedido.data_termino.strftime('%d/%m/%Y') }}
+                {% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'aprovada') | list | length > 0 %}
+                  (prorrogado)
                 {% endif %}
-            </span>
+              </p>
+              
+              <!-- Seção de prorrogações / exigências -->
+              <div class="mb-2">
+                {% if current_user.role == "RFB" and pedido.prorrogacoes|selectattr('status_prorrogacao', 'equalto', 'pendente')|list|length > 0 %}
+                  {% for prorrogacao in pedido.prorrogacoes %}
+                    {% if prorrogacao.status_prorrogacao == 'pendente' %}
+                      <div class="mb-2">
+                        <strong>PRORROGAÇÃO SOLICITADA</strong><br>
+                        Novo prazo: {{ prorrogacao.data_termino_nova.strftime('%d/%m/%Y') }}<br>
+                        Justificativa: {{ prorrogacao.justificativa }}<br>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-aprovar me-1" onclick="aprovarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✔ Aprovar Prorrogação</button>
+                      <button type="button" class="btn btn-sm btn-rejeitar" onclick="rejeitarProrrogacao({{ pedido.id }}, {{ prorrogacao.id }})">✖ Rejeitar Prorrogação</button>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                
+                {% if pedido.status == "aprovado" and current_user.role == "comum" and (pedido.data_termino - hoje).days < 3 %}
+                  {% if pedido.prorrogacoes | selectattr('status_prorrogacao', 'equalto', 'pendente') | list | length > 0 %}
+                    <br><span>Prorrogação solicitada</span>
+                  {% else %}
+                    <a href="#" onclick="abrirModalProrrogacao({{ pedido.id }}, '{{ pedido.data_termino.strftime('%Y-%m-%d') }}'); return false;">Solicitar prorrogação</a>
+                  {% endif %}
+                {% endif %}
+              </div>
+              
+              <p class="mb-1"><strong>Certificado de Livre Prática:</strong> {{ pedido.certificado_livre_pratica }}</p>
+              
+              <p class="mb-1">
+                <strong>Situação:</strong> 
+                {% if pedido.status == "pendente" %}
+                  Pendente de análise pela RFB ⏳
+                {% elif pedido.status == "aprovado" %}
+                  Aprovado ✅ 
+                  {% if current_user.role == "comum" %}
+                    <a href="{{ url_for('pedidos.gerar_comprovante', pedido_id=pedido.id) }}" target="_blank">Ver Comprovante</a>
+                  {% endif %}
+                {% elif pedido.status == "rejeitado" %}
+                  Rejeitado ❌
+                {% elif pedido.status == "rejeitado_agencia" %}
+                  Rejeitado pela agência❌
+                {% elif pedido.status == "aguardando_agencia" %}
+                  Aguardando agência ⏳ 
+                  {% if current_user.role == "comum" %}
+                    <a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.id) }}">(editar pedido)</a>
+                  {% endif %}
+                {% elif pedido.status == "exigência" %}
+                  Com exigência ⚠ 
+                  <a href="{{ url_for('pedidos.detalhes_exigencia', exigencia_id=pedido.exigencias[0].id) }}">🔍 Ver detalhes da Exigência</a>
+                {% endif %}
+              </p>
+              
+              {% if current_user.role == "RFB" %}
+                <div class="mt-2">
+                  {% if pedido.status == "pendente" %}
+                    <button type="button" class="btn btn-sm btn-aprovar me-1" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
+                    <button type="button" class="btn btn-sm btn-rejeitar me-1" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
+                    <button type="button" class="btn btn-sm btn-exigencia" onclick="abrirModalExigencia({{ pedido.id }})">⚠ Fazer exigência</button>
+                  {% endif %}
+                </div>
+              {% endif %}
+              
+              <div class="mt-3">
+                <a href="pedido/{{ pedido.id }}" class="btn btn-primary btn-detalhes">🔍 Ver mais detalhes</a>
+              </div>
+            </div>
+          </div>
         </div>
-        {% if current_user.role == "RFB" %}
-        <div class="pedido-item actions">
-            {% if pedido.status == "pendente" %}
-                <button class="btn-aprovar" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
-                <button class="btn-rejeitar" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
-				<button class="btn-exigencia" onclick="abrirModalExigencia({{ pedido.id }})">⚠ Fazer exigência</button>
-            {% endif %}
-        </div>
-        {% endif %}
-        <div class="pedido-item">
-            <a class="btn-detalhes" href="pedido/{{ pedido.id }}">🔍 Ver mais detalhes</a>
-        </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-<!-- Modal Exigência -->
-<div id="modal-exigencia" class="modal">
-    <div class="modal-content">
+    <!-- Paginação (convertida para estrutura Bootstrap) -->
+    <nav aria-label="Page navigation" class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if pedidos.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">⏪ Anterior</span>
+          </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">Página {{ pedidos.page }} de {{ pedidos.pages }}</span>
+        </li>
+        {% if pedidos.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Próxima ⏩</span>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+
+    {% if current_user.role == "RFB" %}
+      <div class="mt-4">
+        <a href="{{ url_for('pedidos.admin_dashboard') }}" class="btn btn-link">⬅ Voltar para o painel de administração</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Modal Exigência -->
+  <div id="modal-exigencia" class="modal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
         <span class="close" onclick="fecharModalExigencia()">&times;</span>
         <h2>Fazer Exigência</h2>
         <form id="form-exigencia">
-            <input type="hidden" id="pedido_id" name="pedido_id">
-            <div>
-                <label for="motivo_exigencia">Motivo da Exigência:</label>
-                <textarea id="motivo_exigencia" name="motivo_exigencia" required></textarea>
-            </div>
-            <div>
-                <label for="prazo_exigencia">Prazo da Exigência:</label>
-                <input type="date" id="prazo_exigencia" name="prazo_exigencia" required>
-            </div>
-            <button type="submit">Enviar Exigência</button>
+          <input type="hidden" id="pedido_id" name="pedido_id">
+          <div class="mb-3">
+            <label for="motivo_exigencia" class="form-label">Motivo da Exigência:</label>
+            <textarea id="motivo_exigencia" name="motivo_exigencia" class="form-control" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="prazo_exigencia" class="form-label">Prazo da Exigência:</label>
+            <input type="date" id="prazo_exigencia" name="prazo_exigencia" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar Exigência</button>
         </form>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Modal de Prorrogação -->
-<div id="modal-prorrogacao" class="modal">
-    <div class="modal-content">
+  <!-- Modal de Prorrogação -->
+  <div id="modal-prorrogacao" class="modal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
         <span class="close" onclick="fecharModalProrrogacao()">&times;</span>
         <h2>Solicitar Prorrogação</h2>
         <form id="form-prorrogacao">
-            <!-- Campo oculto para guardar o ID do pedido -->
-            <input type="hidden" id="pedido_id_prorrogacao" name="pedido_id">
-            <div>
-                <label for="data_termino_nova">Novo Prazo (até 5 dias a partir de hoje):</label>
-                <input type="date" id="data_termino_nova" name="data_termino_nova" required>
-            </div>
-            <div>
-                <label for="justificativa">Justificativa:</label>
-                <textarea id="justificativa" name="justificativa" required></textarea>
-            </div>
-            <button type="submit">Solicitar prorrogação</button>
+          <input type="hidden" id="pedido_id_prorrogacao" name="pedido_id">
+          <div class="mb-3">
+            <label for="data_termino_nova" class="form-label">Novo Prazo (até 5 dias a partir de hoje):</label>
+            <input type="date" id="data_termino_nova" name="data_termino_nova" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="justificativa" class="form-label">Justificativa:</label>
+            <textarea id="justificativa" name="justificativa" class="form-control" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Solicitar prorrogação</button>
         </form>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="pagination">
-    {% if pedidos.pages > 0 %}
-        {% if pedidos.has_prev %}
-            <a href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
-        {% else %}
-            <a class="disabled">⏪ Anterior</a>
-        {% endif %}
-
-        Página {{ pedidos.page }} de {{ pedidos.pages }}
-
-        {% if pedidos.has_next %}
-            <a href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
-        {% else %}
-            <a class="disabled">Próxima ⏩</a>
-        {% endif %}
-    {% else %}
-        <p>Nenhum pedido cadastrado.</p>
-    {% endif %}
-</div>
-
-        {% if current_user.role == "RFB" %}
-			<div><a href="{{ url_for('pedidos.admin_dashboard') }}">⬅ Voltar para o painel de administração</a></div>
-		{% endif %}	
-	
-</div>
-
-<!-- Modal de Expiração de Sessão -->
-<div id="session-modal" class="modal">
-    <div class="modal-content">
+  <!-- Modal de Expiração de Sessão -->
+  <div id="session-modal" class="modal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
         <h2>Aviso de Sessão</h2>
         <p>Sua sessão está prestes a expirar. Deseja continuar logado?</p>
-        <button onclick="continuarSessao()">Continuar Logado</button>
-        <button onclick="sairSessao()">Sair</button>
+        <div class="d-grid gap-2">
+          <button onclick="continuarSessao()" class="btn btn-primary">Continuar Logado</button>
+          <button onclick="sairSessao()" class="btn btn-danger">Sair</button>
+        </div>
+      </div>
     </div>
-</div>
-</body>
+  </div>
 
-<script>
-function aprovarPedido(pedidoId) {
-    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
+  <!-- Importando o JS do Bootstrap via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Scripts existentes -->
+  <script>
+    function aprovarPedido(pedidoId) {
+      const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
-    fetch(`api/pedidos-autorizacao/${pedidoId}/aprovar`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("Erro: " + data.error);
-        } else {
-            alert("Pedido aprovado com sucesso!");
-            location.reload(); // 🔹 Atualiza a página automaticamente
-        }
-    })
-    .catch(error => console.error("Erro:", error));
-}
+      fetch(`api/pedidos-autorizacao/${pedidoId}/aprovar`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Pedido aprovado com sucesso!");
+              location.reload(); // 🔹 Atualiza a página automaticamente
+          }
+      })
+      .catch(error => console.error("Erro:", error));
+    }
 
-function rejeitarPedido(pedidoId) {
-    const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
+    function rejeitarPedido(pedidoId) {
+      const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
-    fetch(`api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("Erro: " + data.error);
-        } else {
-            alert("Pedido rejeitado com sucesso!");
-            location.reload(); // 🔹 Atualiza a página automaticamente
-        }
-    })
-    .catch(error => console.error("Erro:", error));
-}
+      fetch(`api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Pedido rejeitado com sucesso!");
+              location.reload(); // 🔹 Atualiza a página automaticamente
+          }
+      })
+      .catch(error => console.error("Erro:", error));
+    }
 
-function aprovarProrrogacao(pedidoId, prorrogacaoId) {
-    const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
+    function aprovarProrrogacao(pedidoId, prorrogacaoId) {
+      const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
-    fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("Erro: " + data.error);
-        } else {
-            alert("Prorrogação aprovada com sucesso!");
-            location.reload(); // Atualiza a página para refletir as alterações
-        }
-    })
-    .catch(error => {
-        console.error("Erro ao aprovar prorrogação:", error);
-        alert("Erro ao aprovar prorrogação.");
-    });
-}
+      fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Prorrogação aprovada com sucesso!");
+              location.reload(); // Atualiza a página para refletir as alterações
+          }
+      })
+      .catch(error => {
+          console.error("Erro ao aprovar prorrogação:", error);
+          alert("Erro ao aprovar prorrogação.");
+      });
+    }
 
-function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
-    const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
+    function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
+      const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
-    fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("Erro: " + data.error);
-        } else {
-            alert("Prorrogação rejeitada com sucesso!");
-            location.reload(); // Atualiza a página para refletir as alterações
-        }
-    })
-    .catch(error => {
-        console.error("Erro ao rejeitar prorrogação:", error);
-        alert("Erro ao rejeitar prorrogação.");
-    });
-}
+      fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": authKey
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              alert("Erro: " + data.error);
+          } else {
+              alert("Prorrogação rejeitada com sucesso!");
+              location.reload(); // Atualiza a página para refletir as alterações
+          }
+      })
+      .catch(error => {
+          console.error("Erro ao rejeitar prorrogação:", error);
+          alert("Erro ao rejeitar prorrogação.");
+      });
+    }
+  </script>
 
-</script>
-
-<script>
+  <script>
     let tempoExpiracao = 30 * 60 * 1000; // 30 minutos em milissegundos
     let avisoExpiracao = 28 * 60 * 1000; // Exibir modal 2 minutos antes da expiração
 
@@ -566,147 +447,142 @@ function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
     let sessionTimeout;
 
     function iniciarMonitoramentoSessao() {
-        // Exibe o modal de aviso 2 minutos antes da expiração
-        setTimeout(() => {
-            modal.style.display = "flex";
-        }, avisoExpiracao);
+      // Exibe o modal de aviso 2 minutos antes da expiração
+      setTimeout(() => {
+          modal.style.display = "flex";
+      }, avisoExpiracao);
 
-        // Expira a sessão após 30 minutos se o usuário não interagir
-        sessionTimeout = setTimeout(() => {
-            window.location.href = "auth/logout";
-        }, tempoExpiracao);
+      // Expira a sessão após 30 minutos se o usuário não interagir
+      sessionTimeout = setTimeout(() => {
+          window.location.href = "auth/logout";
+      }, tempoExpiracao);
     }
 
     function continuarSessao() {
-        modal.style.display = "none"; // Oculta o modal
-        clearTimeout(sessionTimeout); // Cancela o logout automático
+      modal.style.display = "none"; // Oculta o modal
+      clearTimeout(sessionTimeout); // Cancela o logout automático
 
-        // Simula uma requisição ao servidor para renovar a sessão
-        fetch("auth/renovar-sessao", { method: "GET" })
-            .then(response => console.log("Sessão renovada"))
-            .catch(error => console.error("Erro ao renovar sessão", error));
+      // Simula uma requisição ao servidor para renovar a sessão
+      fetch("auth/renovar-sessao", { method: "GET" })
+          .then(response => console.log("Sessão renovada"))
+          .catch(error => console.error("Erro ao renovar sessão", error));
 
-        iniciarMonitoramentoSessao(); // Reinicia o monitoramento
+      iniciarMonitoramentoSessao(); // Reinicia o monitoramento
     }
 
     function sairSessao() {
-        window.location.href = "auth/logout"; // Redireciona para logout
+      window.location.href = "auth/logout"; // Redireciona para logout
     }
 
     // Inicia o monitoramento quando a página carregar
     document.addEventListener("DOMContentLoaded", iniciarMonitoramentoSessao);
-</script>
+  </script>
 
-<script>
-function abrirModalExigencia(pedidoId) {
-    document.getElementById('pedido_id').value = pedidoId;
-    document.getElementById('modal-exigencia').style.display = 'block';
-}
-
-function fecharModalExigencia() {
-    document.getElementById('modal-exigencia').style.display = 'none';
-}
-
-// Envio via fetch (AJAX)
-document.getElementById('form-exigencia').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var pedidoId = document.getElementById('pedido_id').value;
-    var motivoExigencia = document.getElementById('motivo_exigencia').value;
-    var prazoExigencia = document.getElementById('prazo_exigencia').value;
-    
-    fetch(`api/pedidos-autorizacao/${pedidoId}/exigir`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            motivo_exigencia: motivoExigencia,
-            prazo_exigencia: prazoExigencia
-        })
-    })
-    .then(response => {
-        if (response.ok) {
-            location.reload();
-        } else {
-            response.json().then(data => alert(data.error || "Erro ao enviar exigência."));
-        }
-    });
-});
-
-</script>
-
-<script>
-// Função para abrir o modal de prorrogação
-function abrirModalProrrogacao(pedidoId, dataTerminoAtual) {
-    // Define o ID do pedido no campo oculto
-    document.getElementById('pedido_id_prorrogacao').value = pedidoId;
-    
-    // Define o atributo 'max' do input de data para (hoje + 5 dias)
-    let today = new Date();
-    let maxDate = new Date();
-    maxDate.setDate(today.getDate() + 5);
-    // Formata a data no padrão 'YYYY-MM-DD'
-    let dd = String(maxDate.getDate()).padStart(2, '0');
-    let mm = String(maxDate.getMonth() + 1).padStart(2, '0');
-    let yyyy = maxDate.getFullYear();
-    let maxDateStr = yyyy + '-' + mm + '-' + dd;
-    document.getElementById('data_termino_nova').max = maxDateStr;
-    
-    // Exibe o modal (usando flex para centralizar, conforme seu CSS)
-    document.getElementById('modal-prorrogacao').style.display = 'flex';
-}
-
-// Função para fechar o modal de prorrogação
-function fecharModalProrrogacao() {
-    document.getElementById('modal-prorrogacao').style.display = 'none';
-}
-
-// Envia o formulário de prorrogação via AJAX
-document.getElementById('form-prorrogacao').addEventListener('submit', function(e) {
-    e.preventDefault();
-    let pedidoId = document.getElementById('pedido_id_prorrogacao').value;
-    let novaData = document.getElementById('data_termino_nova').value;
-    let justificativa = document.getElementById('justificativa').value;
-    
-    // Validação extra: verifica se a nova data não ultrapassa 5 dias a partir de hoje
-    let today = new Date();
-    let maxAllowed = new Date();
-    maxAllowed.setDate(today.getDate() + 5);
-    let novaDataObj = new Date(novaData);
-    if (novaDataObj > maxAllowed) {
-        alert("A nova data não pode ser maior do que 5 dias a partir de hoje.");
-        return;
+  <script>
+    function abrirModalExigencia(pedidoId) {
+      document.getElementById('pedido_id').value = pedidoId;
+      document.getElementById('modal-exigencia').style.display = 'block';
     }
-    
-    // Constrói os dados para o envio no formato x-www-form-urlencoded
-    let params = `data_termino_nova=${encodeURIComponent(novaData)}&justificativa=${encodeURIComponent(justificativa)}`;
-    
-    // Envia os dados via fetch para a rota de prorrogação
-    fetch(`pedido/${pedidoId}/prorrogar`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params
-    })
-    .then(response => {
-        if (response.redirected) {
-            // Caso a rota redirecione, navega para a nova URL
-            window.location.href = response.url;
-        } else {
-            return response.text();
-        }
-    })
-    .then(data => {
-        alert("Pedido de prorrogação enviado com sucesso!");
-        window.location.reload();
-    })
-    .catch(error => {
-        console.error("Erro ao solicitar prorrogação:", error);
-        alert("Erro ao solicitar prorrogação.");
+
+    function fecharModalExigencia() {
+      document.getElementById('modal-exigencia').style.display = 'none';
+    }
+
+    // Envio via fetch (AJAX)
+    document.getElementById('form-exigencia').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var pedidoId = document.getElementById('pedido_id').value;
+      var motivoExigencia = document.getElementById('motivo_exigencia').value;
+      var prazoExigencia = document.getElementById('prazo_exigencia').value;
+      
+      fetch(`api/pedidos-autorizacao/${pedidoId}/exigir`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              motivo_exigencia: motivoExigencia,
+              prazo_exigencia: prazoExigencia
+          })
+      })
+      .then(response => {
+          if (response.ok) {
+              location.reload();
+          } else {
+              response.json().then(data => alert(data.error || "Erro ao enviar exigência."));
+          }
+      });
     });
-});
+  </script>
 
-</script>
+  <script>
+    // Função para abrir o modal de prorrogação
+    function abrirModalProrrogacao(pedidoId, dataTerminoAtual) {
+      // Define o ID do pedido no campo oculto
+      document.getElementById('pedido_id_prorrogacao').value = pedidoId;
+      
+      // Define o atributo 'max' do input de data para (hoje + 5 dias)
+      let today = new Date();
+      let maxDate = new Date();
+      maxDate.setDate(today.getDate() + 5);
+      let dd = String(maxDate.getDate()).padStart(2, '0');
+      let mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+      let yyyy = maxDate.getFullYear();
+      let maxDateStr = yyyy + '-' + mm + '-' + dd;
+      document.getElementById('data_termino_nova').max = maxDateStr;
+      
+      // Exibe o modal
+      document.getElementById('modal-prorrogacao').style.display = 'flex';
+    }
 
+    // Função para fechar o modal de prorrogação
+    function fecharModalProrrogacao() {
+      document.getElementById('modal-prorrogacao').style.display = 'none';
+    }
+
+    // Envia o formulário de prorrogação via AJAX
+    document.getElementById('form-prorrogacao').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let pedidoId = document.getElementById('pedido_id_prorrogacao').value;
+      let novaData = document.getElementById('data_termino_nova').value;
+      let justificativa = document.getElementById('justificativa').value;
+      
+      // Validação extra: verifica se a nova data não ultrapassa 5 dias a partir de hoje
+      let today = new Date();
+      let maxAllowed = new Date();
+      maxAllowed.setDate(today.getDate() + 5);
+      let novaDataObj = new Date(novaData);
+      if (novaDataObj > maxAllowed) {
+          alert("A nova data não pode ser maior do que 5 dias a partir de hoje.");
+          return;
+      }
+      
+      // Constrói os dados para o envio no formato x-www-form-urlencoded
+      let params = `data_termino_nova=${encodeURIComponent(novaData)}&justificativa=${encodeURIComponent(justificativa)}`;
+      
+      fetch(`pedido/${pedidoId}/prorrogar`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: params
+      })
+      .then(response => {
+          if (response.redirected) {
+              window.location.href = response.url;
+          } else {
+              return response.text();
+          }
+      })
+      .then(data => {
+          alert("Pedido de prorrogação enviado com sucesso!");
+          window.location.reload();
+      })
+      .catch(error => {
+          console.error("Erro ao solicitar prorrogação:", error);
+          alert("Erro ao solicitar prorrogação.");
+      });
+    });
+  </script>
+</body>
 </html>

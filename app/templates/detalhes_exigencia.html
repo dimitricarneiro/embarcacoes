@@ -1,34 +1,39 @@
-<!-- templates/detalhes_exigencia.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Detalhes da Exigência</title>
-    <!-- Link para o CSS, se houver -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Detalhes da Exigência</title>
+  <!-- Importando o CSS do Bootstrap via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS customizado, se necessário -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
-    <div class="container">
-        <h1>Detalhes da Exigência</h1>
+<body class="bg-light">
+  <div class="container my-4 p-4 bg-white rounded shadow-sm">
+    <h1 class="text-center mb-4">Detalhes da Exigência</h1>
 
-        <!-- Card com os detalhes da exigência -->
-        <div class="exigencia-card">
-            <!-- Exibe as observações (motivo da exigência) -->
-            <div class="exigencia-item">
-                <span class="label">Observações:</span>
-                <span class="value">{{ exigencia.motivo_exigencia }}</span>
-            </div>
-            <!-- Exibe o prazo definido para a exigência -->
-            <div class="exigencia-item">
-                <span class="label">Prazo:</span>
-                <span class="value">{{ exigencia.prazo_exigencia.strftime('%d/%m/%Y') }}</span>
-            </div>
+    <!-- Card com os detalhes da exigência -->
+    <div class="card">
+      <div class="card-body">
+        <div class="mb-3">
+          <strong class="text-primary">Observações:</strong>
+          <p class="mb-0">{{ exigencia.motivo_exigencia }}</p>
         </div>
-
-        <!-- Botão para voltar para a lista de pedidos -->
-        <div class="acoes">
-            <a href="{{ url_for('pedidos.exibir_pedidos') }}" class="btn-voltar">Voltar para a lista de pedidos</a>
+        <div class="mb-3">
+          <strong class="text-primary">Prazo:</strong>
+          <p class="mb-0">{{ exigencia.prazo_exigencia.strftime('%d/%m/%Y') }}</p>
         </div>
+      </div>
     </div>
+
+    <!-- Botão para voltar para a lista de pedidos -->
+    <div class="text-center mt-4">
+      <a href="{{ url_for('pedidos.exibir_pedidos') }}" class="btn btn-primary">Voltar para a lista de pedidos</a>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

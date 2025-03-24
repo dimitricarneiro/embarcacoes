@@ -1,88 +1,82 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Gerenciar Alertas</title>
-	
-	<link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
-	
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        form { margin-bottom: 20px; }
-        input, select { padding: 5px; margin: 5px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-		.navbar { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; margin-bottom: 20px; }
-		.btn-logout { text-decoration: none; background-color: red; color: white; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
-		.btn-logout:hover { background-color: darkred; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Gerenciar Alertas</title>
+  <!-- Importando o CSS do Bootstrap via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS customizado, se necessário -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
 </head>
 <body>
-
-<header class="br-header mb-4" id="header" data-sticky="data-sticky">
-<div class="container-lg">
-<div class="header-top">
-<div class="header-logo">
-<img class="img-logo" src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width: 200px; height: auto;">
-</div>
-
-<div class="navbar">
-  <span>Olá, {{ current_user.username }}</span>
-  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Sair</a>
-</div>
-
-</div>
-</div>
-</header>
-
-    <h1>Gerenciar Alertas</h1>
-
-<h2>Criar Novo Alerta</h2>
-<form method="POST" action="{{ url_for('pedidos.gerenciar_alertas') }}">
-    {{ form.hidden_tag() }}
-    <div>
-        <label>{{ form.tipo.label }}</label>
-        {{ form.tipo() }}
+  <!-- Cabeçalho -->
+  <header>
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <img src="https://receitafederal.github.io/formularios/src/html/remessas_internacionais/componentes/cabecalho/img/receita-federal-logo.png" alt="logo" style="width:200px;">
+        </div>
+        <div>
+          <span class="me-3">Olá, {{ current_user.username }}</span>
+          <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Sair</a>
+        </div>
+      </div>
     </div>
-    <br>
-    <div>
-        <label>{{ form.valor.label }}</label>
-        {{ form.valor() }}
-    </div>
-    <br>
-    <div>
-        {{ form.submit() }}
-    </div>
-</form>
+  </header>
 
-    <h2>Alertas Cadastrados</h2>
+  <!-- Conteúdo principal -->
+  <div class="container my-4">
+    <h1 class="mb-4">Gerenciar Alertas</h1>
+    
+    <!-- Formulário para criar novo alerta -->
+    <h2 class="mb-3">Criar Novo Alerta</h2>
+    <form method="POST" action="{{ url_for('pedidos.gerenciar_alertas') }}">
+      {{ form.hidden_tag() }}
+      <div class="mb-3">
+        <label class="form-label">{{ form.tipo.label }}</label>
+        {{ form.tipo(class="form-control") }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{{ form.valor.label }}</label>
+        {{ form.valor(class="form-control") }}
+      </div>
+      <div>
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+
+    <!-- Listagem dos alertas cadastrados -->
+    <h2 class="mb-3">Alertas Cadastrados</h2>
     {% if alertas %}
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Valor</th>
-                <th>Ativo</th>
-                <th>Data de Criação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for alerta in alertas %}
-            <tr>
-                <td>{{ alerta.id }}</td>
-                <td>{{ alerta.tipo }}</td>
-                <td>{{ alerta.valor }}</td>
-                <td>{{ 'Sim' if alerta.ativo else 'Não' }}</td>
-                <td>{{ (alerta.data_criacao | localize).strftime("%d-%m-%Y %H:%M") }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+      <div class="list-group">
+        {% for alerta in alertas %}
+          <div class="list-group-item">
+            <div class="row">
+              <div class="col-md-2"><strong>ID:</strong> {{ alerta.id }}</div>
+              <div class="col-md-2"><strong>Tipo:</strong> {{ alerta.tipo }}</div>
+              <div class="col-md-2"><strong>Valor:</strong> {{ alerta.valor }}</div>
+              <div class="col-md-3"><strong>Ativo:</strong> {{ 'Sim' if alerta.ativo else 'Não' }}</div>
+              <div class="col-md-3">
+                <strong>Data de Criação:</strong> 
+                {{ (alerta.data_criacao | localize).strftime("%d-%m-%Y %H:%M") }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
     {% else %}
-    <p>Nenhum alerta cadastrado.</p>
+      <p>Nenhum alerta cadastrado.</p>
     {% endif %}
 
-    <a href="{{ url_for('pedidos.admin_dashboard') }}">Voltar ao Painel Administrativo</a>
+    <!-- Link para retornar ao Painel Administrativo -->
+    <div class="mt-4">
+      <a href="{{ url_for('pedidos.admin_dashboard') }}" class="btn btn-link">Voltar ao Painel Administrativo</a>
+    </div>
+  </div>
+
+  <!-- Importando o JS do Bootstrap via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
