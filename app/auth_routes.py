@@ -47,6 +47,9 @@ def renovar_sessao():
     session.permanent = True  # Estende o tempo da sessão
     return jsonify({"message": "Sessão renovada"}), 200
 
+from flask import session, current_app, request, redirect, url_for
+from flask_login import logout_user, login_required
+
 @auth_bp.route("/logout")
 @login_required
 def logout():
@@ -55,6 +58,7 @@ def logout():
     username = current_user.username
 
     logout_user()
+    session.clear()  # Limpa a sessão, removendo mensagens flash e outros dados
 
     # Registra o evento de logout com informações do usuário e IP
     current_app.logger.info(
@@ -62,3 +66,4 @@ def logout():
     )
 
     return redirect(url_for("auth.login"))
+
