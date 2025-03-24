@@ -1,5 +1,6 @@
 # Importações do Flask
 from flask import Blueprint, request, jsonify, render_template, Response, send_file, redirect, url_for, make_response, flash
+from flask import current_app as app
 from app import limiter
 
 # Flask-Login (Autenticação)
@@ -972,57 +973,62 @@ def exigir_pedido(pedido_id):
       - prazo_exigencia: prazo (no formato AAAA-MM-DD) para o cumprimento da exigência.
     O status do pedido é atualizado para "exigência".
     """
-    # Verifica se o usuário tem permissão
-    if current_user.role != "RFB":
-        return jsonify({"error": "Acesso não autorizado"}), 403
-
-    # Busca o pedido no banco
-    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
-
-    # Verifica se o pedido está no status pendente
-    if pedido.status != "pendente":
-        return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
-
-    # Obtém os dados enviados no corpo da requisição (JSON)
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Dados inválidos"}), 400
-
-    motivo_exigencia = data.get('motivo_exigencia')
-    prazo_exigencia = data.get('prazo_exigencia')
-
-    # Valida se os campos obrigatórios foram informados
-    if not motivo_exigencia or not prazo_exigencia:
-        return jsonify({"error": "Os campos 'motivo_exigencia' e 'prazo_exigencia' são obrigatórios."}), 400
-
-    # Converte o prazo para o formato de data (AAAA-MM-DD)
     try:
-        prazo_exigencia_date = datetime.strptime(prazo_exigencia, '%Y-%m-%d').date()
-    except ValueError:
-        return jsonify({"error": "Formato de prazo_exigencia inválido. Utilize AAAA-MM-DD."}), 400
+        # Verifica se o usuário tem permissão
+        if current_user.role != "RFB":
+            return jsonify({"error": "Acesso não autorizado"}), 403
 
-    # Verifica se o prazo_exigencia não é anterior à data atual
-    if prazo_exigencia_date < date.today():
-        return jsonify({"error": "O prazo não pode ser anterior a hoje."}), 400
+        # Busca o pedido no banco
+        pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
-    # Cria o registro da exigência, salvando também o id do usuário que fez a exigência
-    exigencia = Exigencia(
-        pedido_id=pedido.id,
-        motivo_exigencia=motivo_exigencia,
-        prazo_exigencia=prazo_exigencia_date,
-        usuario_id=current_user.id  # Salva o id do usuário que fez a exigência
-    )
-    db.session.add(exigencia)
+        # Verifica se o pedido está no status pendente
+        if pedido.status != "pendente":
+            return jsonify({"error": f"Este pedido já foi {pedido.status}."}), 400
 
-    # Atualiza o status do pedido para "exigência"
-    pedido.status = "exigência"
-    db.session.commit()
+        # Obtém os dados enviados no corpo da requisição (JSON)
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Dados inválidos"}), 400
 
-    return jsonify({
-        "message": "Exigência registrada com sucesso!",
-        "id_autorizacao": pedido.id,
-        "status": pedido.status
-    }), 200
+        motivo_exigencia = data.get('motivo_exigencia')
+        prazo_exigencia = data.get('prazo_exigencia')
+
+        # Valida se os campos obrigatórios foram informados
+        if not motivo_exigencia or not prazo_exigencia:
+            return jsonify({"error": "Os campos 'motivo_exigencia' e 'prazo_exigencia' são obrigatórios."}), 400
+
+        # Converte o prazo para o formato de data (AAAA-MM-DD)
+        try:
+            prazo_exigencia_date = datetime.strptime(prazo_exigencia, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({"error": "Formato de prazo_exigencia inválido. Utilize AAAA-MM-DD."}), 400
+
+        # Verifica se o prazo_exigencia não é anterior à data atual
+        if prazo_exigencia_date < date.today():
+            return jsonify({"error": "O prazo não pode ser anterior a hoje."}), 400
+
+        # Cria o registro da exigência, salvando também o id do usuário que fez a exigência
+        exigencia = Exigencia(
+            pedido_id=pedido.id,
+            motivo_exigencia=motivo_exigencia,
+            prazo_exigencia=prazo_exigencia_date,
+            usuario_id=current_user.id  # Salva o id do usuário que fez a exigência
+        )
+        db.session.add(exigencia)
+
+        # Atualiza o status do pedido para "exigência"
+        pedido.status = "exigência"
+        db.session.commit()
+
+        return jsonify({
+            "message": "Exigência registrada com sucesso!",
+            "id_autorizacao": pedido.id,
+            "status": pedido.status
+        }), 200
+
+    except Exception as e:
+        app.logger.error("Erro ao registrar exigência", exc_info=e)
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @pedidos_bp.route('/exigencia/<int:exigencia_id>')
 @login_required
