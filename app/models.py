@@ -185,4 +185,15 @@ class Exigencia(db.Model):
     motivo_exigencia = db.Column(db.Text, nullable=False)
     prazo_exigencia = db.Column(db.Date, nullable=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
-    pedido = db.relationship('PedidoAutorizacao', backref=db.backref('exigencias', lazy=True))
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)  # usuário que fez a exigência
+    data_resposta = db.Column(db.DateTime, nullable=True)  # Armazena a data em que a resposta foi feita
+    texto_resposta = db.Column(db.Text, nullable=True)       # Armazena o conteúdo da resposta
+
+    # Associação com o usuário que fez a exigência
+    usuario = db.relationship('Usuario', backref=db.backref('exigencias_criadas', lazy=True))
+
+    # Associação com o pedido de autorização com ordenação pela data de criação (mais recente primeiro)
+    pedido = db.relationship(
+        'PedidoAutorizacao',
+        backref=db.backref('exigencias', lazy=True, order_by="desc(Exigencia.data_criacao)")
+    )

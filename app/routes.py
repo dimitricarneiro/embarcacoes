@@ -1005,11 +1005,12 @@ def exigir_pedido(pedido_id):
     if prazo_exigencia_date < date.today():
         return jsonify({"error": "O prazo não pode ser anterior a hoje."}), 400
 
-    # Cria o registro da exigência (assumindo que o model Exigencia foi criado)
+    # Cria o registro da exigência, salvando também o id do usuário que fez a exigência
     exigencia = Exigencia(
         pedido_id=pedido.id,
         motivo_exigencia=motivo_exigencia,
-        prazo_exigencia=prazo_exigencia_date
+        prazo_exigencia=prazo_exigencia_date,
+        usuario_id=current_user.id  # Salva o id do usuário que fez a exigência
     )
     db.session.add(exigencia)
 
@@ -1033,7 +1034,60 @@ def detalhes_exigencia(exigencia_id):
     if current_user.role != 'RFB' and exigencia.pedido.usuario_id != current_user.id:
         return jsonify({"error": "Você não tem permissão para ver essa exigência."}), 403
 
-    return render_template('detalhes_exigencia.html', exigencia=exigencia)
+    # Passa também o pedido associado à exigência para o template
+    return render_template('detalhes_exigencia.html', exigencia=exigencia, pedido=exigencia.pedido)
+
+@pedidos_bp.route('/pedido/<int:pedido_id>/responder-exigencia/<int:exigencia_id>', methods=['GET', 'POST'])
+@login_required
+@role_required("comum")
+def responder_exigencia(pedido_id, exigencia_id):
+    """
+    Rota para que o criador do pedido responda uma exigência.
+    
+    Regras:
+    - Apenas o usuário que criou o pedido pode responder a exigência.
+    - A resposta deve ser enviada até (ou na) data do prazo_exigencia.
+    - Não é permitida a resposta se já existir um texto_resposta cadastrado.
+    - Ao responder, o pedido.status é atualizado para "pendente".
+    """
+    # Busca o pedido e a exigência
+    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+    exigencia = Exigencia.query.filter_by(id=exigencia_id, pedido_id=pedido.id).first_or_404()
+
+    # Verifica se o usuário logado é o criador do pedido
+    if pedido.usuario_id != current_user.id:
+        flash("Você não tem permissão para responder esta exigência.", "danger")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Se a exigência já foi respondida, não permite nova resposta
+    if exigencia.texto_resposta:
+        flash("Esta exigência já foi respondida.", "warning")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Verifica se o prazo para resposta ainda não expirou
+    if date.today() > exigencia.prazo_exigencia:
+        flash("O prazo para responder esta exigência já expirou.", "danger")
+        return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
+
+    # Se for GET, exibe o template com os detalhes e o formulário de resposta
+    if request.method == 'GET':
+        return render_template('detalhes_exigencia.html', pedido=pedido, exigencia=exigencia)
+
+    # Se for POST, processa o formulário enviado
+    texto_resposta = request.form.get('texto_resposta')
+    if not texto_resposta:
+        flash("O campo de resposta é obrigatório.", "danger")
+        return render_template('detalhes_exigencia.html', pedido=pedido, exigencia=exigencia)
+
+    # Registra a resposta com data atual e atualiza o status do pedido
+    exigencia.texto_resposta = texto_resposta
+    exigencia.data_resposta = datetime.utcnow()
+    pedido.status = "pendente"
+
+    db.session.commit()
+
+    flash("Exigência respondida com sucesso e o pedido foi atualizado para 'pendente'.", "success")
+    return redirect(url_for('pedidos.exibir_detalhes_pedido', pedido_id=pedido.id))
 
 @pedidos_bp.route('/formulario-pedido', methods=['GET'])
 @login_required  # Apenas usuários logados podem acessar
