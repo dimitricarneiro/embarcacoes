@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from datetime import date
 from sqlalchemy import or_
 from app import create_app, db
-from models import PedidoAutorizacao, Exigencia
+from app.models import PedidoAutorizacao, Exigencia  # Ajustado para a estrutura do seu projeto
 
 # Cria a aplicação Flask (ajuste se necessário)
 app = create_app()
