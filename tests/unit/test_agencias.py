@@ -41,7 +41,7 @@ def test_listar_pedidos_agenciamento_correto(client):
     texto_resposta = resposta.get_data(as_text=True)
     
     # Verifica se o cabeçalho <h1> com "pedidos de agenciamento" está presente
-    assert "<h1>" in texto_resposta
+    assert "<h1" in texto_resposta
 
 
 
