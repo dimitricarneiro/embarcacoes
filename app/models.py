@@ -122,7 +122,6 @@ class Embarcacao(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     imo = db.Column(db.String(10), nullable=True)
     bandeira = db.Column(db.String(50), nullable=True)
-    # Outros campos relevantes da embarcação podem ser adicionados aqui.
 
 # Modelo para Pessoas
 class Pessoa(db.Model):
@@ -131,7 +130,6 @@ class Pessoa(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     cpf = db.Column(db.String(14), nullable=False)
     isps = db.Column(db.String(8), nullable=True)
-    # --- Novos campos adicionados ---
     funcao = db.Column(db.String(255), nullable=True)           # Função da pessoa
     local_embarque = db.Column(db.String(255), nullable=True)     # Local de embarque
     local_desembarque = db.Column(db.String(255), nullable=True)  # Local de desembarque
@@ -150,7 +148,7 @@ class Equipamento(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao = db.Column(db.String(255), nullable=False)
     numero_serie = db.Column(db.String(100), nullable=False)
-    quantidade = db.Column(db.Integer, nullable=False, default=1)  # novo campo para quantidade
+    quantidade = db.Column(db.Integer, nullable=False, default=1)
 
 # Modelo para Notificações
 class Notificacao(db.Model):

@@ -1,22 +1,26 @@
-# Configurações do sistema de log, que guarda informações sobre ações realizadas no sistema.
-
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 
 def setup_logging(app):
-    # Cria a pasta de logs, se ela não existir
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
-   
-    # Configura um handler que rotaciona os arquivos de log
-    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+    env = os.environ.get('FLASK_ENV', 'development')
+    
+    if env == 'production':
+        log_dir = '/var/log/embarcacoes'
+    else:
+        # Em desenvolvimento, os logs ficarão na pasta 'logs' do projeto
+        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+    
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    log_file = os.path.join(log_dir, 'app.log')
+    file_handler = RotatingFileHandler(log_file, maxBytes=10240, backupCount=10)
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [em %(pathname)s:%(lineno)d]'
     ))
     file_handler.setLevel(logging.INFO)
     
-    # Adiciona o handler ao logger da aplicação
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
     app.logger.info('Aplicação iniciada')
