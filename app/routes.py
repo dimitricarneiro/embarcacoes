@@ -281,10 +281,19 @@ def gerenciar_pedidos():
 
             if not validar_horario(horario_termino):
                 return jsonify({"error": "Horário de término inválido! Use o formato HH:MM e valores entre 00:00 e 23:59."}), 400
+                
+            # Verifica tamanho máximo dos campos
+            empresa_responsavel=data["nome_empresa"]
+            if len(empresa_responsavel) > 255:
+                return jsonify({"error": "O nome da empresa deve ter até 255 caraceres."}), 400
+            
+            certificado_livre_pratica = data["certificado_livre_pratica"]
+            if len(certificado_livre_pratica) > 16:
+                return jsonify({"error": "O certificado de livre prática deve ter até 16 caraceres."}), 400            
 
             # Criação do novo pedido, incluindo os novos campos
             novo_pedido = PedidoAutorizacao(
-                empresa_responsavel=data["nome_empresa"],
+                empresa_responsavel=empresa_responsavel,
                 cnpj_empresa=data["cnpj_empresa"],
                 endereco_empresa=data["endereco_empresa"],
                 motivo_solicitacao=data["motivo_solicitacao"],
@@ -292,7 +301,7 @@ def gerenciar_pedidos():
                 data_termino=data_termino,
                 horario_inicio_servicos=data["horario_inicio_servicos"],
                 horario_termino_servicos=data["horario_termino_servicos"],
-                certificado_livre_pratica=data["certificado_livre_pratica"],
+                certificado_livre_pratica=certificado_livre_pratica,
                 cidade_servico=data["cidade_servico"],
                 observacoes=data.get("observacoes", None),
                 agencia_maritima=data.get("agencia_maritima", None),

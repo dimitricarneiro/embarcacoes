@@ -55,11 +55,11 @@ class PedidoAutorizacao(db.Model):
     endereco_empresa = db.Column(db.String(255), nullable=False)
     motivo_solicitacao = db.Column(db.Text, nullable=False)
     data_inicio = db.Column(db.Date, nullable=False)
-    data_termino = db.Column(db.Date, nullable=False)  # Data de término original ou atualizada
+    data_termino = db.Column(db.Date, nullable=False)
     horario_inicio_servicos = db.Column(db.String(20), nullable=False)
     horario_termino_servicos = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default="aguardando_agencia", nullable=False)
-    certificado_livre_pratica = db.Column(db.String(8), nullable=True)
+    certificado_livre_pratica = db.Column(db.String(16), nullable=True)
     cidade_servico = db.Column(db.String(50), nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
     data_criacao_pedido = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -140,7 +140,6 @@ class Veiculo(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     modelo = db.Column(db.String(255), nullable=False)
     placa = db.Column(db.String(20), nullable=False)
-    # Outros campos, se necessário
 
 # Modelo para Equipamentos
 class Equipamento(db.Model):

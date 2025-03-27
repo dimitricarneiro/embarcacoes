@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='core-lite.css') }}">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Inclua o jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Inclua o jQuery Mask Plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+  
   <style>
     .bloco {
       border: 1px solid #ddd;
@@ -45,17 +51,17 @@
       <!-- Campos do pedido principal -->
       <div class="mb-3">
         <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required>
+        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
         <label for="cnpj_empresa" class="form-label">*CNPJ do Prestador de Serviço:</label>
-        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required>
+        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required maxlength="20">
       </div>
       
       <div class="mb-3">
         <label for="endereco_empresa" class="form-label">*Endereço:</label>
-        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required>
+        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
@@ -75,7 +81,7 @@
       
       <div class="mb-3" id="campo-outros" style="display: none;">
         <label for="motivo_outros" class="form-label">Especifique o motivo:</label>
-        <input type="text" id="motivo_outros" class="form-control" placeholder="Especifique o serviço">
+        <input type="text" id="motivo_outros" class="form-control" placeholder="Especifique o serviço" maxlength="35">
       </div>
       
       <div class="row">
@@ -102,12 +108,12 @@
       
       <div class="mb-3">
         <label for="certificado_livre_pratica" class="form-label">*Número do Certificado de Livre Prática:</label>
-        <input type="text" id="certificado_livre_pratica" class="form-control" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required>
+        <input type="text" id="certificado_livre_pratica" class="form-control" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required maxlength="16">
       </div>
       
       <div class="mb-3">
         <label for="cidade_servico" class="form-label">*Cidade de Serviço:</label>
-        <input type="text" id="cidade_servico" class="form-control" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required>
+        <input type="text" id="cidade_servico" class="form-control" value="{{ pedido.cidade_servico if pedido else 'Santos' }}" required maxlength="50">
       </div>
       
       <div class="mb-3">
@@ -118,11 +124,11 @@
       <div class="row">
         <div class="col-md-6 mb-3">
           <label for="agencia_maritima" class="form-label">*Agência Marítima:</label>
-          <input type="text" id="agencia_maritima" class="form-control" value="{{ pedido.agencia_maritima if pedido else '' }}">
+          <input type="text" id="agencia_maritima" class="form-control" maxlength="255" value="{{ pedido.agencia_maritima if pedido else '' }}">
         </div>
         <div class="col-md-6 mb-3">
           <label for="cnpj_agencia" class="form-label">*CNPJ da Agência:</label>
-          <input type="text" id="cnpj_agencia" class="form-control" value="{{ pedido.cnpj_agencia if pedido else '' }}">
+          <input type="text" id="cnpj_agencia" class="form-control" maxlength="20" value="{{ pedido.cnpj_agencia if pedido else '' }}">
         </div>
       </div>
       
@@ -135,15 +141,15 @@
               <div class="bloco">
                 <div class="mb-2">
                   <label class="form-label">Nome da Embarcação:</label>
-                  <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required>
+                  <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">IMO:</label>
-                  <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO" value="{{ embarcacao.imo }}">
+                  <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO" maxlength="10" value="{{ embarcacao.imo }}">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Bandeira:</label>
-                  <input type="text" class="embarcacao-bandeira form-control" placeholder="Bandeira" value="{{ embarcacao.bandeira }}">
+                  <input type="text" class="embarcacao-bandeira form-control" maxlength="50" placeholder="Bandeira" value="{{ embarcacao.bandeira }}">
                 </div>
               </div>
             {% endfor %}
@@ -151,15 +157,15 @@
             <div class="bloco">
               <div class="mb-2">
                 <label class="form-label">Nome da Embarcação:</label>
-                <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required>
+                <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required maxlength="255">
               </div>
               <div class="mb-2">
                 <label class="form-label">IMO:</label>
-                <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO">
+                <input type="text" class="embarcacao-imo form-control" maxlength="10" placeholder="Número IMO">
               </div>
               <div class="mb-2">
                 <label class="form-label">Bandeira:</label>
-                <input type="text" class="embarcacao-bandeira form-control" placeholder="Bandeira">
+                <input type="text" class="embarcacao-bandeira form-control" maxlength="50" placeholder="Bandeira">
               </div>
             </div>
           {% endif %}
@@ -176,11 +182,11 @@
               <div class="bloco">
                 <div class="mb-2">
                   <label class="form-label">Modelo do Veículo:</label>
-                  <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" value="{{ veiculo.modelo }}" required>
+                  <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" value="{{ veiculo.modelo }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Placa do Veículo:</label>
-                  <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" value="{{ veiculo.placa }}" required>
+                  <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" value="{{ veiculo.placa }}" required maxlength="20">
                 </div>
               </div>
             {% endfor %}
@@ -188,11 +194,11 @@
             <div class="bloco">
               <div class="mb-2">
                 <label class="form-label">Modelo do Veículo:</label>
-                <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" required>
+                <input type="text" class="veiculo-modelo form-control" placeholder="Modelo do veículo" required maxlength="255">
               </div>
               <div class="mb-2">
                 <label class="form-label">Placa do Veículo:</label>
-                <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" required>
+                <input type="text" class="veiculo-placa form-control" placeholder="Placa do veículo" required maxlength="20">
               </div>
             </div>
           {% endif %}
@@ -209,11 +215,11 @@
               <div class="bloco">
                 <div class="mb-2">
                   <label class="form-label">Descrição do Equipamento:</label>
-                  <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required>
+                  <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Número de Série:</label>
-                  <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required>
+                  <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required maxlength="100">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Quantidade:</label>
@@ -225,11 +231,11 @@
             <div class="bloco">
               <div class="mb-2">
                 <label class="form-label">Descrição do Equipamento:</label>
-                <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" required>
+                <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" required maxlength="255">
               </div>
               <div class="mb-2">
                 <label class="form-label">Número de Série:</label>
-                <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" required>
+                <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" required maxlength="100">
               </div>
               <div class="mb-2">
                 <label class="form-label">Quantidade:</label>
@@ -250,27 +256,27 @@
               <div class="bloco">
                 <div class="mb-2">
                   <label class="form-label">Nome da Pessoa:</label>
-                  <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required>
+                  <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">CPF:</label>
-                  <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required>
+                  <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required maxlength="14">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">ISPS:</label>
-                  <input type="text" class="pessoa-isps form-control" placeholder="ISPS" value="{{ pessoa.isps if pessoa.isps else '' }}">
+                  <input type="text" class="pessoa-isps form-control" placeholder="ISPS" maxlength="8" value="{{ pessoa.isps if pessoa.isps else '' }}">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Função:</label>
-                  <input type="text" class="pessoa-funcao form-control" placeholder="Função" value="{{ pessoa.funcao if pessoa.funcao else '' }}">
+                  <input type="text" class="pessoa-funcao form-control" placeholder="Função" maxlength="255" value="{{ pessoa.funcao if pessoa.funcao else '' }}">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Local de Embarque:</label>
-                  <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque" value="{{ pessoa.local_embarque if pessoa.local_embarque else '' }}">
+                  <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque" maxlength="255" value="{{ pessoa.local_embarque if pessoa.local_embarque else '' }}">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Local de Desembarque:</label>
-                  <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque" value="{{ pessoa.local_desembarque if pessoa.local_desembarque else '' }}">
+                  <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque" maxlength="255" value="{{ pessoa.local_desembarque if pessoa.local_desembarque else '' }}">
                 </div>
               </div>
             {% endfor %}
@@ -278,27 +284,27 @@
             <div class="bloco">
               <div class="mb-2">
                 <label class="form-label">Nome da Pessoa:</label>
-                <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" required>
+                <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" required maxlength="255">
               </div>
               <div class="mb-2">
                 <label class="form-label">CPF:</label>
-                <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required>
+                <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required maxlength="14">
               </div>
               <div class="mb-2">
                 <label class="form-label">ISPS:</label>
-                <input type="text" class="pessoa-isps form-control" placeholder="ISPS">
+                <input type="text" class="pessoa-isps form-control" maxlength="8" placeholder="ISPS">
               </div>
               <div class="mb-2">
                 <label class="form-label">Função:</label>
-                <input type="text" class="pessoa-funcao form-control" placeholder="Função">
+                <input type="text" class="pessoa-funcao form-control" maxlength="255" placeholder="Função">
               </div>
               <div class="mb-2">
                 <label class="form-label">Local de Embarque:</label>
-                <input type="text" class="pessoa-local-embarque form-control" placeholder="Local de embarque">
+                <input type="text" class="pessoa-local-embarque form-control" maxlength="255" placeholder="Local de embarque">
               </div>
               <div class="mb-2">
                 <label class="form-label">Local de Desembarque:</label>
-                <input type="text" class="pessoa-local-desembarque form-control" placeholder="Local de desembarque">
+                <input type="text" class="pessoa-local-desembarque form-control" maxlength="255" placeholder="Local de desembarque">
               </div>
             </div>
           {% endif %}
@@ -882,5 +888,17 @@
       }
     });
   </script>
+
+<!-- Script para aplicar as máscaras -->
+<script>
+    $(document).ready(function(){
+        // Aplica a máscara para CNPJ (formato: xx.xxx.xxx/xxxx-xx)
+        $('#cnpj_empresa, #cnpj_agencia').mask('00.000.000/0000-00', {reverse: true});
+        
+        // Aplica a máscara para CPF (formato: xxx.xxx.xxx-xx)
+        $('.pessoa-cpf').mask('000.000.000-00', {reverse: true});
+    });
+</script>
+
 </body>
 </html>
