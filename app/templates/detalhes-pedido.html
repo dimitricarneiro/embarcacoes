@@ -51,6 +51,16 @@
 </head>
 <body class="bg-light">
 
+  {# Macro para formatar CPF no formato xxx.xxx.xxx-xx #}
+  {% macro format_cpf(cpf) %}
+    {%- set digits = cpf|replace('.', '')|replace('-', '') %}
+    {%- if digits|length == 11 %}
+      {{ digits[:3] }}.{{ digits[3:6] }}.{{ digits[6:9] }}-{{ digits[9:] }}
+    {%- else %}
+      {{ cpf }}
+    {%- endif %}
+  {% endmacro %}
+
   <!-- Cabeçalho -->
   <header class="mb-4">
     <div class="container-fluid">
@@ -153,7 +163,7 @@
       {% for pessoa in pedido.pessoas %}
         <div class="p-2 bg-light rounded mb-3">
           <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Nome:</span> {{ pessoa.nome }}<br>
-          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CPF:</span> {{ pessoa.cpf }}<br>
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CPF:</span> {{ format_cpf(pessoa.cpf) }}<br>
           {% if pessoa.isps %}
             <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">ISPS:</span> {{ pessoa.isps }}<br>
           {% endif %}
