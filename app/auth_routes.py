@@ -8,37 +8,39 @@ from app import limiter
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("12 per minute; 60 per hour")  # 12 tentativas por minuto, 60 por hora
+@limiter.limit("12 per minute; 60 per hour")
 def login():
-    """Exibe página de login."""
-    form = LoginForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        remember = form.remember.data
+    try:
+        form = LoginForm()
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
+            remember = form.remember.data
 
-        user = Usuario.query.filter_by(username=username).first()
+            user = Usuario.query.filter_by(username=username).first()
 
-        if user and user.check_password(password):
-            login_user(user, remember=remember)
-            session.permanent = True  # Define a sessão como permanente para que a expiração funcione
+            if user and user.check_password(password):
+                login_user(user, remember=remember)
+                session.permanent = True
 
-            # Registra o evento de login com informações do usuário e IP
-            current_app.logger.info(
-                f"Usuário '{username}' efetuou login. IP: {request.remote_addr}"
-            )
+                current_app.logger.info(
+                    f"Usuário '{username}' efetuou login. IP: {request.remote_addr}"
+                )
 
-            # Redireciona o usuário conforme a sua role
-            if user.role == "RFB":
-                return redirect(url_for("pedidos.admin_dashboard"))
-            elif user.role == "agencia_maritima":
-                return redirect(url_for("agencias.agenciar_pedidos"))
-            else:  # Usuário comum
-                return redirect(url_for("pedidos.exibir_pedidos"))
+                if user.role == "RFB":
+                    return redirect(url_for("pedidos.admin_dashboard"))
+                elif user.role == "agencia_maritima":
+                    return redirect(url_for("agencias.agenciar_pedidos"))
+                else:
+                    return redirect(url_for("pedidos.exibir_pedidos"))
 
-        flash("Credenciais inválidas. Tente novamente.", "error")
+            flash("Credenciais inválidas. Tente novamente.", "error")
 
-    return render_template("login.html", form=form)
+        return render_template("login.html", form=form)
+
+    except Exception as e:
+        current_app.logger.exception("Falha inesperada em /auth/login")
+        raise
 
 @auth_bp.route("/renovar-sessao", methods=["GET"])
 @login_required

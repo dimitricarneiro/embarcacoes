@@ -29,6 +29,10 @@ def create_app():
     app.config.from_object(config[env])  # Usa a configuração correspondente do `config.py`
 
     print(f"🚀 Rodando no ambiente: {env}")
+    
+    # --- 1) Propagar exceções para que o WSGI as receba ---
+    # Isso faz com que qualquer erro não capturado seja jogado para o mod_wsgi
+    app.config['PROPAGATE_EXCEPTIONS'] = True
 
     # Tempo de expiração da sessão
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60)
@@ -53,6 +57,14 @@ def create_app():
     # Configura o sistema de logging
     from logging_config import setup_logging
     setup_logging(app)
+    
+    # --- 2) Handler global para erros 500 ---
+    @app.errorhandler(500)
+    def handle_internal_error(e):
+        # grava o traceback completo em logs/app.log (via setup_logging)
+        current_app.logger.exception("Internal Server Error: %s", e)
+        # opcional: exibe uma página bonita de 500
+        return render_template("500.html"), 500
     
     # Registra o filter customizado para ajuste de fuso horário
     @app.template_filter('localize')
