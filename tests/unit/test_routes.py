@@ -153,7 +153,7 @@ def teste_exportar_csv_nao_admin(client):
     # Verifica se a primeira linha do CSV contém o cabeçalho esperado
     linhas = texto.splitlines()
     assert linhas, "O CSV não possui linhas."
-    cabecalho_esperado = "ID,Empresa,CNPJ,Motivo,Data Início,Data Término,Data Solicitação,Status"
+    cabecalho_esperado = "ID,Empresa,CNPJ,Motivo,Data Início,Data Término,Data Solicitação,Data Análise,RFB Servidor Analisou,Status"
     assert linhas[0] == cabecalho_esperado, \
         f"O cabeçalho do CSV está incorreto. Esperado: '{cabecalho_esperado}'. Obtido: '{linhas[0]}'"
 
