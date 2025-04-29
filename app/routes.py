@@ -1318,7 +1318,7 @@ def exportar_pdf():
         ('FONTNAME',      (0,0),  (-1,0),    'Helvetica-Bold'),
         ('ALIGN',         (0,0),  (-1,-1),   'CENTER'),
 
-        ('FONTSIZE',      (0,0),  (-1,-1),   9),
+        ('FONTSIZE',      (0,0),  (-1,-1),   7),
 
         ('LEFTPADDING',   (0,0),  (-1,-1),   2),
         ('RIGHTPADDING',  (0,0),  (-1,-1),   2),
