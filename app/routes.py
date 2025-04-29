@@ -1261,82 +1261,87 @@ def exportar_csv():
 @login_required
 @role_required("RFB", "comum")
 def exportar_pdf():
-    """ Exporta os pedidos como um arquivo PDF formatado com sumário estatístico """
-    
-    #if current_user.role != "RFB":
-    #    return redirect(url_for("pedidos.exibir_pedidos"))
+    """Exporta os pedidos como PDF, incluindo sumário estatístico."""
 
-    #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
-    
-    # Utiliza os filtros para obter os pedidos
-    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
+    # 1) Busca filtrada de pedidos
     if current_user.role == "RFB":
         pedidos = PedidoAutorizacao.query.all()
     else:
-        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id).all()
+        pedidos = PedidoAutorizacao.query.filter_by(
+            usuario_id=current_user.id
+        ).all()
 
-    # Estatísticas gerais
-    total_pedidos = len(pedidos)
-    pedidos_aprovados = len([p for p in pedidos if p.status == "aprovado"])
-    pedidos_rejeitados = len([p for p in pedidos if p.status == "rejeitado"])
-    pedidos_pendentes = len([p for p in pedidos if p.status == "pendente"])
+    # 2) Estatísticas
+    total_pedidos     = len(pedidos)
+    pedidos_aprovados = sum(1 for p in pedidos if p.status == "aprovado")
+    pedidos_rejeitados= sum(1 for p in pedidos if p.status == "rejeitado")
+    pedidos_pendentes = sum(1 for p in pedidos if p.status == "pendente")
 
+    # Função utilitária para formatar datas seguras
+    def fmt_date(dt):
+        return dt.strftime("%d/%m/%Y") if dt else ""
+
+    # 3) Montagem do PDF
     buffer = BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=landscape(letter))
-    
+    pdf    = SimpleDocTemplate(buffer, pagesize=landscape(letter))
     elementos = []
 
-    # Título do Relatório
     styles = getSampleStyleSheet()
     elementos.append(Paragraph("<b>Relatório de Pedidos</b>", styles['Title']))
-    elementos.append(Spacer(1, 12))  # Adiciona um espaço
+    elementos.append(Spacer(1, 12))
 
-    # Cria a tabela de pedidos
-    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Data análise RFB", "Servidor responsável", "Status"]]
-    
-    for pedido in pedidos:
+    # Cabeçalho da tabela
+    dados = [[
+        "ID", "Empresa", "CNPJ", "Motivo",
+        "Data Início", "Data Término",
+        "Data Solicitação", "Data Análise RFB",
+        "Servidor Analisou", "Status"
+    ]]
+    for p in pedidos:
         dados.append([
-            pedido.id, 
-            pedido.empresa_responsavel, 
-            pedido.cnpj_empresa, 
-            pedido.motivo_solicitacao, 
-            pedido.data_inicio.strftime("%d/%m/%Y"), 
-            pedido.data_termino.strftime("%d/%m/%Y"), 
-            pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
-            pedido.data_analise_pedido.strftime("%d/%m/%Y"),
-            pedido.id_usuario_que_analisou_pedido, 
-            pedido.status
+            p.id,
+            p.empresa_responsavel,
+            p.cnpj_empresa,
+            p.motivo_solicitacao,
+            fmt_date(p.data_inicio),
+            fmt_date(p.data_termino),
+            fmt_date(p.data_criacao_pedido),
+            fmt_date(p.data_analise_pedido),
+            p.id_usuario_que_analisou_pedido or "",
+            p.status
         ])
 
     tabela = Table(dados)
-    
-    # Estiliza a tabela
-    estilo = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ])
-    
-    tabela.setStyle(estilo)
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR',  (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN',      (0,0), (-1,-1), 'CENTER'),
+        ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+        ('GRID',       (0,0), (-1,-1), 1, colors.black),
+    ]))
     elementos.append(tabela)
-    elementos.append(Spacer(1, 20))  # Adiciona um espaço antes do sumário
+    elementos.append(Spacer(1, 20))
 
-    # Cria o sumário estatístico
+    # Sumário estatístico
     elementos.append(Paragraph("<b>Sumário Estatístico</b>", styles['Heading2']))
     elementos.append(Paragraph(f"Total de Pedidos: {total_pedidos}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Aprovados: {pedidos_aprovados}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Rejeitados: {pedidos_rejeitados}", styles['Normal']))
     elementos.append(Paragraph(f"Pedidos Pendentes: {pedidos_pendentes}", styles['Normal']))
 
-    # Cria o PDF
     pdf.build(elementos)
     buffer.seek(0)
 
-    return send_file(buffer, as_attachment=True, download_name="relatorio_pedidos.pdf", mimetype="application/pdf")
+    # 4) Envia o arquivo — ajuste attachment_filename / download_name
+    return send_file(
+        buffer,
+        as_attachment=True,
+        # Se Flask ≥ 2.0: download_name="relatorio_pedidos.pdf",
+        attachment_filename="relatorio_pedidos.pdf",
+        mimetype="application/pdf"
+    )
 
 @pedidos_bp.route('/admin/exportar-excel')
 @login_required
