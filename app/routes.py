@@ -1307,7 +1307,7 @@ def exportar_pdf():
             fmt_date(p.data_termino),
             fmt_date(p.data_criacao_pedido),
             fmt_date(p.data_analise_pedido),
-            p.id_usuario_que_analisou_pedido or "",
+            p.usuario_que_analisou.username if p.usuario_que_analisou else "",
             p.status
         ])
 
