@@ -1313,13 +1313,20 @@ def exportar_pdf():
 
     tabela = Table(dados)
     tabela.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.grey),
-        ('TEXTCOLOR',  (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN',      (0,0), (-1,-1), 'CENTER'),
-        ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0,0), (-1,0), 12),
-        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
-        ('GRID',       (0,0), (-1,-1), 1, colors.black),
+        ('BACKGROUND',    (0,0),  (-1,0),    colors.grey),
+        ('TEXTCOLOR',     (0,0),  (-1,0),    colors.whitesmoke),
+        ('FONTNAME',      (0,0),  (-1,0),    'Helvetica-Bold'),
+        ('ALIGN',         (0,0),  (-1,-1),   'CENTER'),
+
+        ('FONTSIZE',      (0,0),  (-1,-1),   9),
+
+        ('LEFTPADDING',   (0,0),  (-1,-1),   2),
+        ('RIGHTPADDING',  (0,0),  (-1,-1),   2),
+        ('TOPPADDING',    (0,0),  (-1,-1),   1),
+        ('BOTTOMPADDING', (0,0),  (-1,-1),   1),
+
+        ('BACKGROUND',    (0,1),  (-1,-1),   colors.beige),
+        ('GRID',          (0,0),  (-1,-1),   0.5, colors.black),
     ]))
     elementos.append(tabela)
     elementos.append(Spacer(1, 20))
@@ -1338,8 +1345,7 @@ def exportar_pdf():
     return send_file(
         buffer,
         as_attachment=True,
-        # Se Flask ≥ 2.0: download_name="relatorio_pedidos.pdf",
-        attachment_filename="relatorio_pedidos.pdf",
+        download_name="relatorio_pedidos.pdf",
         mimetype="application/pdf"
     )
 
