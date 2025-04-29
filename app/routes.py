@@ -1389,7 +1389,7 @@ def exportar_excel():
     ws_pedidos.title = "Pedidos"
 
     # Cabeçalho da tabela
-    headers = ["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"]
+    headers = ["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Data Análise", "RFB Servidor Analisou" , "Status"]
     ws_pedidos.append(headers)
 
     # Estilizar o cabeçalho (fonte em negrito)
@@ -1401,6 +1401,7 @@ def exportar_excel():
         # Formatar datas como "dd/mm/aaaa"
         data_inicio = pedido.data_inicio.strftime("%d/%m/%Y") if pedido.data_inicio else ""
         data_termino = pedido.data_termino.strftime("%d/%m/%Y") if pedido.data_termino else ""
+        data_analise = pedido.data_analise_pedido.strftime("%d/%m/%Y") if pedido.data_analise_pedido else ""
         ws_pedidos.append([
             pedido.id,
             pedido.empresa_responsavel,
@@ -1409,6 +1410,8 @@ def exportar_excel():
             data_inicio,
             data_termino,
             pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
+            data_analise,
+            pedido.usuario_que_analisou.username if pedido.usuario_que_analisou else "",
             pedido.status
         ])
 
