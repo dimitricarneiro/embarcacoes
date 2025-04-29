@@ -124,4 +124,5 @@ class PedidoSearchForm(FlaskForm):
     ], validators=[Optional()])
     data_inicio = DateField("Data Início", validators=[Optional()], format='%Y-%m-%d')
     data_termino = DateField("Data Término", validators=[Optional()], format='%Y-%m-%d')
+    data_criacao = DateField("Data de Criação do Pedido",format='%Y-%m-%d',validators=[Optional()])
     submit = SubmitField("Filtrar")

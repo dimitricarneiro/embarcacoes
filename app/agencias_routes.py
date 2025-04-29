@@ -66,6 +66,10 @@ def agenciar_pedidos():
     
     if form.data_termino.data:
         query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
+        
+    # FILTRO EXATO: data de criação do pedido
+    if form.data_criacao.data:
+        query = query.filter(func.date(PedidoAutorizacao.data_criacao_pedido) == form.data_criacao.data)
     
     if form.nome_embarcacao.data:
         # Filtra pelo nome da embarcação (ajustando para caixa baixa)
