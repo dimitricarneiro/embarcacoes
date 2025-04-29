@@ -1292,7 +1292,7 @@ def exportar_pdf():
     elementos.append(Spacer(1, 12))  # Adiciona um espaço
 
     # Cria a tabela de pedidos
-    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"]]
+    dados = [["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Data análise RFB", "Servidor responsável", "Status"]]
     
     for pedido in pedidos:
         dados.append([
@@ -1303,6 +1303,8 @@ def exportar_pdf():
             pedido.data_inicio.strftime("%d/%m/%Y"), 
             pedido.data_termino.strftime("%d/%m/%Y"), 
             pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
+            pedido.data_analise_pedido.strftime("%d/%m/%Y"),
+            pedido.id_usuario_que_analisou_pedido, 
             pedido.status
         ])
 
