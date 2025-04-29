@@ -1204,57 +1204,55 @@ def verificar_comprovante(token):
 def exportar_csv():
     """Exporta os pedidos como um arquivo CSV."""
 
-    # Verifica se o usuário tem a permissão necessária
-    #if current_user.role != "RFB":
-    #    return redirect(url_for("pedidos.exibir_pedidos"))
-
-    # Obtém os pedidos utilizando os filtros
-    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
+    # 1) Busca filtrada de pedidos
     if current_user.role == "RFB":
-        pedidos = PedidoAutorizacao.query
+        pedidos = PedidoAutorizacao.query.all()
     else:
-        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
+        pedidos = PedidoAutorizacao.query.filter_by(
+            usuario_id=current_user.id
+        ).all()
 
-    # Cria um buffer em memória para armazenar o CSV
+    # 2) Prepara buffer e BOM
     output = io.StringIO()
+    output.write('\ufeff')  # BOM para Excel
 
-    # 1) Escreve o BOM no início do arquivo
-    #   O BOM ajuda o Excel a reconhecer que o arquivo está em UTF-8
-    output.write('\ufeff')
-
-    # 2) Cria o writer para escrever no buffer
-    #   Você pode alterar o delimitador caso prefira ponto-e-vírgula (;)
-    #   dependendo da localidade do usuário.
+    # 3) Cria o writer
     writer = csv.writer(output, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    
-    # 3) Escreve a linha de cabeçalho
-    writer.writerow(["ID", "Empresa", "CNPJ", "Motivo", "Data Início", "Data Término", "Data Solicitação", "Status"])
-    
-    # 4) Escreve cada linha dos pedidos
-    for pedido in pedidos:
+
+    # 4) Cabeçalho
+    writer.writerow([
+        "ID", "Empresa", "CNPJ", "Motivo",
+        "Data Início", "Data Término",
+        "Data Solicitação", "Data Análise",
+        "RFB Servidor Analisou", "Status"
+    ])
+
+    # 5) Linhas de dados
+    for p in pedidos:
         writer.writerow([
-            pedido.id,
-            pedido.empresa_responsavel,
-            pedido.cnpj_empresa,
-            pedido.motivo_solicitacao,
-            pedido.data_inicio.strftime("%d/%m/%Y"),
-            pedido.data_termino.strftime("%d/%m/%Y"),
-            pedido.data_criacao_pedido.strftime("%d/%m/%Y"),
-            pedido.status
+            p.id,
+            p.empresa_responsavel,
+            p.cnpj_empresa,
+            p.motivo_solicitacao,
+            p.data_inicio.strftime("%d/%m/%Y"),
+            p.data_termino.strftime("%d/%m/%Y"),
+            p.data_criacao_pedido.strftime("%d/%m/%Y"),
+            p.data_analise_pedido.strftime("%d/%m/%Y") if p.data_analise_pedido else "",
+            p.usuario_que_analisou.username if p.usuario_que_analisou else "",
+            p.status
         ])
-    
-    # 5) Obtém o conteúdo do CSV a partir do buffer
+
+    # 6) Finaliza o buffer
     csv_content = output.getvalue()
-    
-    # 6) Fecha o buffer (opcional, mas recomendado)
     output.close()
-    
-    # 7) Cria a resposta HTTP com o conteúdo do CSV
+
+    # 7) Monta a resposta
     response = make_response(csv_content)
-    response.headers["Content-Disposition"] = "attachment; filename=relatorio_pedidos.csv"
-    # 8) Especifica o charset UTF-8
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=relatorio_pedidos.csv"
+    )
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-    
+
     return response
 
 @pedidos_bp.route('/admin/exportar-pdf')
