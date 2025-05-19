@@ -111,22 +111,35 @@
       <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CNPJ da Agência:</span> {{ pedido.cnpj_agencia or 'N/A' }}
     </div>
     
-    <div class="p-2 bg-light rounded mb-3">
-      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Situação:</span>
-      {% if pedido.status == "pendente" %}
-        <span class="status status-pendente">Pendente de análise pela RFB ⏳</span>
-      {% elif pedido.status == "aguardando_agencia" %}
-        <span class="status">Aguardando agência ⏳</span>
-      {% elif pedido.status == "aprovado" %}
-        <span class="status status-aprovado">Aprovado ✅</span>
-      {% elif pedido.status == "rejeitado" %}
-        <span class="status status-rejeitado">Rejeitado ❌</span>
-      {% elif pedido.status == "exigência" %}
-        <span class="status">Com exigência ⚠</span>
-      {% elif pedido.status == "rejeitado_agencia" %}
-        <span class="status status-rejeitado">Rejeitado pela agência❌</span>
-      {% endif %}
-    </div>
+	<div class="p-2 bg-light rounded mb-3">
+	  <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">
+		Situação:
+	  </span>
+
+	  {% if pedido.status == "pendente" %}
+		<span class="status status-pendente">Pendente de análise pela RFB ⏳</span>
+
+	  {% elif pedido.status == "aguardando_agencia" %}
+		<span class="status">Aguardando agência ⏳</span>
+
+	  {% elif pedido.status == "aprovado" %}
+		<span class="status status-aprovado">
+		  Aprovado ✅
+		  {% if pedido.usuario_que_analisou %}
+			(por {{ pedido.usuario_que_analisou.username }})
+		  {% endif %}
+		</span>
+
+	  {% elif pedido.status == "rejeitado" %}
+		<span class="status status-rejeitado">Rejeitado ❌</span>
+
+	  {% elif pedido.status == "exigência" %}
+		<span class="status">Com exigência ⚠</span>
+
+	  {% elif pedido.status == "rejeitado_agencia" %}
+		<span class="status status-rejeitado">Rejeitado pela agência ❌</span>
+	  {% endif %}
+	</div>
 
     <!-- Seção para Exigências -->
     <h2 class="text-center mt-4">Exigências</h2>

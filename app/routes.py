@@ -906,30 +906,26 @@ def exibir_pedidos():
 @login_required
 def exibir_detalhes_pedido(pedido_id):
     """
-    Exibe os detalhes de um pedido específico, incluindo suas exigências.
-    
-    - Eager load de `exigencias` e do `usuario` de cada exigência para evitar o problema N+1.
-    - Verifica se o usuário logado é RFB ou é o criador do pedido antes de permitir o acesso.
+    Exibe os detalhes de um pedido específico, incluindo:
+      - exigências + quem as criou
+      - quem analisou/aprovou o pedido (usuario_que_analisou)
     """
-    # 1) Carrega o pedido e todas as exigências associadas, bem como o usuário que criou cada uma
     pedido = (
-        PedidoAutorizacao
-        .query
+        PedidoAutorizacao.query
         .options(
-            joinedload(PedidoAutorizacao.exigencias)      # carrega lista de Exigencia
-            .joinedload(Exigencia.usuario)                # carrega, para cada Exigencia, o Usuario que a criou
+            joinedload(PedidoAutorizacao.exigencias)
+                .joinedload(Exigencia.usuario),
+            joinedload(PedidoAutorizacao.usuario_que_analisou)   # <— aqui
         )
         .get_or_404(pedido_id)
     )
 
-    # 2) Controle de acesso: apenas RFB ou o proprietário podem ver detalhes
     if current_user.role != 'RFB' and pedido.usuario_id != current_user.id:
         flash("Você não tem permissão para detalhar esse pedido.", "danger")
         return redirect(url_for('pedidos.exibir_pedidos'))
 
-    # 3) Renderiza o template, passando o objeto completo
     return render_template('detalhes-pedido.html', pedido=pedido)
-
+    
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])
 @login_required
 @role_required("RFB")
