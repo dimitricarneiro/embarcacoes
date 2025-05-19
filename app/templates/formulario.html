@@ -51,17 +51,17 @@
       <!-- Campos do pedido principal -->
       <div class="mb-3">
         <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else current_user.nome_empresa }}" required maxlength="255">
+        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else '' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
         <label for="cnpj_empresa" class="form-label">*CNPJ do Prestador de Serviço:</label>
-        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else current_user.cnpj }}" required maxlength="20">
+        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else '' }}" required maxlength="20">
       </div>
       
       <div class="mb-3">
         <label for="endereco_empresa" class="form-label">*Endereço:</label>
-        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else 'Rua Teste' }}" required maxlength="255">
+        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else '' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
@@ -98,17 +98,17 @@
       <div class="row">
         <div class="col-md-6 mb-3">
           <label for="horario_inicio_servicos" class="form-label">*Horário de Início:</label>
-          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '08:00' }}" required>
+          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '' }}" required>
         </div>
         <div class="col-md-6 mb-3">
           <label for="horario_termino_servicos" class="form-label">*Horário de Término:</label>
-          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '18:00' }}" required>
+          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '' }}" required>
         </div>
       </div>
       
       <div class="mb-3">
         <label for="certificado_livre_pratica" class="form-label">*Número do Certificado de Livre Prática:</label>
-        <input type="text" id="certificado_livre_pratica" class="form-control" value="{{ pedido.certificado_livre_pratica if pedido else '12345' }}" required maxlength="16">
+        <input type="text" id="certificado_livre_pratica" class="form-control" value="{{ pedido.certificado_livre_pratica if pedido else '' }}" required maxlength="16">
       </div>
       
       <div class="mb-3">
