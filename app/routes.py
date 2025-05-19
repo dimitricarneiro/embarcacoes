@@ -28,7 +28,7 @@ from sqlalchemy.sql import func
 
 # Bibliotecas para Gerar Relatórios PDF
 from io import BytesIO
-from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.pagesizes import A3, landscape
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -1285,7 +1285,7 @@ def exportar_pdf():
 
     # 3) Montagem do PDF
     buffer = BytesIO()
-    pdf    = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    pdf    = SimpleDocTemplate(buffer, pagesize=landscape(A3))
     elementos = []
 
     styles = getSampleStyleSheet()
@@ -1322,8 +1322,8 @@ def exportar_pdf():
 
         ('FONTSIZE',      (0,0),  (-1,-1),   7),
 
-        ('LEFTPADDING',   (0,0),  (-1,-1),   2),
-        ('RIGHTPADDING',  (0,0),  (-1,-1),   2),
+        ('LEFTPADDING',   (0,0),  (-1,-1),   1),
+        ('RIGHTPADDING',  (0,0),  (-1,-1),   1),
         ('TOPPADDING',    (0,0),  (-1,-1),   1),
         ('BOTTOMPADDING', (0,0),  (-1,-1),   1),
 
