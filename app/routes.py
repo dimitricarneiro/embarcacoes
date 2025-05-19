@@ -25,6 +25,7 @@ import logging
 
 # SQLAlchemy
 from sqlalchemy.sql import func
+from sqlalchemy.orm import joinedload
 
 # Bibliotecas para Gerar Relatórios PDF
 from io import BytesIO
@@ -904,14 +905,29 @@ def exibir_pedidos():
 @pedidos_bp.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required
 def exibir_detalhes_pedido(pedido_id):
-    """ Exibe os detalhes de um pedido específico """
-    pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+    """
+    Exibe os detalhes de um pedido específico, incluindo suas exigências.
+    
+    - Eager load de `exigencias` e do `usuario` de cada exigência para evitar o problema N+1.
+    - Verifica se o usuário logado é RFB ou é o criador do pedido antes de permitir o acesso.
+    """
+    # 1) Carrega o pedido e todas as exigências associadas, bem como o usuário que criou cada uma
+    pedido = (
+        PedidoAutorizacao
+        .query
+        .options(
+            joinedload(PedidoAutorizacao.exigencias)      # carrega lista de Exigencia
+            .joinedload(Exigencia.usuario)                # carrega, para cada Exigencia, o Usuario que a criou
+        )
+        .get_or_404(pedido_id)
+    )
 
-    # Verifica que o pedido que está sendo visualizado foi criado pelo usuário logado ou por um usuário da RFB
+    # 2) Controle de acesso: apenas RFB ou o proprietário podem ver detalhes
     if current_user.role != 'RFB' and pedido.usuario_id != current_user.id:
         flash("Você não tem permissão para detalhar esse pedido.", "danger")
         return redirect(url_for('pedidos.exibir_pedidos'))
 
+    # 3) Renderiza o template, passando o objeto completo
     return render_template('detalhes-pedido.html', pedido=pedido)
 
 @pedidos_bp.route('/api/pedidos-autorizacao/<int:pedido_id>/aprovar', methods=['PUT'])

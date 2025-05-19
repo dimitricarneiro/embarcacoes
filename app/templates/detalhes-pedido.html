@@ -8,7 +8,6 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* Estilos que não foram substituídos pelo Bootstrap permanecem */
     .status {
       font-weight: bold;
       padding: 5px 10px;
@@ -27,7 +26,7 @@
       font-weight: bold;
     }
     .back a:hover { background-color: #0056b3; }
-    /* Modal customizado permanece */
+
     .modal {
       display: none;
       position: fixed;
@@ -128,6 +127,34 @@
         <span class="status status-rejeitado">Rejeitado pela agência❌</span>
       {% endif %}
     </div>
+
+    <!-- Seção para Exigências -->
+    <h2 class="text-center mt-4">Exigências</h2>
+    {% if pedido.exigencias %}
+      {% for ex in pedido.exigencias %}
+        <div class="p-2 bg-light rounded mb-3">
+          <div><strong>Motivo:</strong> {{ ex.motivo_exigencia }}</div>
+          <div><strong>Prazo:</strong> {{ ex.prazo_exigencia.strftime('%d/%m/%Y') }}</div>
+          <div>
+            <strong>Data de criação:</strong>
+            {{ ex.data_criacao.strftime('%d/%m/%Y %H:%M') }}
+            <small>(por {{ ex.usuario.username }})</small>
+          </div>
+          <div>
+            <strong>Resposta em:</strong>
+            {{ ex.data_resposta.strftime('%d/%m/%Y %H:%M') if ex.data_resposta else '–' }}
+          </div>
+          <div>
+            <strong>Texto da resposta:</strong>
+            {{ ex.texto_resposta or 'Nenhuma resposta' }}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="p-2 bg-light rounded mb-3 text-center fw-bold">
+        Nenhuma exigência registrada para este pedido.
+      </div>
+    {% endif %}
     
     <!-- Seção para Embarcações -->
     <h2 class="text-center mt-4">Embarcações</h2>
