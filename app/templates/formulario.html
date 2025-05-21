@@ -98,11 +98,11 @@
       <div class="row">
         <div class="col-md-6 mb-3">
           <label for="horario_inicio_servicos" class="form-label">*Horário de Início:</label>
-          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '' }}" required>
+          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '' }}" placeholder="hh:mm" required>
         </div>
         <div class="col-md-6 mb-3">
           <label for="horario_termino_servicos" class="form-label">*Horário de Término:</label>
-          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '' }}" required>
+          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '' }}" placeholder="hh:mm" required>
         </div>
       </div>
       
