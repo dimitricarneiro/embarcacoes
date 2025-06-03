@@ -110,6 +110,12 @@
     <div class="p-2 bg-light rounded mb-3">
       <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">CNPJ da Agência:</span> {{ pedido.cnpj_agencia or 'N/A' }}
     </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Representante da Agência:</span> {{ pedido.representante_agencia or 'N/A' }}
+    </div>
+    <div class="p-2 bg-light rounded mb-3">
+      <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Meio de Transporte:</span> {{ pedido.meio_de_transporte or 'N/A' }}
+    </div>	
     
 	<div class="p-2 bg-light rounded mb-3">
 	  <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">
@@ -191,6 +197,7 @@
           <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Descrição:</span> {{ equipamento.descricao }}<br>
           <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Número de Série:</span> {{ equipamento.numero_serie }}<br>
           <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Quantidade:</span> {{ equipamento.quantidade }}
+		  <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Unidade:</span> {{ equipamento.unidade or 'N/A' }}
         </div>
       {% endfor %}
     {% else %}

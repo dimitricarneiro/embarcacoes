@@ -66,6 +66,8 @@ class PedidoAutorizacao(db.Model):
     token_comprovante = db.Column(db.String(100), nullable=True)
     agencia_maritima = db.Column(db.String(255), nullable=True)
     cnpj_agencia = db.Column(db.String(20), nullable=True)
+    meio_de_transporte = db.Column(db.String(255), nullable=True)
+    representante_agencia = db.Column(db.String(255), nullable=True)
     termo_responsabilidade = db.Column(db.Boolean, nullable=False, default=False)
     data_analise_pedido = db.Column(db.DateTime, nullable=True)
     id_usuario_que_analisou_pedido = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
@@ -148,6 +150,7 @@ class Equipamento(db.Model):
     descricao = db.Column(db.String(255), nullable=False)
     numero_serie = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False, default=1)
+    unidade = db.Column(db.String(100), nullable=True)
 
 # Modelo para Notificações
 class Notificacao(db.Model):

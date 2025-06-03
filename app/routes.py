@@ -307,6 +307,8 @@ def gerenciar_pedidos():
                 observacoes=data.get("observacoes", None),
                 agencia_maritima=data.get("agencia_maritima", None),
                 cnpj_agencia=data.get("cnpj_agencia", None),
+                representante_agencia=data.get("representante_agencia", None),
+                meio_de_transporte=data.get("meio_de_transporte", None),
                 termo_responsabilidade=data.get("termo_responsabilidade", False),
                 usuario_id=current_user.id
             )
@@ -340,17 +342,20 @@ def gerenciar_pedidos():
                     descricao = equipamento_data.get("descricao", "").strip()
                     numero_serie = equipamento_data.get("numero_serie", "").strip()
                     quantidade = equipamento_data.get("quantidade", 0)
+                    unidade = equipamento_data.get("unidade", "").strip()
                     if descricao and numero_serie and quantidade:
                         equipamento = db.session.query(Equipamento).filter_by(numero_serie=numero_serie).first()
                         if not equipamento:
                             equipamento = Equipamento(
                                 descricao=descricao,
                                 numero_serie=numero_serie,
-                                quantidade=int(quantidade)
+                                quantidade=int(quantidade),
+                                unidade=unidade
                             )
                             db.session.add(equipamento)
                         else:
                             equipamento.quantidade = int(quantidade)
+                            equipamento.unidade = unidade
                         novo_pedido.equipamentos.append(equipamento)
 
             # -------------------------------
@@ -509,6 +514,8 @@ def editar_pedido(pedido_id):
         observacoes = request.form.get('observacoes')
         agencia_maritima = request.form.get('agencia_maritima')
         cnpj_agencia = request.form.get('cnpj_agencia')
+        representante_agencia = request.form.get('representante_agencia')
+        meio_de_transporte = request.form.get('meio_de_transporte')
         termo_responsabilidade = request.form.get('termo_responsabilidade')
         # Converte o valor do checkbox para booleano
         termo_responsabilidade = True if termo_responsabilidade in ["on", "true", "True", "1"] else False
@@ -534,6 +541,8 @@ def editar_pedido(pedido_id):
         pedido.observacoes = observacoes
         pedido.agencia_maritima = agencia_maritima
         pedido.cnpj_agencia = cnpj_agencia
+        pedido.representante_agencia = representante_agencia
+        pedido.meio_de_transporte = meio_de_transporte
         pedido.termo_responsabilidade = termo_responsabilidade
 
         db.session.commit()
@@ -586,6 +595,8 @@ def atualizar_pedido_api(pedido_id):
         pedido.observacoes = data.get("observacoes")
         pedido.agencia_maritima = data.get("agencia_maritima")
         pedido.cnpj_agencia = data.get("cnpj_agencia")
+        pedido.representante_agencia = data.get("representante_agencia")
+        pedido.meio_de_transporte = data.get("meio_de_transporte")
         pedido.termo_responsabilidade = data.get("termo_responsabilidade", False)
 
         # -------------------------------
@@ -632,17 +643,20 @@ def atualizar_pedido_api(pedido_id):
             descricao = equipamento_data.get("descricao", "").strip()
             numero_serie = equipamento_data.get("numero_serie", "").strip()
             quantidade = equipamento_data.get("quantidade", 0)
+            unidade = equipamento_data.get("unidade", "").strip()
             if descricao and numero_serie and quantidade:
                 equipamento = db.session.query(Equipamento).filter_by(numero_serie=numero_serie).first()
                 if not equipamento:
                     equipamento = Equipamento(
                         descricao=descricao,
                         numero_serie=numero_serie,
-                        quantidade=int(quantidade)
+                        quantidade=int(quantidade),
+                        unidade=unidade
                     )
                     db.session.add(equipamento)
                 else:
                     equipamento.quantidade = int(quantidade)
+                    equipamento.unidade=unidade
                 pedido.equipamentos.append(equipamento)
 
         # -------------------------------

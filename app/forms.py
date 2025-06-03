@@ -29,6 +29,7 @@ class EquipamentoForm(FlaskForm):
     descricao = StringField("Descrição do Equipamento", validators=[DataRequired()])
     numero_serie = StringField("Número de Série", validators=[DataRequired()])
     quantidade = IntegerField("Quantidade", validators=[DataRequired()])
+    unidade = StringField("Unidade", validators=[Optional()])
 
 class PessoaForm(FlaskForm):
     nome = StringField("Nome da Pessoa", validators=[DataRequired()])
@@ -85,6 +86,8 @@ class PedidoForm(FlaskForm):
     observacoes = TextAreaField("Observações", validators=[Optional()])
     agencia_maritima = StringField("Agência Marítima", validators=[Optional()])
     cnpj_agencia = StringField("CNPJ da Agência", validators=[Optional()])
+    meio_de_transporte = StringField("Meio de Transporte", validators=[Optional()])
+    representante_agencia = StringField("Representante da Agência", validators=[Optional()])
     termo_responsabilidade = BooleanField("Aceito os termos de responsabilidade", validators=[must_accept_terms])
 
     # Coleções dinâmicas usando FieldList e FormField

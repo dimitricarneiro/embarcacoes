@@ -130,6 +130,14 @@
           <label for="cnpj_agencia" class="form-label">*CNPJ da Agência:</label>
           <input type="text" id="cnpj_agencia" class="form-control" maxlength="20" value="{{ pedido.cnpj_agencia if pedido else '' }}">
         </div>
+        <div class="col-md-6 mb-3">
+          <label for="representante_agencia" class="form-label">Representante da Agência:</label>
+          <input type="text" id="representante_agencia" class="form-control" maxlength="255" value="{{ pedido.representante_agencia if pedido else '' }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="meio_de_transporte" class="form-label">Meio de Transporte:</label>
+          <input type="text" id="meio_de_transporte" class="form-control" maxlength="255" value="{{ pedido.meio_de_transporte if pedido else '' }}">
+		</div>
       </div>
       
       <!-- Seção para Embarcações -->
@@ -206,46 +214,105 @@
         <button type="button" class="btn btn-success" onclick="adicionarVeiculo()">Adicionar mais veículos</button>
       </div>
       
-      <!-- Seção para Equipamentos -->
-      <div class="mb-3">
-        <label class="form-label">Equipamentos:</label>
-        <div id="equipamentos-container">
-          {% if pedido and pedido.equipamentos %}
-            {% for equipamento in pedido.equipamentos %}
-              <div class="bloco">
-                <div class="mb-2">
-                  <label class="form-label">Descrição do Equipamento:</label>
-                  <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" value="{{ equipamento.descricao }}" required maxlength="255">
-                </div>
-                <div class="mb-2">
-                  <label class="form-label">Número de Série:</label>
-                  <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" value="{{ equipamento.numero_serie }}" required maxlength="100">
-                </div>
-                <div class="mb-2">
-                  <label class="form-label">Quantidade:</label>
-                  <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" value="{{ equipamento.quantidade if equipamento.quantidade else 1 }}" min="1" required>
-                </div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="bloco">
-              <div class="mb-2">
-                <label class="form-label">Descrição do Equipamento:</label>
-                <input type="text" class="equipamento-descricao form-control" placeholder="Descrição do equipamento" required maxlength="255">
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Número de Série:</label>
-                <input type="text" class="equipamento-numero-serie form-control" placeholder="Número de série" required maxlength="100">
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Quantidade:</label>
-                <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" min="1" required>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-        <button type="button" class="btn btn-success" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
-      </div>
+	<!-- Seção para Equipamentos -->
+	<div class="mb-3">
+	  <label class="form-label">Equipamentos:</label>
+	  <div id="equipamentos-container">
+		{% if pedido and pedido.equipamentos %}
+		  {% for equipamento in pedido.equipamentos %}
+			<div class="bloco">
+			  <div class="mb-2">
+				<label class="form-label">Descrição do Equipamento:</label>
+				<input
+				  type="text"
+				  class="equipamento-descricao form-control"
+				  placeholder="Descrição do equipamento"
+				  value="{{ equipamento.descricao }}"
+				  required
+				  maxlength="255"
+				>
+			  </div>
+			  <div class="mb-2">
+				<label class="form-label">Número de Série:</label>
+				<input
+				  type="text"
+				  class="equipamento-numero-serie form-control"
+				  placeholder="Número de série"
+				  value="{{ equipamento.numero_serie }}"
+				  required
+				  maxlength="100"
+				>
+			  </div>
+			  <div class="mb-2">
+				<label class="form-label">Quantidade:</label>
+				<input
+				  type="number"
+				  class="equipamento-quantidade form-control"
+				  placeholder="Quantidade"
+				  value="{{ equipamento.quantidade if equipamento.quantidade else 1 }}"
+				  min="1"
+				  required
+				>
+			  </div>
+			  <div class="mb-2">
+				<label class="form-label">Unidade:</label>
+				<select class="equipamento-unidade form-select">
+				  <option value="peças" {% if equipamento.unidade == "peças" %}selected{% endif %}>peças</option>
+				  <option value="caixas" {% if equipamento.unidade == "caixas" %}selected{% endif %}>caixas</option>
+				  <option value="pallets" {% if equipamento.unidade == "pallets" %}selected{% endif %}>pallets</option>
+				  <option value="kg" {% if equipamento.unidade == "kg" %}selected{% endif %}>kg</option>
+				  <option value="outros" {% if equipamento.unidade == "outros" %}selected{% endif %}>outros</option>
+				</select>
+			  </div>
+			</div>
+		  {% endfor %}
+		{% else %}
+		  <div class="bloco">
+			<div class="mb-2">
+			  <label class="form-label">Descrição do Equipamento:</label>
+			  <input
+				type="text"
+				class="equipamento-descricao form-control"
+				placeholder="Descrição do equipamento"
+				required
+				maxlength="255"
+			  >
+			</div>
+			<div class="mb-2">
+			  <label class="form-label">Número de Série:</label>
+			  <input
+				type="text"
+				class="equipamento-numero-serie form-control"
+				placeholder="Número de série"
+				required
+				maxlength="100"
+			  >
+			</div>
+			<div class="mb-2">
+			  <label class="form-label">Quantidade:</label>
+			  <input
+				type="number"
+				class="equipamento-quantidade form-control"
+				placeholder="Quantidade"
+				min="1"
+				required
+			  >
+			</div>
+			<div class="mb-2">
+			  <label class="form-label">Unidade:</label>
+			  <select class="equipamento-unidade form-select">
+				<option value="peças">peças</option>
+				<option value="caixas">caixas</option>
+				<option value="pallets">pallets</option>
+				<option value="kg">kg</option>
+				<option value="outros">outros</option>
+			  </select>
+			</div>
+		  </div>
+		{% endif %}
+	  </div>
+	  <button type="button" class="btn btn-success" onclick="adicionarEquipamento()">Adicionar mais equipamentos</button>
+	</div>
       
       <!-- Seção para Pessoas -->
       <div class="mb-3">
@@ -429,6 +496,16 @@
           <label class="form-label">Quantidade:</label>
           <input type="number" class="equipamento-quantidade form-control" placeholder="Quantidade" min="1" required>
         </div>
+        <div class="mb-2">
+          <label class="form-label">Unidade:</label>
+          <select class="equipamento-unidade form-select">
+            <option value="peças">peças</option>
+            <option value="caixas">caixas</option>
+            <option value="pallets">pallets</option>
+            <option value="kg">kg</option>
+            <option value="outros">outros</option>
+          </select>
+        </div>
       `;
       document.getElementById("equipamentos-container").appendChild(novoEquipamento);
     }
@@ -572,11 +649,13 @@
         const descricao = el.querySelector('.equipamento-descricao').value.trim();
         const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
         const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+        const unidade = el.querySelector('.equipamento-unidade').value;
         if (descricao && numeroSerie && quantidade) {
           equipamentos.push({
             descricao: descricao,
             numero_serie: numeroSerie,
-            quantidade: parseInt(quantidade)
+            quantidade: parseInt(quantidade),
+            unidade: unidade
           });
         }
       });
@@ -614,6 +693,8 @@
         observacoes: document.getElementById("observacoes").value,
         agencia_maritima: document.getElementById("agencia_maritima").value,
         cnpj_agencia: document.getElementById("cnpj_agencia").value,
+        representante_agencia: document.getElementById("representante_agencia").value,
+        meio_de_transporte: document.getElementById("meio_de_transporte").value,
         termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
         embarcacoes: embarcacoes,
         veiculos: veiculos,
@@ -728,11 +809,13 @@
         const descricao = el.querySelector('.equipamento-descricao').value.trim();
         const numeroSerie = el.querySelector('.equipamento-numero-serie').value.trim();
         const quantidade = el.querySelector('.equipamento-quantidade').value.trim();
+        const unidade = el.querySelector('.equipamento-unidade').value;
         if (descricao && numeroSerie && quantidade) {
           equipamentos.push({
             descricao: descricao,
             numero_serie: numeroSerie,
-            quantidade: parseInt(quantidade)
+            quantidade: parseInt(quantidade),
+            unidade: unidade
           });
         }
       });
@@ -770,6 +853,8 @@
         observacoes: document.getElementById("observacoes").value,
         agencia_maritima: document.getElementById("agencia_maritima").value,
         cnpj_agencia: document.getElementById("cnpj_agencia").value,
+        representante_agencia: document.getElementById("representante_agencia").value,
+        meio_de_transporte: document.getElementById("meio_de_transporte").value,
         termo_responsabilidade: document.getElementById("termo_responsabilidade").checked,
         embarcacoes: embarcacoes,
         veiculos: veiculos,
