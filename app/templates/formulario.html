@@ -114,8 +114,8 @@
 					class="form-control"
 					value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}"
 					required
-					pattern="^(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
-					title="Data inválida. Use o formato YYYY-MM-DD (ex.: 2025-06-15)."
+					pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$"
+					title="Data inválida. Use o formato DD/MM/AAAA."
 					placeholder="YYYY-MM-DD">
 				</div>
 
@@ -127,8 +127,8 @@
 					class="form-control"
 					value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}"
 					required
-					pattern="^(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
-					title="Data inválida. Use o formato YYYY-MM-DD (ex.: 2025-06-20)."
+					pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$"
+					title="Data inválida. Use o formato DD/MM/AAAA."
 					placeholder="YYYY-MM-DD">
 				</div>
       </div>
