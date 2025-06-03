@@ -21,6 +21,22 @@
       margin-bottom: 10px;
     }
     .bloco label { margin-top: 0; }
+	
+    /* Destaque visual: borda vermelha se inválido */
+    input:invalid {
+      border-color: #dc3545; /* equivalente ao .is-invalid do Bootstrap */
+    }
+    input:valid {
+      border-color: #28a745; /* opcional: verde quando válido */
+    }
+    .feedback {
+      font-size: 0.875em;
+      color: #dc3545;
+      display: none;
+    }
+    input:invalid + .feedback {
+      display: block;
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -47,6 +63,10 @@
       <a href="{{ url_for('pedidos.exibir_pedidos') }}" class="btn btn-link">&larr; Voltar à Lista</a>
     </div>
     
+	
+	<p class="text-muted"><small><strong>*</strong> Campos obrigatórios</small></p>
+
+	
     <form id="pedido-form">
       <!-- Campos do pedido principal -->
       <div class="mb-3">
@@ -87,23 +107,58 @@
       <div class="row">
         <div class="col-md-6 mb-3">
           <label for="data_inicio" class="form-label">*Data de Início:</label>
-          <input type="date" id="data_inicio" class="form-control" value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="data_termino" class="form-label">*Data de Término:</label>
-          <input type="date" id="data_termino" class="form-control" value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}" required>
-        </div>
+				<div class="mb-3">
+				  <label for="data_inicio" class="form-label">*Data de Início:</label>
+				  <input
+					type="text"
+					id="data_inicio"
+					class="form-control"
+					value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}"
+					required
+					pattern="^(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
+					title="Data inválida. Use o formato YYYY-MM-DD (ex.: 2025-06-15)."
+					placeholder="YYYY-MM-DD">
+				</div>
+
+				<div class="mb-3">
+				  <label for="data_termino" class="form-label">*Data de Término:</label>
+				  <input
+					type="text"
+					id="data_termino"
+					class="form-control"
+					value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}"
+					required
+					pattern="^(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
+					title="Data inválida. Use o formato YYYY-MM-DD (ex.: 2025-06-20)."
+					placeholder="YYYY-MM-DD">
+				</div>
       </div>
       
       <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="horario_inicio_servicos" class="form-label">*Horário de Início:</label>
-          <input type="text" id="horario_inicio_servicos" class="form-control" value="{{ pedido.horario_inicio_servicos if pedido else '' }}" placeholder="hh:mm" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="horario_termino_servicos" class="form-label">*Horário de Término:</label>
-          <input type="text" id="horario_termino_servicos" class="form-control" value="{{ pedido.horario_termino_servicos if pedido else '' }}" placeholder="hh:mm" required>
-        </div>
+		<div class="col-md-6 mb-3">
+		  <label for="horario_inicio_servicos" class="form-label">*Horário de Início:</label>
+		  <input
+			type="text"
+			id="horario_inicio_servicos"
+			class="form-control"
+			value="{{ pedido.horario_inicio_servicos if pedido else '' }}"
+			placeholder="HH:MM"
+			pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+			title="Horário inválido. Digite no formato HH:MM (00:00 a 23:59)."
+			required>
+		</div>
+		<div class="col-md-6 mb-3">
+		  <label for="horario_termino_servicos" class="form-label">*Horário de Término:</label>
+		  <input
+			type="text"
+			id="horario_termino_servicos"
+			class="form-control"
+			value="{{ pedido.horario_termino_servicos if pedido else '' }}"
+			placeholder="HH:MM"
+			pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+			title="Horário inválido. Digite no formato HH:MM (00:00 a 23:59)."
+			required>
+		</div>
       </div>
       
       <div class="mb-3">
