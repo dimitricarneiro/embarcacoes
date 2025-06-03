@@ -104,34 +104,26 @@
         <input type="text" id="motivo_outros" class="form-control" placeholder="Especifique o serviço" maxlength="35">
       </div>
       
-      <div class="row">
-        <div class="col-md-6 mb-3">
-				<div class="mb-3">
-				  <label for="data_inicio" class="form-label">*Data de Início:</label>
-				  <input
-					type="text"
-					id="data_inicio"
-					class="form-control"
-					value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}"
-					required
-					pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$"
-					title="Data inválida. Use o formato DD/MM/AAAA."
-					placeholder="DD/MM/AAAA">
-				</div>
-
-				<div class="mb-3">
-				  <label for="data_termino" class="form-label">*Data de Término:</label>
-				  <input
-					type="text"
-					id="data_termino"
-					class="form-control"
-					value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}"
-					required
-					pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$"
-					title="Data inválida. Use o formato DD/MM/AAAA."
-					placeholder="DD/MM/AAAA">
-				</div>
-      </div>
+		<div class="row">
+		  <div class="col-md-6 mb-3">
+			<label for="data_inicio" class="form-label">*Data de Início:</label>
+			<input
+			  type="date"
+			  id="data_inicio"
+			  class="form-control"
+			  value="{{ pedido.data_inicio.strftime('%Y-%m-%d') if pedido and pedido.data_inicio else '' }}"
+			  required>
+		  </div>
+		  <div class="col-md-6 mb-3">
+			<label for="data_termino" class="form-label">*Data de Término:</label>
+			<input
+			  type="date"
+			  id="data_termino"
+			  class="form-control"
+			  value="{{ pedido.data_termino.strftime('%Y-%m-%d') if pedido and pedido.data_termino else '' }}"
+			  required>
+		  </div>
+		</div>
       
       <div class="row">
 		<div class="col-md-6 mb-3">
@@ -143,7 +135,7 @@
 			value="{{ pedido.horario_inicio_servicos if pedido else '' }}"
 			placeholder="HH:MM"
 			pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-			title="Horário inválido. Digite no formato HH:MM (00:00 a 23:59)."
+			title="Use o formato HH:MM (00:00 a 23:59)."
 			required>
 		</div>
 		<div class="col-md-6 mb-3">
@@ -155,7 +147,7 @@
 			value="{{ pedido.horario_termino_servicos if pedido else '' }}"
 			placeholder="HH:MM"
 			pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-			title="Horário inválido. Digite no formato HH:MM (00:00 a 23:59)."
+			title="Use o formato HH:MM (00:00 a 23:59)."
 			required>
 		</div>
       </div>
