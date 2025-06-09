@@ -272,7 +272,7 @@
         .catch(error => console.error("Erro ao buscar notificações:", error));
     }
 	
-function marcarNotificacaoLida(notificacaoId) {
+function marcarComoLida(notificacaoId) {
   fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, {
     method: "PUT",
     headers: {
@@ -290,7 +290,6 @@ function marcarNotificacaoLida(notificacaoId) {
   })
   .catch(error => console.error("Erro ao marcar como lida:", error));
 }
-
     setInterval(carregarNotificacoes, 5000);
     carregarNotificacoes();
   </script>
