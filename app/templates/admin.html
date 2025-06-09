@@ -159,6 +159,12 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // CSRF já disponível graças ao context processor
+  const CSRF_TOKEN = "{{ csrf_token() }}";
+</script>
+
   <script>
     // Dados vindos do Flask
     let pedidosAprovados = {{ pedidos_aprovados }};
@@ -265,11 +271,26 @@
         })
         .catch(error => console.error("Erro ao buscar notificações:", error));
     }
-    function marcarComoLida(notificacaoId) {
-      fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, { method: "PUT" })
-        .then(() => { carregarNotificacoes(); })
-        .catch(error => console.error("Erro ao marcar como lida:", error));
+	
+function marcarNotificacaoLida(notificacaoId) {
+  fetch(`api/notificacoes/${notificacaoId}/marcar-lida`, {
+    method: "PUT",
+    headers: {
+      "X-CSRFToken": CSRF_TOKEN
     }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => { throw new Error(err.error) });
+    }
+    return response.json();
+  })
+  .then(() => {
+    carregarNotificacoes();
+  })
+  .catch(error => console.error("Erro ao marcar como lida:", error));
+}
+
     setInterval(carregarNotificacoes, 5000);
     carregarNotificacoes();
   </script>
