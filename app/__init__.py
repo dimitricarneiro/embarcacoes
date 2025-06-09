@@ -1,11 +1,15 @@
 import os
-from flask import Flask, session
+from flask import Flask, session, current_app, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from datetime import timedelta
 from config import config
+
+# CSRF Token
+from flask_wtf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -16,6 +20,9 @@ limiter = Limiter(
     key_func=get_remote_address,  # Usa o IP do usuário para limitar requisições
     default_limits=["30 per minute"]  # Limite padrão de 30 requisições por minuto
 )
+
+# cria a instância do CSRFProtect
+csrf = CSRFProtect()
 
 def create_app():
     """Cria a aplicação Flask com base no ambiente configurado."""
@@ -41,6 +48,14 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
+
+    # ATIVAR CSRFProtect
+    csrf.init_app(app)
+
+    # INJETAR generate_csrf em TODO template Jinja como csrf_token()
+    @app.context_processor
+    def inject_csrf_token():
+        return { 'csrf_token': generate_csrf }
 
     # Registra os Blueprints
     from app.routes import pedidos_bp

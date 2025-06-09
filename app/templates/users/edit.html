@@ -45,7 +45,13 @@
         <!-- Formulário -->
         <form method="POST">
           {{ form.hidden_tag() }}
-
+		  {# Exibe erro de CSRF, se houver #}
+		  {% if form.csrf_token.errors %}
+			<div class="alert alert-danger">
+			  {{ form.csrf_token.errors[0] }}
+			</div>
+		  {% endif %}
+		  
           <!-- Campo para o username -->
           <div class="mb-3">
             <label class="form-label">{{ form.username.label }}</label>
