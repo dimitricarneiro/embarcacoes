@@ -195,57 +195,64 @@
     </nav>
   </div>
 
+<script>
+  // Disponibiliza o CSRF da sessão para o JS
+  const CSRF_TOKEN = "{{ csrf_token() }}";
+</script>
+
+
   <!-- JavaScript para ações de agenciamento e rejeição -->
   <script>
-    // Função para agenciar o pedido
-    function agenciarPedido(pedidoId) {
-      const authKey = "AGENCIA_SECRET"; // Simulação de autenticação, se necessário
-      fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/agenciar`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          if(data.error) {
-              alert("Erro: " + data.error);
-          } else {
-              alert("Pedido agenciado com sucesso!");
-              location.reload();
-          }
-      })
-      .catch(error => {
-          console.error("Erro ao agenciar pedido:", error);
-          alert("Erro ao agenciar pedido.");
-      });
-    }
 
-    // Função para rejeitar o pedido pela agência
-    function rejeitarPedidoAgencia(pedidoId) {
-      const authKey = "AGENCIA_SECRET"; // Simulação de autenticação, se necessário
-      fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": authKey
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          if(data.error) {
-              alert("Erro: " + data.error);
-          } else {
-              alert("Pedido rejeitado com sucesso!");
-              location.reload();
-          }
-      })
-      .catch(error => {
-          console.error("Erro ao rejeitar pedido:", error);
-          alert("Erro ao rejeitar pedido.");
-      });
+// Função para agenciar o pedido
+function agenciarPedido(pedidoId) {
+  fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/agenciar`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": CSRF_TOKEN
     }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => { throw new Error(text); });
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert("Pedido agenciado com sucesso!");
+    location.reload();
+  })
+  .catch(error => {
+    console.error("Erro ao agenciar pedido:", error);
+    alert("Erro ao agenciar pedido:\n" + error.message);
+  });
+}
+
+// Função para rejeitar o pedido pela agência
+function rejeitarPedidoAgencia(pedidoId) {
+  fetch(`/embarcacoes/api/pedidos-autorizacao/${pedidoId}/rejeitar-agencia`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": CSRF_TOKEN
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => { throw new Error(text); });
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert("Pedido rejeitado com sucesso!");
+    location.reload();
+  })
+  .catch(error => {
+    console.error("Erro ao rejeitar pedido:", error);
+    alert("Erro ao rejeitar pedido:\n" + error.message);
+  });
+}
   </script>
   
   <!-- Bootstrap JS Bundle -->
