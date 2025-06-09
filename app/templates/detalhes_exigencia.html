@@ -40,6 +40,7 @@
         <div class="card-body">
           <h4>Responder Exigência</h4>
 <form method="POST" action="{{ url_for('pedidos.responder_exigencia', pedido_id=pedido.id, exigencia_id=exigencia.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="mb-3">
     <label for="texto_resposta" class="form-label">Sua resposta:</label>
     <textarea class="form-control" id="texto_resposta" name="texto_resposta" rows="4" required></textarea>
