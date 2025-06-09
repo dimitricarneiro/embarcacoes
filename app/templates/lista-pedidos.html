@@ -348,17 +348,21 @@
 
   <!-- Importando o JS do Bootstrap via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // CSRF já disponível graças ao context processor
+  const CSRF_TOKEN = "{{ csrf_token() }}";
+</script>
   
   <!-- Scripts existentes -->
   <script>
     function aprovarPedido(pedidoId) {
-      const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
       fetch(`api/pedidos-autorizacao/${pedidoId}/aprovar`, {
           method: "PUT",
           headers: {
               "Content-Type": "application/json",
-              "Authorization": authKey
+              "X-CSRFToken": CSRF_TOKEN
           }
       })
       .then(response => response.json())
@@ -374,13 +378,12 @@
     }
 
     function rejeitarPedido(pedidoId) {
-      const authKey = "RFB_SECRET"; // 🔹 Simulação de autenticação
 
       fetch(`api/pedidos-autorizacao/${pedidoId}/rejeitar`, {
           method: "PUT",
           headers: {
               "Content-Type": "application/json",
-              "Authorization": authKey
+              "X-CSRFToken": CSRF_TOKEN
           }
       })
       .then(response => response.json())
@@ -396,13 +399,12 @@
     }
 
     function aprovarProrrogacao(pedidoId, prorrogacaoId) {
-      const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
       fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/aprovar`, {
           method: "PUT",
           headers: {
               "Content-Type": "application/json",
-              "Authorization": authKey
+              "X-CSRFToken": CSRF_TOKEN
           }
       })
       .then(response => response.json())
@@ -421,13 +423,12 @@
     }
 
     function rejeitarProrrogacao(pedidoId, prorrogacaoId) {
-      const authKey = "RFB_SECRET"; // Simulação de autenticação, se necessário
 
       fetch(`api/pedidos-autorizacao/${pedidoId}/prorrogacoes/${prorrogacaoId}/rejeitar`, {
           method: "PUT",
           headers: {
               "Content-Type": "application/json",
-              "Authorization": authKey
+              "X-CSRFToken": CSRF_TOKEN
           }
       })
       .then(response => response.json())
@@ -506,6 +507,7 @@
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
+			  'X-CSRFToken': CSRF_TOKEN
           },
           body: JSON.stringify({
               motivo_exigencia: motivoExigencia,
@@ -570,7 +572,8 @@
       fetch(`pedido/${pedidoId}/prorrogar`, {
           method: 'POST',
           headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
+              'Content-Type': 'application/x-www-form-urlencoded',
+			  "X-CSRFToken": CSRF_TOKEN
           },
           body: params
       })
