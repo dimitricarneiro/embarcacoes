@@ -2,9 +2,12 @@ import os
 
 class Config:
     """Configuração base (usada por todos os ambientes)."""
-    SECRET_KEY = os.getenv("SECRET_KEY", "minha_chave_secreta")
+    SECRET_KEY = os.getenv("EMBARCACOES_SECRET_KEY")
+    if not SECRET_KEY:
+        raise RuntimeError("A variável de ambiente EMBARCACOES_SECRET_KEY não está definida")
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 class DevelopmentConfig(Config):
     """Configuração para Desenvolvimento."""
