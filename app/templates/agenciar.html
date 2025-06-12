@@ -151,12 +151,16 @@
                   {% endif %}
                 </span>
               </div>
-              {% if pedido.status == "aguardando_agencia" and current_user.role == "agencia_maritima" %}
-                <div class="d-flex gap-2 mt-3">
-                  <button class="btn btn-success btn-sm" onclick="agenciarPedido({{ pedido.id }})">Agenciar</button>
-                  <button class="btn btn-danger btn-sm" onclick="rejeitarPedidoAgencia({{ pedido.id }})">Rejeitar</button>
-                </div>
-              {% endif %}
+				{% if 
+					  pedido.status == "aguardando_agencia" 
+					  and current_user.role == "agencia_maritima"
+					  and pedido.data_termino >= hoje
+				%}
+				  <div class="d-flex gap-2 mt-3">
+					<button class="btn btn-success btn-sm" onclick="agenciarPedido({{ pedido.id }})">Agenciar</button>
+					<button class="btn btn-danger btn-sm" onclick="rejeitarPedidoAgencia({{ pedido.id }})">Rejeitar</button>
+				  </div>
+				{% endif %}
             </div>
           </div>
         </div>
