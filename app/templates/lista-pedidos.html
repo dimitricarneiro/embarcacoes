@@ -235,15 +235,35 @@
                 {% endif %}
               </p>
               
-              {% if current_user.role == "RFB" %}
-                <div class="mt-2">
-                  {% if pedido.status == "pendente" %}
-                    <button type="button" class="btn btn-sm btn-aprovar me-1" onclick="aprovarPedido({{ pedido.id }})">✔ Aprovar</button>
-                    <button type="button" class="btn btn-sm btn-rejeitar me-1" onclick="rejeitarPedido({{ pedido.id }})">✖ Rejeitar</button>
-                    <button type="button" class="btn btn-sm btn-exigencia" onclick="abrirModalExigencia({{ pedido.id }})">⚠ Fazer exigência</button>
-                  {% endif %}
-                </div>
-              {% endif %}
+				{% if current_user.role == "RFB" %}
+				  <div class="mt-2">
+					{% if pedido.status == "pendente" %}
+					  {% if pedido.data_termino >= hoje %}
+						<!-- só mostra os botões se ainda não expirou -->
+						<button type="button"
+								class="btn btn-sm btn-aprovar me-1"
+								onclick="aprovarPedido({{ pedido.id }})">
+						  ✔ Aprovar
+						</button>
+						<button type="button"
+								class="btn btn-sm btn-rejeitar me-1"
+								onclick="rejeitarPedido({{ pedido.id }})">
+						  ✖ Rejeitar
+						</button>
+						<button type="button"
+								class="btn btn-sm btn-exigencia"
+								onclick="abrirModalExigencia({{ pedido.id }})">
+						  ⚠ Fazer exigência
+						</button>
+					  {% else %}
+						<!-- se expirou, mostra só o alerta -->
+						<div class="alert alert-warning mt-3">
+						  Pedido expirado.
+						</div>
+					  {% endif %}
+					{% endif %}
+				  </div>
+				{% endif %}
               
               <div class="mt-3">
                 <a href="pedido/{{ pedido.id }}" class="btn btn-primary btn-detalhes">🔍 Ver mais detalhes</a>
