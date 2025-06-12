@@ -113,6 +113,12 @@ def agenciar_pedido(pedido_id):
 #    if pedido.cnpj_agencia != current_user.cnpj:
 #        return jsonify({"error": "Você não tem permissão para agenciar este pedido."}), 403
 
+    # Verifica se o prazo final dos trabalho ainda não foi alcançado
+    if pedido.data_termino < date.today():
+        return jsonify({
+            "error": "Não é possível agenciar: a data de término do serviço já passou."
+        }), 400
+
     # Verifica se o pedido está no status esperado
     if pedido.status != "aguardando_agencia":
         return jsonify({"error": "Este pedido não está aguardando agenciamento."}), 400
@@ -163,6 +169,12 @@ def rejeitar_pedido_agencia(pedido_id):
     # Verifica se o cnpj do usuário é igual ao cnpj_agencia do pedido
 #    if pedido.cnpj_agencia != current_user.cnpj:
 #        return jsonify({"error": "Você não tem permissão para rejeitar este pedido."}), 403
+
+    # Verifica se o prazo final dos trabalho ainda não foi alcançado
+    if pedido.data_termino < date.today():
+        return jsonify({
+            "error": "Não é possível agenciar: a data de término do serviço já passou."
+        }), 400
 
     # Verifica se o pedido está no status esperado
     if pedido.status != "aguardando_agencia":

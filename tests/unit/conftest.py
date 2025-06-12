@@ -1,36 +1,58 @@
-# tests/conftest.py
 import os
 import sys
 import tempfile
 import pytest
-from app import create_app, db
-from app.models import Usuario
+
+# Garante que a app consiga iniciar no teste
+os.environ.setdefault('EMBARCACOES_SECRET_KEY', 'test_secret_key')
 
 # Insere o diretório raiz do projeto no sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+from app import create_app, db
+from app.models import Usuario
+
 @pytest.fixture
 def app():
-    # Cria um banco de dados temporário
+    # banco temporário
     db_fd, db_path = tempfile.mkstemp()
-    config = {
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///" + db_path,
-        "WTF_CSRF_ENABLED": False,
-    }
     app = create_app()
-    app.config.update(config)
-    
+    app.config.update({
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
+        "WTF_CSRF_ENABLED": False,    # CSRF OFF para todos os testes
+    })
+
     with app.app_context():
         db.create_all()
-        # Cria um usuário administrador e um usuário comum
-        admin_user = Usuario(username="admin", role="RFB")
-        admin_user.set_password("adminpass")
-        regular_user = Usuario(username="user", role="comum")
-        regular_user.set_password("userpass")
-        db.session.add_all([admin_user, regular_user])
+        # Cria usuários com cnpj dummy—só para satisfazer o NOT NULL
+        u1 = Usuario(
+            username="user",
+            role="comum",
+            cnpj="00.000.000/0001-91",
+            nome_empresa="Empresa Teste"
+        )
+        u1.set_password("userpass")
+
+        u2 = Usuario(
+            username="admin",
+            role="RFB",
+            cnpj="11.111.111/0001-91",
+            nome_empresa="Admin Teste"
+        )
+        u2.set_password("adminpass")
+
+        u3 = Usuario(
+            username="agencia",
+            role="agencia_maritima",
+            cnpj="22.222.222/0001-91",
+            nome_empresa="Agencia Teste"
+        )
+        u3.set_password("agenciapass")
+
+        db.session.add_all([u1, u2, u3])
         db.session.commit()
-        
+
     yield app
 
     os.close(db_fd)
@@ -39,14 +61,3 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
-
-@pytest.fixture
-def runner(app):
-    return app.test_cli_runner()
-
-def login(client, username, password):
-    """Helper para logar o usuário via rota de login."""
-    return client.post("/auth/login", data={
-        "username": username,
-        "password": password
-    }, follow_redirects=True)

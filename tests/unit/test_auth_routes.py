@@ -1,64 +1,95 @@
-import pytest
-from app import create_app
-from tests.unit.test_pedidos import login, login_admin, login_agencia  # Importa a função login
+# tests/unit/test_auth_routes.py
 
-@pytest.fixture
-def client():
-    app = create_app()
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+import re
+import pytest
+
+# pytest já encontra automaticamente o client e o app do tests/conftest.py
+# e também a fixture db que cria o esquema e os usuários.
+
+def extrair_csrf(html: str) -> str:
+    m = re.search(
+        r'<input[^>]+name=["\']csrf_token["\'][^>]+value=["\']([^"\']+)["\']',
+        html
+    )
+    assert m, f"Não encontrei csrf_token no formulário:\n{html}"
+    return m.group(1)
 
 def teste_acesso_login_get(client):
-    resposta = client.get("/auth/login")
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "login" in texto_resposta.lower()
+    resp = client.get("/auth/login")
+    assert resp.status_code == 200
+    # basta verificar que o form existe e que há um campo de token
+    html = resp.get_data(as_text=True)
+    assert "<form" in html.lower()
+    assert 'name="csrf_token"' in html
 
 def teste_login_post_invalido(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    resposta = client.post(
+    # GET primeiro para pegar o token
+    get0 = client.get("/auth/login")
+    token = extrair_csrf(get0.get_data(as_text=True))
+
+    # POST com credenciais inválidas + csrf
+    resp = client.post(
         "/auth/login",
-        data={"username": "inexistente", "password": "errada"},
+        data={
+            "username": "inexistente",
+            "password": "errada",
+            "csrf_token": token
+        },
         follow_redirects=True
     )
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "credenciais inválidas. tente novamente." in texto_resposta.lower()
+    assert resp.status_code == 200
+    assert "credenciais inválidas. tente novamente." in resp.get_data(as_text=True).lower()
 
-def teste_login_post_valido_regular(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # desabilita o CSRF para o teste, se necessário
-    login(client)  # função helper que realiza o login com credenciais válidas
-    resposta = client.get("/lista-pedidos", follow_redirects=True)
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "minhas autorizações" in texto_resposta.lower() 
+@pytest.mark.parametrize("user,passwd,redirect_url,check_text", [
+    ("user",    "userpass",   "/lista-pedidos",   "minhas autorizações"),
+    ("admin",   "adminpass",  "/admin",            "admin"),
+    ("agencia","agenciapass","/agencia/pedidos",  None),
+])
+def teste_login_post_valido(client, user, passwd, redirect_url, check_text):
+    # GET /auth/login -> extrai csrf
+    get0  = client.get("/auth/login")
+    token = extrair_csrf(get0.get_data(as_text=True))
 
-def teste_login_post_valido_admin(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    login_admin(client) # realiza login como admin
-    resposta = client.get("/admin", follow_redirects=True)
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "admin" in texto_resposta.lower()
+    # POST válido
+    resp1 = client.post(
+        "/auth/login",
+        data={
+            "username":   user,
+            "password":   passwd,
+            "csrf_token": token
+        },
+        follow_redirects=True
+    )
+    # agora uma requisição GET para a página alvo
+    resp2 = client.get(redirect_url, follow_redirects=True)
+    assert resp2.status_code == 200
+    if check_text:
+        assert check_text in resp2.get_data(as_text=True).lower()
 
-def teste_login_post_valido_agencia(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    login_agencia(client)
-    resposta = client.get("/agencia/pedidos", follow_redirects=True)
-    assert resposta.status_code == 200
-    
 def teste_renovar_sessao(client):
-    client.application.config['WTF_CSRF_ENABLED'] = False  # Desabilita o CSRF para o teste
-    login(client)
-    resposta = client.get("/auth/renovar-sessao")
-    assert resposta.status_code == 200
-    dados = resposta.get_json()
-    assert dados.get("message") == "Sessão renovada"
+    # primeiro faz login válido
+    get0  = client.get("/auth/login")
+    token = extrair_csrf(get0.get_data(as_text=True))
+    client.post("/auth/login",
+        data={"username":"user","password":"userpass","csrf_token":token},
+        follow_redirects=True
+    )
+
+    # GET renova
+    resp = client.get("/auth/renovar-sessao")
+    assert resp.status_code == 200
+    assert resp.get_json().get("message") == "Sessão renovada"
 
 def teste_logout(client):
-    login(client)
-    resposta = client.get("/auth/logout", follow_redirects=True)
-    assert resposta.status_code == 200
-    texto_resposta = resposta.get_data(as_text=True)
-    assert "login" in texto_resposta.lower()
+    # login
+    get0  = client.get("/auth/login")
+    token = extrair_csrf(get0.get_data(as_text=True))
+    client.post("/auth/login",
+        data={"username":"user","password":"userpass","csrf_token":token},
+        follow_redirects=True
+    )
+
+    # logout
+    resp = client.get("/auth/logout", follow_redirects=True)
+    assert resp.status_code == 200
+    assert "login" in resp.get_data(as_text=True).lower()
