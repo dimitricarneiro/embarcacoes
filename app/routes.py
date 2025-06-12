@@ -953,6 +953,12 @@ def aprovar_pedido(pedido_id):
     # Busca o pedido no banco
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
 
+    # Verifica se o prazo final dos trabalho ainda não foi alcançado
+    if pedido.data_termino < date.today():
+        return jsonify({
+            "error": "Pedido expirado."
+        }), 400
+
     # Verifica se já foi aprovado
     if pedido.status == "aprovado":
         return jsonify({"error": "Este pedido já foi aprovado"}), 400
@@ -982,6 +988,12 @@ def rejeitar_pedido(pedido_id):
 
     # Busca o pedido no banco
     pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+    # Verifica se o prazo final dos trabalho ainda não foi alcançado
+    if pedido.data_termino < date.today():
+        return jsonify({
+            "error": "Pedido expirado."
+        }), 400
 
     # Verifica se já foi aprovado ou rejeitado
     if pedido.status != "pendente":
@@ -1019,6 +1031,12 @@ def exigir_pedido(pedido_id):
 
         # Busca o pedido no banco
         pedido = PedidoAutorizacao.query.get_or_404(pedido_id)
+
+        # Verifica se o prazo final dos trabalho ainda não foi alcançado
+        if pedido.data_termino < date.today():
+            return jsonify({
+                "error": "Pedido expirado."
+            }), 400
 
         # Verifica se o pedido está no status pendente
         if pedido.status != "pendente":
