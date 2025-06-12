@@ -116,7 +116,7 @@ def agenciar_pedido(pedido_id):
     # Verifica se o prazo final dos trabalho ainda não foi alcançado
     if pedido.data_termino < date.today():
         return jsonify({
-            "error": "Não é possível agenciar: a data de término do serviço já passou."
+            "error": "Pedido expirado."
         }), 400
 
     # Verifica se o pedido está no status esperado
@@ -173,7 +173,7 @@ def rejeitar_pedido_agencia(pedido_id):
     # Verifica se o prazo final dos trabalho ainda não foi alcançado
     if pedido.data_termino < date.today():
         return jsonify({
-            "error": "Não é possível agenciar: a data de término do serviço já passou."
+            "error": "Pedido expirado."
         }), 400
 
     # Verifica se o pedido está no status esperado
