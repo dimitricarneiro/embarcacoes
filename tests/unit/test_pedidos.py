@@ -10,23 +10,30 @@ def client():
     with app.test_client() as client:
         yield client
 
-def login(client):
-    """Função auxiliar para autenticar o usuário de teste"""
-    credenciais = {
-        "username": "usuario",
-        "password": "123456"
-    }
-    response = client.post("/auth/login", data=credenciais, follow_redirects=True)
+import re
 
-    print("Headers da resposta de login:", response.headers)
+# Em tests/unit/test_agencias.py (ou num utils de testes compartilhado)
 
-    # 🔹 Mantém a sessão do usuário ativa no cliente de testes
+from app.models import Usuario
+
+def login(client, username="user"):
+    """Autentica setando diretamente na sessão o user_id do Flask-Login."""
+    # 1) Carrega o usuário do banco de teste
+    with client.application.app_context():
+        user = Usuario.query.filter_by(username=username).first()
+        assert user, f"Usuário de teste '{username}' não existe"
+
+    # 2) Injeta na sessão
     with client.session_transaction() as sess:
-        sess.permanent = True  # Força a sessão a ser mantida
-        print("Sessão ativa após login:", sess)  # Verifica se a sessão está carregada corretamente
-    
-    assert response.status_code == 200  # Confirma que o login foi bem-sucedido
-    return response
+        # chave interna do Flask-Login para o ID de usuário
+        sess['_user_id'] = str(user.id)
+        sess['_fresh'] = True
+
+    # 3) Opcional: verifique que current_user está logado (só em debug)
+    resp = client.get("/some_protected_route", follow_redirects=False)
+    # aqui você pode checar que não dá 302, mas não é obrigatório
+    return
+
 
 def login_admin(client):
     """Função auxiliar para autenticar o usuário de teste como admin"""

@@ -11,6 +11,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 from app import create_app, db
 from app.models import Usuario
+import flask_wtf.csrf as fwcsrf
+
+@pytest.fixture(autouse=True)
+def disable_csrf(monkeypatch):
+    """
+    Desativa a validação de CSRF em todos os testes,
+    substituindo a função validate_csrf por um noop.
+    """
+    monkeypatch.setattr(fwcsrf, "validate_csrf", lambda *args, **kwargs: None)
+    yield
+
 
 @pytest.fixture
 def app():

@@ -174,6 +174,10 @@
               <p class="mb-1"><strong>Empresa:</strong> {{ pedido.empresa_responsavel }}</p>
               <p class="mb-1"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</p>
               <p class="mb-1"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</p>
+			  
+			  <p class="mb-1"><strong>Embarcação:</strong> {{ embarcacao.nome }}</p>
+			  <p class="mb-1"><strong>Meio de transporte:</strong> {{ pedido.meio_de_transporte or 'N/A' }}</p>
+			  
               <p class="mb-1"><strong>Data de abertura:</strong> {{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</p>
               <p class="mb-1"><strong>Início do serviço:</strong> {{ pedido.data_inicio.strftime('%d/%m/%Y') }}</p>
               <p class="mb-1">
