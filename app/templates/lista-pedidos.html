@@ -159,7 +159,8 @@
 
     <!-- Links de exportação -->
     <div class="text-center mb-4">
-      <a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}" class="btn btn-outline-primary me-2">Exportar PDF</a>
+      <a href="{{ url_for('pedidos.exportar_pdf', **request.args) }}" class="btn btn-outline-primary me-2">Exportar PDF (tabela)</a>
+	  <a href="{{ url_for('pedidos.exportar_pdf_completo', **request.args) }}" class="btn btn-outline-secondary">Exportar PDF Completo</a>
       <a href="{{ url_for('pedidos.exportar_excel', **request.args) }}" class="btn btn-outline-primary me-2">Exportar Excel</a>
       <a href="{{ url_for('pedidos.exportar_csv', **request.args) }}" class="btn btn-outline-primary">Exportar CSV</a>
     </div>

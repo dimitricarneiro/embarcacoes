@@ -29,13 +29,14 @@ from sqlalchemy.orm import joinedload
 
 # Bibliotecas para Gerar Relatórios PDF
 from io import BytesIO
-from reportlab.lib.pagesizes import A3, landscape
+from reportlab.lib.pagesizes import A3, landscape, A4, portrait
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj, validar_cpf, normalizar_cnpj
+
 
 # Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
@@ -1403,6 +1404,67 @@ def exportar_pdf():
         buffer,
         as_attachment=True,
         download_name="relatorio_pedidos.pdf",
+        mimetype="application/pdf"
+    )
+
+# nova rota para “PDF Completo”
+@pedidos_bp.route('/admin/exportar-pdf-completo')
+@login_required
+@role_required("RFB", "comum")
+def exportar_pdf_completo():
+    """Exporta um PDF completo, com cards detalhados de cada pedido."""
+    # 1) Obter os pedidos filtrados
+    query = filtrar_pedidos(request.args, current_user)
+    pedidos = query.all()
+
+    # 2) Preparar buffer e documento
+    buffer = BytesIO()
+    doc    = SimpleDocTemplate(buffer, pagesize=portrait(A4), rightMargin=40,leftMargin=40, topMargin=40,bottomMargin=40)
+    styles = getSampleStyleSheet()
+    elementos = []
+
+    # Título
+    elementos.append(Paragraph("Relatório Completo de Pedidos", styles['Title']))
+    elementos.append(Spacer(1, 12))
+
+    # 3) Para cada pedido, gerar um “card” em forma de tabela com borda
+    for p in pedidos:
+        data = [
+            ["<b>ID do Pedido:</b>", str(p.id)],
+            ["<b>Empresa:</b>", p.empresa_responsavel],
+            ["<b>CNPJ:</b>", p.cnpj_empresa],
+            ["<b>Motivo:</b>", p.motivo_solicitacao],
+            ["<b>Data Início:</b>", p.data_inicio.strftime("%d/%m/%Y")],
+            ["<b>Data Término:</b>", p.data_termino.strftime("%d/%m/%Y")],
+            ["<b>Horário Início:</b>", p.horario_inicio_servicos or ""],
+            ["<b>Horário Término:</b>", p.horario_termino_servicos or ""],
+            ["<b>Status:</b>", p.status],
+            # … adicione aqui outras linhas conforme ‘detalhes-pedido.html’ …
+        ]
+
+        tabela = Table(data, colWidths=[120, 360], hAlign='LEFT')
+        tabela.setStyle(TableStyle([
+            ('BOX',          (0,0), (-1,-1),   1,   colors.black),
+            ('BACKGROUND',   (0,0), (-1,0),    colors.lightgrey),
+            ('TEXTCOLOR',    (0,0), (-1,0),    colors.whitesmoke),
+            ('INNERGRID',    (0,0), (-1,-1),   0.5, colors.grey),
+            ('VALIGN',       (0,0), (-1,-1),   'TOP'),
+            ('LEFTPADDING',  (0,0), (-1,-1),   6),
+            ('RIGHTPADDING', (0,0), (-1,-1),   6),
+            ('TOPPADDING',   (0,0), (-1,-1),   4),
+            ('BOTTOMPADDING',(0,0), (-1,-1),   4),
+        ]))
+
+        elementos.append(tabela)
+        elementos.append(Spacer(1, 12))
+
+    # 4) Gerar e enviar
+    doc.build(elementos)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="relatorio_pedidos_completo.pdf",
         mimetype="application/pdf"
     )
 
