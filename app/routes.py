@@ -33,10 +33,9 @@ from reportlab.lib.pagesizes import A3, landscape, A4, portrait
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
 from app.utils import validar_cnpj, validar_cpf, normalizar_cnpj
-
 
 # Bibliotecas para Gerar Planilhas Excel
 from openpyxl import Workbook
@@ -1408,57 +1407,177 @@ def exportar_pdf():
     )
 
 # nova rota para “PDF Completo”
+from flask import request, send_file
+from flask_login import login_required, current_user
+from app.security import role_required
+from app.forms import PedidoSearchForm
+from app.models import PedidoAutorizacao
+from io import BytesIO
+import re
+
 @pedidos_bp.route('/admin/exportar-pdf-completo')
 @login_required
 @role_required("RFB", "comum")
 def exportar_pdf_completo():
     """Exporta um PDF completo, com cards detalhados de cada pedido."""
-    # 1) Obter os pedidos filtrados
+    # 1) Busca os pedidos filtrados
     query = filtrar_pedidos(request.args, current_user)
     pedidos = query.all()
 
-    # 2) Preparar buffer e documento
+    # 2) Prepara o documento
     buffer = BytesIO()
-    doc    = SimpleDocTemplate(buffer, pagesize=portrait(A4), rightMargin=40,leftMargin=40, topMargin=40,bottomMargin=40)
+    doc    = SimpleDocTemplate(
+        buffer,
+        pagesize=portrait(A4),
+        leftMargin=40, rightMargin=40,
+        topMargin=40, bottomMargin=40
+    )
     styles = getSampleStyleSheet()
-    elementos = []
+    normal = styles['Normal']
+    label_style = ParagraphStyle(
+        name='Label',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold'
+    )
 
-    # Título
+    elementos = []
     elementos.append(Paragraph("Relatório Completo de Pedidos", styles['Title']))
     elementos.append(Spacer(1, 12))
 
-    # 3) Para cada pedido, gerar um “card” em forma de tabela com borda
+    # Helper para formatar CPF
+    def fmt_cpf(cpf):
+        digits = re.sub(r"\D", "", cpf or "")
+        if len(digits) == 11:
+            return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+        return cpf or ""
+
+    # 3) Monta um “card” (tabela) para cada pedido
     for p in pedidos:
-        data = [
-            ["<b>ID do Pedido:</b>", str(p.id)],
-            ["<b>Empresa:</b>", p.empresa_responsavel],
-            ["<b>CNPJ:</b>", p.cnpj_empresa],
-            ["<b>Motivo:</b>", p.motivo_solicitacao],
-            ["<b>Data Início:</b>", p.data_inicio.strftime("%d/%m/%Y")],
-            ["<b>Data Término:</b>", p.data_termino.strftime("%d/%m/%Y")],
-            ["<b>Horário Início:</b>", p.horario_inicio_servicos or ""],
-            ["<b>Horário Término:</b>", p.horario_termino_servicos or ""],
-            ["<b>Status:</b>", p.status],
-            # … adicione aqui outras linhas conforme ‘detalhes-pedido.html’ …
-        ]
+        data = []
+        # — Campos básicos —
+        data.extend([
+            [Paragraph("ID do pedido:", label_style), Paragraph(str(p.id), normal)],
+            [Paragraph("Empresa:", label_style), Paragraph(p.empresa_responsavel, normal)],
+            [Paragraph("CNPJ:", label_style), Paragraph(p.cnpj_empresa, normal)],
+            [Paragraph("Motivo:", label_style), Paragraph(p.motivo_solicitacao, normal)],
+            [Paragraph("Data de início:", label_style),
+             Paragraph(p.data_inicio.strftime("%d-%m-%Y"), normal)],
+            [Paragraph("Data de término:", label_style),
+             Paragraph(p.data_termino.strftime("%d-%m-%Y"), normal)],
+            [Paragraph("Horário de início:", label_style),
+             Paragraph(p.horario_inicio_servicos or "N/A", normal)],
+            [Paragraph("Horário de término:", label_style),
+             Paragraph(p.horario_termino_servicos or "N/A", normal)],
+            [Paragraph("Agência Marítima:", label_style),
+             Paragraph(p.agencia_maritima or "N/A", normal)],
+            [Paragraph("CNPJ da Agência:", label_style),
+             Paragraph(p.cnpj_agencia or "N/A", normal)],
+            [Paragraph("Representante da Agência:", label_style),
+             Paragraph(p.representante_agencia or "N/A", normal)],
+            [Paragraph("Meio de Transporte:", label_style),
+             Paragraph(p.meio_de_transporte or "N/A", normal)],
+            [Paragraph("Situação:", label_style),
+             Paragraph({
+                 "pendente": "Pendente de análise pela RFB ⏳",
+                 "aguardando_agencia": "Aguardando agência ⏳",
+                 "aprovado": f"Aprovado ✅{f' (por {p.usuario_que_analisou.username})' if p.usuario_que_analisou else ''}",
+                 "rejeitado": "Rejeitado ❌",
+                 "exigência": "Com exigência ⚠",
+                 "rejeitado_agencia": "Rejeitado pela agência ❌"
+             }.get(p.status, p.status), normal)],
+        ])
 
-        tabela = Table(data, colWidths=[120, 360], hAlign='LEFT')
+        # — Exigências —
+        if p.exigencias:
+            data.append([Paragraph("Exigências:", label_style), Paragraph("", normal)])
+            for ex in p.exigencias:
+                data.extend([
+                    [Paragraph("Motivo da exigência:", label_style),
+                     Paragraph(ex.motivo_exigencia, normal)],
+                    [Paragraph("Prazo da exigência:", label_style),
+                     Paragraph(ex.prazo_exigencia.strftime("%d/%m/%Y"), normal)],
+                    [Paragraph("Data de criação:", label_style),
+                     Paragraph(f"{ex.data_criacao.strftime('%d/%m/%Y %H:%M')} (por {ex.usuario.username})", normal)],
+                    [Paragraph("Resposta em:", label_style),
+                     Paragraph(ex.data_resposta.strftime("%d/%m/%Y %H:%M") if ex.data_resposta else "–", normal)],
+                    [Paragraph("Texto da resposta:", label_style),
+                     Paragraph(ex.texto_resposta or "Nenhuma resposta", normal)],
+                ])
+        else:
+            data.append([Paragraph("Exigências:", label_style),
+                         Paragraph("Nenhuma exigência registrada.", normal)])
+
+        # — Embarcações —
+        if p.embarcacoes:
+            data.append([Paragraph("Embarcações:", label_style), Paragraph("", normal)])
+            for em in p.embarcacoes:
+                data.extend([
+                    [Paragraph("Nome:", label_style), Paragraph(em.nome, normal)],
+                    [Paragraph("IMO:", label_style), Paragraph(em.imo or "N/A", normal)],
+                    [Paragraph("Bandeira:", label_style), Paragraph(em.bandeira or "N/A", normal)],
+                ])
+        else:
+            data.append([Paragraph("Embarcações:", label_style),
+                         Paragraph("Nenhuma embarcação associada.", normal)])
+
+        # — Equipamentos —
+        if p.equipamentos:
+            data.append([Paragraph("Equipamentos:", label_style), Paragraph("", normal)])
+            for eq in p.equipamentos:
+                data.extend([
+                    [Paragraph("Descrição:", label_style), Paragraph(eq.descricao, normal)],
+                    [Paragraph("Número de Série:", label_style), Paragraph(eq.numero_serie, normal)],
+                    [Paragraph("Quantidade:", label_style), Paragraph(str(eq.quantidade), normal)],
+                    [Paragraph("Unidade:", label_style), Paragraph(eq.unidade or "N/A", normal)],
+                ])
+        else:
+            data.append([Paragraph("Equipamentos:", label_style),
+                         Paragraph("Nenhum equipamento associado.", normal)])
+
+        # — Pessoas —
+        if p.pessoas:
+            data.append([Paragraph("Pessoas:", label_style), Paragraph("", normal)])
+            for ps in p.pessoas:
+                data.extend([
+                    [Paragraph("Nome:", label_style), Paragraph(ps.nome, normal)],
+                    [Paragraph("CPF:", label_style), Paragraph(fmt_cpf(ps.cpf), normal)],
+                    [Paragraph("ISPS:", label_style), Paragraph(ps.isps or "–", normal)],
+                    [Paragraph("Função:", label_style), Paragraph(ps.funcao or "–", normal)],
+                    [Paragraph("Local de Embarque:", label_style), Paragraph(ps.local_embarque or "–", normal)],
+                    [Paragraph("Local de Desembarque:", label_style), Paragraph(ps.local_desembarque or "–", normal)],
+                ])
+        else:
+            data.append([Paragraph("Pessoas:", label_style),
+                         Paragraph("Nenhuma pessoa associada.", normal)])
+
+        # — Veículos —
+        if p.veiculos:
+            data.append([Paragraph("Veículos:", label_style), Paragraph("", normal)])
+            for v in p.veiculos:
+                data.extend([
+                    [Paragraph("Modelo:", label_style), Paragraph(v.modelo, normal)],
+                    [Paragraph("Placa:", label_style), Paragraph(v.placa, normal)],
+                ])
+        else:
+            data.append([Paragraph("Veículos:", label_style),
+                         Paragraph("Nenhum veículo associado.", normal)])
+
+        # Monta a tabela “card”
+        tabela = Table(data, colWidths=[140, 340], hAlign='LEFT')
         tabela.setStyle(TableStyle([
-            ('BOX',          (0,0), (-1,-1),   1,   colors.black),
-            ('BACKGROUND',   (0,0), (-1,0),    colors.lightgrey),
-            ('TEXTCOLOR',    (0,0), (-1,0),    colors.whitesmoke),
-            ('INNERGRID',    (0,0), (-1,-1),   0.5, colors.grey),
-            ('VALIGN',       (0,0), (-1,-1),   'TOP'),
-            ('LEFTPADDING',  (0,0), (-1,-1),   6),
-            ('RIGHTPADDING', (0,0), (-1,-1),   6),
-            ('TOPPADDING',   (0,0), (-1,-1),   4),
-            ('BOTTOMPADDING',(0,0), (-1,-1),   4),
+            ('BOX',          (0,0),  (-1,-1),   1,   colors.black),
+            ('INNERGRID',    (0,0),  (-1,-1),   0.5, colors.grey),
+            ('VALIGN',       (0,0),  (-1,-1),   'TOP'),
+            ('BACKGROUND',   (0,0),  (-1,0),    colors.lightgrey),
+            ('LEFTPADDING',  (0,0),  (-1,-1),   6),
+            ('RIGHTPADDING', (0,0),  (-1,-1),   6),
+            ('TOPPADDING',   (0,0),  (-1,-1),   4),
+            ('BOTTOMPADDING',(0,0),  (-1,-1),   4),
         ]))
-
         elementos.append(tabela)
-        elementos.append(Spacer(1, 12))
+        elementos.append(Spacer(1, 16))
 
-    # 4) Gerar e enviar
+    # 4) Gera e retorna o PDF
     doc.build(elementos)
     buffer.seek(0)
     return send_file(
