@@ -175,7 +175,16 @@
               <p class="mb-1"><strong>CNPJ:</strong> {{ pedido.cnpj_empresa }}</p>
               <p class="mb-1"><strong>Motivo:</strong> {{ pedido.motivo_solicitacao }}</p>
 			  
-			  <p class="mb-1"><strong>Embarcação:</strong> {{ embarcacao.nome }}</p>
+    {% if pedido.embarcacoes %}
+      {% for embarcacao in pedido.embarcacoes %}
+        <p class="mb-1">
+          <span class="fw-bold text-primary" style="min-width:180px; display:inline-block;">Nome:</span> {{ embarcacao.nome }}<br>
+        </p>
+      {% endfor %}
+    {% else %}
+      <p class="mb-1">Embarcações: Nenhuma embarcação associada.</p>
+    {% endif %}
+	
 			  <p class="mb-1"><strong>Meio de transporte:</strong> {{ pedido.meio_de_transporte or 'N/A' }}</p>
 			  
               <p class="mb-1"><strong>Data de abertura:</strong> {{ pedido.data_criacao_pedido.strftime('%d/%m/%Y') }}</p>
