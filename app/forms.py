@@ -107,7 +107,12 @@ class LoginForm(FlaskForm):
 
 # Formulário para criação de alertas
 class AlertaForm(FlaskForm):
-    tipo = SelectField("Tipo", choices=[("embarcacao", "Embarcação"), ("cnpj", "CNPJ")], validators=[DataRequired()])
+    tipo = SelectField("Tipo", choices=[
+        ("embarcacao", "Embarcação"),
+        ("cnpj",        "CNPJ"),
+        ("cpf",         "CPF"),
+        ("meio_de_transporte", "Meio de Transporte")
+    ], validators=[DataRequired()])
     valor = StringField("Valor", validators=[DataRequired()])
     submit = SubmitField("Criar Alerta")
 

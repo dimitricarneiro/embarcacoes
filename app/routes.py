@@ -107,8 +107,32 @@ def verificar_alertas(novo_pedido):
         # Se o alerta for do tipo "cnpj", comparamos com o CNPJ da empresa do pedido
         elif alerta.tipo == "cnpj":
             if normalizar_cnpj(novo_pedido.cnpj_empresa) == normalizar_cnpj(alerta.valor):
-                mensagem = (f"Novo pedido {novo_pedido.id} criado pelo CNPJ "
-                            f"'{novo_pedido.cnpj_empresa}' corresponde ao seu alerta.")
+                mensagem = (
+                    f"Novo pedido {novo_pedido.id} criado pelo CNPJ "
+                    f"'{novo_pedido.cnpj_empresa}' corresponde ao seu alerta."
+                )
+                criar_notificacao(alerta.usuario_id, mensagem)
+
+        # Se o alerta for do tipo "cpf", percorremos cada pessoa associada ao pedido
+        elif alerta.tipo == "cpf":
+            for pessoa in novo_pedido.pessoas:
+                cpf_ped = re.sub(r"\D", "", pessoa.cpf or "")
+                if cpf_ped == alerta.valor:
+                    mensagem = (
+                        f"Novo pedido {novo_pedido.id} contém pessoa com CPF "
+                        f"'{pessoa.cpf}'."
+                    )
+                    criar_notificacao(alerta.usuario_id, mensagem)
+                    break  # evita múltiplas notificações do mesmo alerta
+
+        # Se o alerta for do tipo "meio_de_transporte", checamos substring no campo
+        elif alerta.tipo == "meio_de_transporte":
+            meio = (novo_pedido.meio_de_transporte or "").lower()
+            if alerta.valor.lower() in meio:
+                mensagem = (
+                    f"Novo pedido {novo_pedido.id} com meio de transporte "
+                    f"'{novo_pedido.meio_de_transporte}' corresponde ao seu alerta."
+                )
                 criar_notificacao(alerta.usuario_id, mensagem)
 
 def criar_notificacao(usuario_id, mensagem):
@@ -1206,10 +1230,15 @@ def gerenciar_alertas():
     
     form = AlertaForm()
     if form.validate_on_submit():
+        # Normaliza o valor se for alerta de CPF (remove pontos e traços)
+        valor = form.valor.data
+        if form.tipo.data == "cpf":
+            valor = re.sub(r"\D", "", valor)
+
         novo_alerta = Alerta(
             usuario_id=current_user.id,
             tipo=form.tipo.data,
-            valor=form.valor.data
+            valor=valor
         )
         db.session.add(novo_alerta)
         db.session.commit()
