@@ -287,32 +287,46 @@
       {% endfor %}
     </div>
 
-    <!-- Paginação (convertida para estrutura Bootstrap) -->
-    <nav aria-label="Page navigation" class="mt-4">
-      <ul class="pagination justify-content-center">
-        {% if pedidos.has_prev %}
-          <li class="page-item">
-            <a class="page-link" href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.prev_num) }}">⏪ Anterior</a>
-          </li>
-        {% else %}
-          <li class="page-item disabled">
-            <span class="page-link">⏪ Anterior</span>
-          </li>
-        {% endif %}
-        <li class="page-item disabled">
-          <span class="page-link">Página {{ pedidos.page }} de {{ pedidos.pages }}</span>
-        </li>
-        {% if pedidos.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="{{ url_for('pedidos.exibir_pedidos', page=pedidos.next_num) }}">Próxima ⏩</a>
-          </li>
-        {% else %}
-          <li class="page-item disabled">
-            <span class="page-link">Próxima ⏩</span>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
+    <!-- Paginação -->
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if pedidos.has_prev %}
+      <li class="page-item">
+        <a class="page-link"
+           href="{{ url_for('pedidos.exibir_pedidos',
+                            **request.args,
+                            page=pedidos.prev_num) }}">
+          ⏪ Anterior
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">⏪ Anterior</span>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ pedidos.page }} de {{ pedidos.pages }}
+      </span>
+    </li>
+
+    {% if pedidos.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="{{ url_for('pedidos.exibir_pedidos',
+                            **request.args,
+                            page=pedidos.next_num) }}">
+          Próxima ⏩
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima ⏩</span>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
 
     {% if current_user.role == "RFB" %}
       <div class="mt-4">

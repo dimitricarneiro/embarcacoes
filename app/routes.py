@@ -48,46 +48,66 @@ import base64
 
 
 ################Funções auxiliares
-def filtrar_pedidos():
+def filtrar_pedidos(args, current_user):
     """
-    Aplica os filtros enviados via query string e retorna a lista de pedidos filtrados.
+    Retorna um objeto Query já com todos os filtros e ordenação aplicada.
+    
+    Parâmetros:
+    - args: dict (ex. request.args)
+    - current_user: objeto User (com role e id)
+    
+    Filtros incluídos:
+      • Distinção RFB × usuário comum
+      • nome_empresa, cnpj_empresa, status
+      • data_inicio, data_termino, data_criacao
+      • nome_embarcacao (via join com Embarcacao)
+      • ordenação decrescente por ID
     """
-    query = PedidoAutorizacao.query
+    form = PedidoSearchForm(args)
 
-    # Filtro: Nome da Empresa (busca parcial, sem case sensitive)
-    nome_empresa = request.args.get('nome_empresa')
-    if nome_empresa:
-        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{nome_empresa}%"))
+    # 1) Base da query
+    if current_user.role == "RFB":
+        query = PedidoAutorizacao.query
+    else:
+        query = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
 
-    # Filtro: CNPJ (busca exata)
-    cnpj_empresa = request.args.get('cnpj_empresa')
-    if cnpj_empresa:
-        query = query.filter(PedidoAutorizacao.cnpj_empresa == cnpj_empresa)
+    # 2) Aplicar filtros do form
+    if form.nome_empresa.data:
+        query = query.filter(
+            PedidoAutorizacao.empresa_responsavel.ilike(f"%{form.nome_empresa.data}%")
+        )
 
-    # Filtro: Status
-    status = request.args.get('status')
-    if status:
-        query = query.filter(PedidoAutorizacao.status == status)
+    if form.cnpj_empresa.data:
+        query = query.filter(
+            PedidoAutorizacao.cnpj_empresa.ilike(f"%{form.cnpj_empresa.data}%")
+        )
 
-    # Filtro: Data Início
-    data_inicio = request.args.get('data_inicio')
-    if data_inicio:
-        try:
-            data_inicio_date = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-            query = query.filter(PedidoAutorizacao.data_inicio >= data_inicio_date)
-        except ValueError:
-            pass  # Se o formato da data for inválido, ignora o filtro
+    if form.status.data:
+        query = query.filter(PedidoAutorizacao.status == form.status.data)
 
-    # Filtro: Data Término
-    data_termino = request.args.get('data_termino')
-    if data_termino:
-        try:
-            data_termino_date = datetime.strptime(data_termino, '%Y-%m-%d').date()
-            query = query.filter(PedidoAutorizacao.data_termino <= data_termino_date)
-        except ValueError:
-            pass
+    if form.data_inicio.data:
+        query = query.filter(PedidoAutorizacao.data_inicio >= form.data_inicio.data)
 
-    return query.all()
+    if form.data_termino.data:
+        query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
+
+    if form.data_criacao.data:
+        query = query.filter(
+            func.date(PedidoAutorizacao.data_criacao_pedido) == form.data_criacao.data
+        )
+
+    if form.nome_embarcacao.data:
+        query = (
+            query
+            .join(PedidoAutorizacao.embarcacoes)
+            .filter(
+                func.lower(Embarcacao.nome) ==
+                form.nome_embarcacao.data.lower()
+            )
+        )
+
+    # 3) Ordenação final
+    return query.order_by(PedidoAutorizacao.id.desc())
 
 def verificar_alertas(novo_pedido):
     """
@@ -895,47 +915,17 @@ def rejeitar_prorrogacao(pedido_id, prorrogacao_id):
 def exibir_pedidos():
     """Exibe os pedidos em uma página HTML com filtros, busca e paginação."""
     
-    # Cria o formulário de busca com os parâmetros da query string
+    # Monta o form (para manter os campos preenchidos no template)
     form = PedidoSearchForm(request.args)
-    
-    # Captura a paginação
-    page = request.args.get("page", default=1, type=int)
-    per_page = request.args.get("per_page", default=10, type=int)
-    
-    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
-    if current_user.role == "RFB":
-        query = PedidoAutorizacao.query
-    else:
-        query = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id)
-    
-    # Aplicando os filtros com base nos dados do formulário
-    if form.nome_empresa.data:
-        query = query.filter(PedidoAutorizacao.empresa_responsavel.ilike(f"%{form.nome_empresa.data}%"))
-    
-    if form.cnpj_empresa.data:
-        query = query.filter(PedidoAutorizacao.cnpj_empresa.ilike(f"%{form.cnpj_empresa.data}%"))
-    
-    if form.status.data in ["pendente", "aprovado", "rejeitado", "aguardando_agencia", "rejeitado_agencia", "exigência"]:
-        query = query.filter(PedidoAutorizacao.status == form.status.data)
-    
-    if form.data_inicio.data:
-        query = query.filter(PedidoAutorizacao.data_inicio >= form.data_inicio.data)
-    
-    if form.data_termino.data:
-        query = query.filter(PedidoAutorizacao.data_termino <= form.data_termino.data)
 
-    # filtro exato: data de criação do pedido
-    if form.data_criacao.data:
-        query = query.filter(func.date(PedidoAutorizacao.data_criacao_pedido) == form.data_criacao.data)
-    
-    if form.nome_embarcacao.data:
-        #query = query.join(PedidoAutorizacao.embarcacoes).filter(Embarcacao.nome.ilike(f"%{form.nome_embarcacao.data}%"))
-        query = query.join(PedidoAutorizacao.embarcacoes).filter(func.lower(Embarcacao.nome) == form.nome_embarcacao.data.lower())
-    
-    # Ordenação e paginação
-    query = query.order_by(PedidoAutorizacao.id.desc())
+    # Parâmetros de paginação
+    page     = request.args.get("page",     default=1,  type=int)
+    per_page = request.args.get("per_page", default=10, type=int)
+
+    # Utiliza o helper para aplicar filtros + ordenação
+    query = filtrar_pedidos(request.args, current_user)
     pedidos_paginados = query.paginate(page=page, per_page=per_page, error_out=False)
-    
+
     hoje = date.today()
     
     return render_template('lista-pedidos.html', pedidos=pedidos_paginados, form=form, hoje=hoje)
@@ -1281,13 +1271,9 @@ def verificar_comprovante(token):
 def exportar_csv():
     """Exporta os pedidos como um arquivo CSV."""
 
-    # 1) Busca filtrada de pedidos
-    if current_user.role == "RFB":
-        pedidos = PedidoAutorizacao.query.all()
-    else:
-        pedidos = PedidoAutorizacao.query.filter_by(
-            usuario_id=current_user.id
-        ).all()
+    # 1) Busca filtrada de pedidos via helper (aplica filtros e ordenação)
+    query = filtrar_pedidos(request.args, current_user)
+    pedidos = query.all()
 
     # 2) Prepara buffer e BOM
     output = io.StringIO()
@@ -1338,13 +1324,9 @@ def exportar_csv():
 def exportar_pdf():
     """Exporta os pedidos como PDF, incluindo sumário estatístico."""
 
-    # 1) Busca filtrada de pedidos
-    if current_user.role == "RFB":
-        pedidos = PedidoAutorizacao.query.all()
-    else:
-        pedidos = PedidoAutorizacao.query.filter_by(
-            usuario_id=current_user.id
-        ).all()
+    # 1) Busca filtrada de pedidos via helper (aplica filtros e ordenação)
+    query = filtrar_pedidos(request.args, current_user)
+    pedidos = query.all()
 
     # 2) Estatísticas
     total_pedidos     = len(pedidos)
@@ -1441,12 +1423,9 @@ def exportar_excel():
 
     #pedidos = PedidoAutorizacao.query.all() #caso queira exportar todos os pedidos sem nenhum filtro
     
-    # Utiliza os filtros para obter os pedidos
-    # Base da query: usuários comuns veem apenas seus pedidos; RFB vê todos
-    if current_user.role == "RFB":
-        pedidos = PedidoAutorizacao.query.all()
-    else:
-        pedidos = PedidoAutorizacao.query.filter_by(usuario_id=current_user.id).all()
+    # Busca filtrada de pedidos via helper (aplica filtros e ordenação)
+    query = filtrar_pedidos(request.args, current_user)
+    pedidos = query.all()
 
     # Calcular estatísticas
     total_pedidos = len(pedidos)
