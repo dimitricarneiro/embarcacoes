@@ -1,5 +1,24 @@
-site_name: Meu Projeto
-theme: readthedocs
+# mkdocs.yml
+
+site_name: Embarcações
+docs_dir: docs
+site_dir: site
+
 nav:
   - Home: index.md
-  - Guia: guia.md
+  - API:
+      - Pedidos de Autorização: api-pedidos.md
+      - Agência Marítima: api-agencias.md
+  - Formulários: forms.md
+  - Utilitários: utils.md
+
+theme:
+  name: mkdocs
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
