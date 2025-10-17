@@ -290,14 +290,19 @@
 
     <!-- Paginação -->
 <nav aria-label="Page navigation" class="mt-4">
+  {% macro qs_without_page() -%}
+    {%- for k, v in request.args.items() if k != 'page' -%}
+      {%- if not loop.first -%}&{%- endif -%}
+      {{- k|urlencode }}={{ v|urlencode -}}
+    {%- endfor -%}
+  {%- endmacro %}
+  {%- set base_qs = qs_without_page() -%}
   <ul class="pagination justify-content-center">
-    {# captura a query string bruta #}
-    {%- set qs = request.environ['QUERY_STRING'] -%}
 
     {% if pedidos.has_prev %}
       <li class="page-item">
         <a class="page-link"
-           href="{{ url_for('pedidos.exibir_pedidos') }}?{% if qs %}{{ qs }}&{% endif %}page={{ pedidos.prev_num }}">
+           href="{{ url_for('pedidos.exibir_pedidos') }}?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ pedidos.prev_num }}">
           ⏪ Anterior
         </a>
       </li>
@@ -316,7 +321,7 @@
     {% if pedidos.has_next %}
       <li class="page-item">
         <a class="page-link"
-           href="{{ url_for('pedidos.exibir_pedidos') }}?{% if qs %}{{ qs }}&{% endif %}page={{ pedidos.next_num }}">
+           href="{{ url_for('pedidos.exibir_pedidos') }}?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ pedidos.next_num }}">
           Próxima ⏩
         </a>
       </li>
