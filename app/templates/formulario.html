@@ -1011,6 +1011,38 @@
   </script>
   
   <script>
+    // --- Autofill de Pessoa por CPF (simples, acionado no blur) ---
+    (function () {
+      // Aplica máscara padrão de CPF, se desejar (mantém compatibilidade com o padrão atual)
+      $(document).on('focus', '.pessoa-cpf', function() {
+        try { $(this).mask('000.000.000-00'); } catch(e) {}
+      });
+
+      // Listener de blur para cada input de CPF dentro do bloco de pessoas
+      $(document).on('blur', '.pessoa-cpf', function () {
+        var $cpfInput = $(this);
+        var cpf = ($cpfInput.val() || '').trim();
+        if (!cpf) return; // nada a fazer
+
+        // Consulta simples ao endpoint (GET). O backend já valida o CPF.
+        $.getJSON("{{ url_for('pedidos.consultar_pessoa_por_cpf') }}", { cpf: cpf })
+          .done(function (data) {
+            // Preenche campos irmãos deste bloco
+            var $bloco = $cpfInput.closest('.bloco');
+            $bloco.find('.pessoa-nome').val(data.nome || '');
+            $bloco.find('.pessoa-isps').val(data.isps || '');
+            $bloco.find('.pessoa-funcao').val(data.funcao || '');
+            // feedback visual leve (opcional)
+            $cpfInput.addClass('is-valid');
+          })
+          .fail(function (xhr) {
+            // 404 = não encontrada; mantém o preenchimento manual
+            // 400/erro = feedback leve e segue
+            $cpfInput.removeClass('is-valid');
+          });
+      });
+    })();
+
     document.getElementById("motivo_solicitacao").addEventListener("change", function() {
       const campoOutros = document.getElementById("campo-outros");
       if (this.value === "Outros") {

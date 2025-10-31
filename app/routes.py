@@ -1733,3 +1733,31 @@ def marcar_notificacao_lida(notificacao_id):
     db.session.commit()
 
     return jsonify({"message": "Notificação marcada como lida"}), 200
+
+@pedidos_bp.route('/api/pessoas', methods=['GET'])
+@login_required
+@role_required("RFB", "comum")
+def consultar_pessoa_por_cpf():
+    """
+    Consulta pessoa por CPF e retorna dados básicos.
+    Exemplo: GET /api/pessoas?cpf=123.456.789-00
+    """
+    cpf = (request.args.get('cpf') or '').strip()
+    if not cpf:
+        return jsonify({"error": "Informe o CPF."}), 400
+
+    # Validação no mesmo padrão já usado nas rotas de pedido
+    if not validar_cpf(cpf):
+        return jsonify({"error": "CPF inválido."}), 400
+
+    pessoa = db.session.query(Pessoa).filter_by(cpf=cpf).first()
+    if not pessoa:
+        return jsonify({"error": "Pessoa não encontrada."}), 404
+
+    return jsonify({
+        "id": pessoa.id,
+        "nome": pessoa.nome,
+        "cpf": pessoa.cpf,
+        "isps": pessoa.isps or "",
+        "funcao": pessoa.funcao or ""
+    }), 200
