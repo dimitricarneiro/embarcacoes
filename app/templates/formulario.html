@@ -368,12 +368,12 @@
             {% for pessoa in pedido.pessoas %}
               <div class="bloco">
                 <div class="mb-2">
-                  <label class="form-label">Nome da Pessoa:</label>
-                  <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required maxlength="255">
-                </div>
-                <div class="mb-2">
                   <label class="form-label">CPF:</label>
                   <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required maxlength="14">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Nome da Pessoa:</label>
+                  <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">ISPS:</label>
