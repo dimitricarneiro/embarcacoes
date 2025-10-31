@@ -194,12 +194,12 @@
             {% for embarcacao in pedido.embarcacoes %}
               <div class="bloco">
                 <div class="mb-2">
-                  <label class="form-label">Nome da Embarcação:</label>
-                  <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required maxlength="255">
-                </div>
-                <div class="mb-2">
                   <label class="form-label">IMO:</label>
                   <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO" maxlength="10" value="{{ embarcacao.imo }}">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Nome da Embarcação:</label>
+                  <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" value="{{ embarcacao.nome }}" required maxlength="255">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Bandeira:</label>
@@ -210,12 +210,12 @@
           {% else %}
             <div class="bloco">
               <div class="mb-2">
-                <label class="form-label">Nome da Embarcação:</label>
-                <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required maxlength="255">
-              </div>
-              <div class="mb-2">
                 <label class="form-label">IMO:</label>
                 <input type="text" class="embarcacao-imo form-control" maxlength="10" placeholder="Número IMO">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Nome da Embarcação:</label>
+                <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required maxlength="255">
               </div>
               <div class="mb-2">
                 <label class="form-label">Bandeira:</label>
@@ -500,12 +500,12 @@
       novaEmbarcacao.className = "bloco";
       novaEmbarcacao.innerHTML = `
         <div class="mb-2">
-          <label class="form-label">Nome da Embarcação:</label>
-          <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required>
-        </div>
-        <div class="mb-2">
           <label class="form-label">IMO:</label>
           <input type="text" class="embarcacao-imo form-control" placeholder="Número IMO">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Nome da Embarcação:</label>
+          <input type="text" class="embarcacao-nome form-control" placeholder="Nome da embarcação" required>
         </div>
         <div class="mb-2">
           <label class="form-label">Bandeira:</label>
