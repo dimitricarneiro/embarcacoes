@@ -1041,6 +1041,24 @@
             $cpfInput.removeClass('is-valid');
           });
       });
+      // --- Autofill de Embarcação por IMO (simples, acionado no blur) ---
+      $(document).on('blur', '.embarcacao-imo', function () {
+        var $imoInput = $(this);
+        var imo = ($imoInput.val() || '').trim();
+        if (!imo) return;
+
+        $.getJSON("{{ url_for('pedidos.consultar_embarcacao_por_imo') }}", { imo: imo })
+          .done(function (data) {
+            var $bloco = $imoInput.closest('.bloco, .bloco-embarcacao, .row, form'); // tolerante a variações
+            $bloco.find('.embarcacao-nome').val(data.nome || '');
+            $bloco.find('.embarcacao-bandeira').val(data.bandeira || '');
+            $imoInput.addClass('is-valid');
+          })
+          .fail(function () {
+            $imoInput.removeClass('is-valid');
+          });
+      });
+
     })();
 
     document.getElementById("motivo_solicitacao").addEventListener("change", function() {

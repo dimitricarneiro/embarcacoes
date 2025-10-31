@@ -1761,3 +1761,26 @@ def consultar_pessoa_por_cpf():
         "isps": pessoa.isps or "",
         "funcao": pessoa.funcao or ""
     }), 200
+
+@pedidos_bp.route('/api/embarcacoes', methods=['GET'])
+@login_required
+@role_required("RFB", "comum")
+def consultar_embarcacao_por_imo():
+    """
+    Consulta embarcação por IMO e retorna dados básicos.
+    Ex.: GET /api/embarcacoes?imo=1234567
+    """
+    imo = (request.args.get('imo') or '').strip()
+    if not imo:
+        return jsonify({"error": "Informe o IMO."}), 400
+
+    embarcacao = db.session.query(Embarcacao).filter_by(imo=imo).first()
+    if not embarcacao:
+        return jsonify({"error": "Embarcação não encontrada."}), 404
+
+    return jsonify({
+        "id": embarcacao.id,
+        "nome": embarcacao.nome,
+        "imo": embarcacao.imo or "",
+        "bandeira": embarcacao.bandeira or ""
+    }), 200
