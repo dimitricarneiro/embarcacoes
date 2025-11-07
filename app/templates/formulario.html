@@ -71,17 +71,17 @@
       <!-- Campos do pedido principal -->
       <div class="mb-3">
         <label for="cnpj_empresa" class="form-label">*CNPJ do Prestador de Serviço:</label>
-        <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else '' }}" required maxlength="20">
+        <input type="text" id="cnpj_empresa" class="form-control cnpj-empresa" value="{{ pedido.cnpj_empresa if pedido else '' }}" required maxlength="20">
       </div>
 
       <div class="mb-3">
         <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else '' }}" required maxlength="255">
+        <input type="text" id="nome_empresa" class="form-control nome-empresa" value="{{ pedido.empresa_responsavel if pedido else '' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
         <label for="endereco_empresa" class="form-label">*Endereço:</label>
-        <input type="text" id="endereco_empresa" class="form-control" value="{{ pedido.endereco_empresa if pedido else '' }}" required maxlength="255">
+        <input type="text" id="endereco_empresa" class="form-control endereco-empresa" value="{{ pedido.endereco_empresa if pedido else '' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">

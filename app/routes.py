@@ -1797,23 +1797,20 @@ def consultar_empresa_por_cnpj():
     if not cnpj:
         return jsonify({"error": "Informe o CNPJ."}), 400
 
-    # Se o projeto já usa estas funções, mantém o padrão de validação/normalização:
-    try:
-        from app.utils import validar_cnpj, normalizar_cnpj  # já importadas em outros pontos do projeto
-        if not validar_cnpj(cnpj):
-            return jsonify({"error": "CNPJ inválido."}), 400
-        cnpj_busca = normalizar_cnpj(cnpj)  # remove máscara caso aplicável
-    except Exception:
-        # Fallback simples sem normalização (mantém compatível ao estado atual)
-        cnpj_busca = cnpj
+    # Normaliza entrada para só dígitos (sem depender de formato do banco)
+    cnpj_digits = re.sub(r'\D+', '', cnpj)
+    if len(cnpj_digits) != 14:
+        return jsonify({"error": "CNPJ inválido."}), 400
+
+    # Remove máscara da coluna para comparar (sem alterar DDL)
+    col_digits = func.replace(func.replace(func.replace(PedidoAutorizacao.cnpj_empresa, '.', ''), '-', ''), '/', '')
 
     # Seleciona o pedido mais recente com esse CNPJ
-    pa = (
-        db.session.query(PedidoAutorizacao)
-        .filter(PedidoAutorizacao.cnpj_empresa == cnpj_busca)
-        .order_by(PedidoAutorizacao.data_criacao_pedido.desc(), PedidoAutorizacao.id.desc())
-        .first()
-    )
+    pa = (db.session.query(PedidoAutorizacao)
+          .filter(col_digits == cnpj_digits)
+          .order_by(PedidoAutorizacao.data_criacao_pedido.desc(),
+                    PedidoAutorizacao.id.desc())
+          .first())
     if not pa:
         return jsonify({"error": "Empresa não encontrada."}), 404
 
