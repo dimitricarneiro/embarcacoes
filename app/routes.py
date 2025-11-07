@@ -1784,3 +1784,41 @@ def consultar_embarcacao_por_imo():
         "imo": embarcacao.imo or "",
         "bandeira": embarcacao.bandeira or ""
     }), 200
+
+@pedidos_bp.route('/api/empresas', methods=['GET'])
+@login_required
+@role_required("RFB", "comum")
+def consultar_empresa_por_cnpj():
+    """
+    Consulta empresa pelo CNPJ no histórico de pedidos e retorna o registro mais recente.
+    Ex.: GET /api/empresas?cnpj=12.345.678/0001-99
+    """
+    cnpj = (request.args.get('cnpj') or '').strip()
+    if not cnpj:
+        return jsonify({"error": "Informe o CNPJ."}), 400
+
+    # Se o projeto já usa estas funções, mantém o padrão de validação/normalização:
+    try:
+        from app.utils import validar_cnpj, normalizar_cnpj  # já importadas em outros pontos do projeto
+        if not validar_cnpj(cnpj):
+            return jsonify({"error": "CNPJ inválido."}), 400
+        cnpj_busca = normalizar_cnpj(cnpj)  # remove máscara caso aplicável
+    except Exception:
+        # Fallback simples sem normalização (mantém compatível ao estado atual)
+        cnpj_busca = cnpj
+
+    # Seleciona o pedido mais recente com esse CNPJ
+    pa = (
+        db.session.query(PedidoAutorizacao)
+        .filter(PedidoAutorizacao.cnpj_empresa == cnpj_busca)
+        .order_by(PedidoAutorizacao.data_criacao_pedido.desc(), PedidoAutorizacao.id.desc())
+        .first()
+    )
+    if not pa:
+        return jsonify({"error": "Empresa não encontrada."}), 404
+
+    return jsonify({
+        "cnpj_empresa": pa.cnpj_empresa or "",
+        "nome_empresa": pa.empresa_responsavel or "",
+        "endereco_empresa": pa.endereco_empresa or ""
+    }), 200

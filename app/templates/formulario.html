@@ -70,13 +70,13 @@
     <form id="pedido-form">
       <!-- Campos do pedido principal -->
       <div class="mb-3">
-        <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
-        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else '' }}" required maxlength="255">
-      </div>
-      
-      <div class="mb-3">
         <label for="cnpj_empresa" class="form-label">*CNPJ do Prestador de Serviço:</label>
         <input type="text" id="cnpj_empresa" class="form-control" value="{{ pedido.cnpj_empresa if pedido else '' }}" required maxlength="20">
+      </div>
+
+      <div class="mb-3">
+        <label for="nome_empresa" class="form-label">*Nome da Empresa:</label>
+        <input type="text" id="nome_empresa" class="form-control" value="{{ pedido.empresa_responsavel if pedido else '' }}" required maxlength="255">
       </div>
       
       <div class="mb-3">
@@ -1056,6 +1056,25 @@
           })
           .fail(function () {
             $imoInput.removeClass('is-valid');
+          });
+      });
+
+      // --- Autofill de Empresa por CNPJ (simples, acionado no blur) ---
+      $(document).on('blur', '.cnpj-empresa', function () {
+        var $cnpjInput = $(this);
+        var cnpj = ($cnpjInput.val() || '').trim();
+        if (!cnpj) return;
+
+        $.getJSON("{{ url_for('pedidos.consultar_empresa_por_cnpj') }}", { cnpj: cnpj })
+          .done(function (data) {
+            // Preenche campos do mesmo bloco
+            var $bloco = $cnpjInput.closest('.bloco, .row, form');
+            $bloco.find('.nome-empresa').val(data.nome_empresa || '');
+            $bloco.find('.endereco-empresa').val(data.endereco_empresa || '');
+            $cnpjInput.addClass('is-valid');
+          })
+          .fail(function () {
+            $cnpjInput.removeClass('is-valid');
           });
       });
 
