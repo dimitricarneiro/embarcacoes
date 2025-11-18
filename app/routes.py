@@ -271,7 +271,7 @@ def gerenciar_pedidos():
                 "data_termino": "Data do término",
                 "horario_inicio_servicos": "Horário de início dos serviços",
                 "horario_termino_servicos": "Horário de término dos serviços",
-                "certificado_livre_pratica": "Certificado livre prática",
+                # "certificado_livre_pratica": "Certificado livre prática",
                 "cidade_servico": "Cidade do serviço",
                 "embarcacoes": "Embarcações",
                 "pessoas": "Pessoas",
