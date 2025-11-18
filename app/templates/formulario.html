@@ -369,7 +369,7 @@
               <div class="bloco">
                 <div class="mb-2">
                   <label class="form-label">CPF:</label>
-                  <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" required maxlength="14">
+                  <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" maxlength="14">
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Nome da Pessoa:</label>
@@ -397,7 +397,7 @@
             <div class="bloco">
               <div class="mb-2">
                 <label class="form-label">CPF:</label>
-                <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required maxlength="14">
+                <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" maxlength="14">
               </div>
               <div class="mb-2">
                 <label class="form-label">Nome da Pessoa:</label>
@@ -567,7 +567,7 @@
       novaPessoa.innerHTML = `
         <div class="mb-2">
           <label class="form-label">CPF:</label>
-          <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" required>
+          <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa">
         </div>
         <div class="mb-2">
           <label class="form-label">Nome da Pessoa:</label>
@@ -713,21 +713,51 @@
     
       const pessoas = [];
       const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
+      let qtdPessoasValidas = 0;
+
       for (let el of pessoaElements) {
         const nome = el.querySelector('.pessoa-nome').value.trim();
         const cpf = el.querySelector('.pessoa-cpf').value.trim();
-        if (nome && cpf) {
-          if (!validarCPF(cpf)) {
-            document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
-            document.getElementById("mensagem").style.color = "red";
-            return;
-          }
-          const isps = el.querySelector('.pessoa-isps').value.trim();
-          const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
-          const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
-          const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
-          pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
+        const isps = el.querySelector('.pessoa-isps').value.trim();
+        const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+        const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+        const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
+
+        // Se todos os campos estiverem vazios, ignora este bloco
+        if (!nome && !cpf && !isps && !funcao && !localEmbarque && !localDesembarque) {
+          continue;
         }
+
+        // Nome é obrigatório se algum campo foi preenchido
+        if (!nome) {
+          document.getElementById("mensagem").innerText = "Preencha o nome de todas as pessoas.";
+          document.getElementById("mensagem").style.color = "red";
+          return;
+        }
+
+        // CPF é opcional, mas se informado precisa ser válido
+        if (cpf && !validarCPF(cpf)) {
+          document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
+          document.getElementById("mensagem").style.color = "red";
+          return;
+        }
+
+        pessoas.push({
+          nome: nome,
+          cpf: cpf,
+          isps: isps,
+          funcao: funcao,
+          local_embarque: localEmbarque,
+          local_desembarque: localDesembarque
+        });
+
+        qtdPessoasValidas++;
+      }
+
+      if (qtdPessoasValidas === 0) {
+        document.getElementById("mensagem").innerText = "Informe pelo menos uma pessoa no pedido.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
       }
     
       const pedido = {
@@ -874,21 +904,51 @@
     
       const pessoas = [];
       const pessoaElements = document.querySelectorAll("#pessoas-container .bloco");
+      let qtdPessoasValidas = 0;
+
       for (let el of pessoaElements) {
         const nome = el.querySelector('.pessoa-nome').value.trim();
         const cpf = el.querySelector('.pessoa-cpf').value.trim();
-        if (nome && cpf) {
-          if (!validarCPF(cpf)) {
-            document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
-            document.getElementById("mensagem").style.color = "red";
-            return;
-          }
-          const isps = el.querySelector('.pessoa-isps').value.trim();
-          const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
-          const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
-          const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
-          pessoas.push({ nome: nome, cpf: cpf, isps: isps, funcao: funcao, local_embarque: localEmbarque, local_desembarque: localDesembarque });
+        const isps = el.querySelector('.pessoa-isps').value.trim();
+        const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
+        const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
+        const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
+
+        // Se todos os campos estiverem vazios, ignora este bloco
+        if (!nome && !cpf && !isps && !funcao && !localEmbarque && !localDesembarque) {
+          continue;
         }
+
+        // Nome é obrigatório se algum campo foi preenchido
+        if (!nome) {
+          document.getElementById("mensagem").innerText = "Preencha o nome de todas as pessoas.";
+          document.getElementById("mensagem").style.color = "red";
+          return;
+        }
+
+        // CPF é opcional, mas se informado precisa ser válido
+        if (cpf && !validarCPF(cpf)) {
+          document.getElementById("mensagem").innerText = "CPF da pessoa inválido!";
+          document.getElementById("mensagem").style.color = "red";
+          return;
+        }
+
+        pessoas.push({
+          nome: nome,
+          cpf: cpf,
+          isps: isps,
+          funcao: funcao,
+          local_embarque: localEmbarque,
+          local_desembarque: localDesembarque
+        });
+
+        qtdPessoasValidas++;
+      }
+
+      if (qtdPessoasValidas === 0) {
+        document.getElementById("mensagem").innerText = "Informe pelo menos uma pessoa no pedido.";
+        document.getElementById("mensagem").style.color = "red";
+        return;
       }
     
       const pedido = {

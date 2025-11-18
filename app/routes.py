@@ -418,9 +418,9 @@ def gerenciar_pedidos():
             for pessoa_data in data["pessoas"]:
                 nome_pessoa = pessoa_data.get("nome", "").strip()
                 cpf_pessoa = pessoa_data.get("cpf", "").strip()
-                
-                # Valida o CPF de cada pessoa
-                if not validar_cpf(cpf_pessoa):
+
+                # Valida o CPF de cada pessoa (apenas se informado)
+                if cpf_pessoa and not validar_cpf(cpf_pessoa):
                     return jsonify({"error": f"CPF {cpf_pessoa} inválido!"}), 400
 
                 isps = pessoa_data.get("isps", "").strip()
@@ -428,7 +428,16 @@ def gerenciar_pedidos():
                 local_embarque = pessoa_data.get("local_embarque", "").strip()
                 local_desembarque = pessoa_data.get("local_desembarque", "").strip()
 
-                if nome_pessoa and cpf_pessoa:
+                # Se todos os campos da pessoa estiverem vazios, ignora este bloco
+                if not any([nome_pessoa, cpf_pessoa, isps, funcao, local_embarque, local_desembarque]):
+                    continue
+
+                # Nome é obrigatório se algum campo da pessoa foi preenchido
+                if not nome_pessoa:
+                    return jsonify({"error": "Preencha o nome de todas as pessoas."}), 400
+
+                if cpf_pessoa:
+                    # Com CPF: reusa ou cria a pessoa pelo CPF
                     pessoa = db.session.query(Pessoa).filter_by(cpf=cpf_pessoa).first()
                     if not pessoa:
                         pessoa = Pessoa(
@@ -449,7 +458,19 @@ def gerenciar_pedidos():
                             pessoa.local_embarque = local_embarque
                         if local_desembarque:
                             pessoa.local_desembarque = local_desembarque
-                    novo_pedido.pessoas.append(pessoa)
+                else:
+                    # Sem CPF: cria sempre um novo registro para esta pessoa
+                    pessoa = Pessoa(
+                        nome=nome_pessoa,
+                        cpf=None,
+                        isps=isps,
+                        funcao=funcao,
+                        local_embarque=local_embarque,
+                        local_desembarque=local_desembarque
+                    )
+                    db.session.add(pessoa)
+
+                novo_pedido.pessoas.append(pessoa)
 
             # -------------------------------
             # Processamento de Veículos
@@ -714,7 +735,21 @@ def atualizar_pedido_api(pedido_id):
             funcao = pessoa_data.get("funcao", "").strip()
             local_embarque = pessoa_data.get("local_embarque", "").strip()
             local_desembarque = pessoa_data.get("local_desembarque", "").strip()
-            if nome and cpf:
+
+            # Se todos os campos estiverem vazios, ignora este bloco
+            if not any([nome, cpf, isps, funcao, local_embarque, local_desembarque]):
+                continue
+
+            # Nome é obrigatório se algum campo foi preenchido
+            if not nome:
+                return jsonify({"error": "Preencha o nome de todas as pessoas."}), 400
+
+            # Valida o CPF (apenas se informado)
+            if cpf and not validar_cpf(cpf):
+                return jsonify({"error": f"CPF {cpf} inválido!"}), 400
+
+            if cpf:
+                # Com CPF: reusa ou cria pelo CPF
                 pessoa = db.session.query(Pessoa).filter_by(cpf=cpf).first()
                 if not pessoa:
                     pessoa = Pessoa(
@@ -735,7 +770,19 @@ def atualizar_pedido_api(pedido_id):
                         pessoa.local_embarque = local_embarque
                     if local_desembarque:
                         pessoa.local_desembarque = local_desembarque
-                pedido.pessoas.append(pessoa)
+            else:
+                # Sem CPF: cria sempre um novo registro para esta pessoa
+                pessoa = Pessoa(
+                    nome=nome,
+                    cpf=None,
+                    isps=isps,
+                    funcao=funcao,
+                    local_embarque=local_embarque,
+                    local_desembarque=local_desembarque
+                )
+                db.session.add(pessoa)
+
+            pedido.pessoas.append(pessoa)
 
         db.session.commit()
         return jsonify({
