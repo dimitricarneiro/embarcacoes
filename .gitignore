@@ -1,3 +1,5 @@
+.env
+
 # Ignorar arquivos da pasta instance (Banco de Dados, configurações locais)
 instance/
 
