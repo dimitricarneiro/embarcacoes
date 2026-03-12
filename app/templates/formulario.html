@@ -372,6 +372,10 @@
                   <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" value="{{ pessoa.cpf }}" maxlength="14">
                 </div>
                 <div class="mb-2">
+                  <label class="form-label">Passaporte:</label>
+                  <input type="text" class="pessoa-passaporte form-control" placeholder="Passaporte" value="{{ pessoa.passaporte if pessoa.passaporte else '' }}" maxlength="50">
+                </div>
+                <div class="mb-2">
                   <label class="form-label">Nome da Pessoa:</label>
                   <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" value="{{ pessoa.nome }}" required maxlength="255">
                 </div>
@@ -398,6 +402,10 @@
               <div class="mb-2">
                 <label class="form-label">CPF:</label>
                 <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa" maxlength="14">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Passaporte:</label>
+                <input type="text" class="pessoa-passaporte form-control" placeholder="Passaporte" maxlength="50">
               </div>
               <div class="mb-2">
                 <label class="form-label">Nome da Pessoa:</label>
@@ -570,6 +578,10 @@
           <input type="text" class="pessoa-cpf form-control" placeholder="CPF da pessoa">
         </div>
         <div class="mb-2">
+          <label class="form-label">Passaporte:</label>
+          <input type="text" class="pessoa-passaporte form-control" placeholder="Passaporte" maxlength="50">
+        </div>
+        <div class="mb-2">
           <label class="form-label">Nome da Pessoa:</label>
           <input type="text" class="pessoa-nome form-control" placeholder="Nome da pessoa" required>
         </div>
@@ -718,13 +730,14 @@
       for (let el of pessoaElements) {
         const nome = el.querySelector('.pessoa-nome').value.trim();
         const cpf = el.querySelector('.pessoa-cpf').value.trim();
+        const passaporte = el.querySelector('.pessoa-passaporte') ? el.querySelector('.pessoa-passaporte').value.trim() : '';
         const isps = el.querySelector('.pessoa-isps').value.trim();
         const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
         const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
         const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
 
         // Se todos os campos estiverem vazios, ignora este bloco
-        if (!nome && !cpf && !isps && !funcao && !localEmbarque && !localDesembarque) {
+        if (!nome && !cpf && !passaporte && !isps && !funcao && !localEmbarque && !localDesembarque) {
           continue;
         }
 
@@ -745,6 +758,7 @@
         pessoas.push({
           nome: nome,
           cpf: cpf,
+          passaporte: passaporte,
           isps: isps,
           funcao: funcao,
           local_embarque: localEmbarque,
@@ -909,13 +923,14 @@
       for (let el of pessoaElements) {
         const nome = el.querySelector('.pessoa-nome').value.trim();
         const cpf = el.querySelector('.pessoa-cpf').value.trim();
+        const passaporte = el.querySelector('.pessoa-passaporte') ? el.querySelector('.pessoa-passaporte').value.trim() : '';
         const isps = el.querySelector('.pessoa-isps').value.trim();
         const funcao = el.querySelector('.pessoa-funcao') ? el.querySelector('.pessoa-funcao').value.trim() : '';
         const localEmbarque = el.querySelector('.pessoa-local-embarque') ? el.querySelector('.pessoa-local-embarque').value.trim() : '';
         const localDesembarque = el.querySelector('.pessoa-local-desembarque') ? el.querySelector('.pessoa-local-desembarque').value.trim() : '';
 
         // Se todos os campos estiverem vazios, ignora este bloco
-        if (!nome && !cpf && !isps && !funcao && !localEmbarque && !localDesembarque) {
+        if (!nome && !cpf && !passaporte && !isps && !funcao && !localEmbarque && !localDesembarque) {
           continue;
         }
 
@@ -936,6 +951,7 @@
         pessoas.push({
           nome: nome,
           cpf: cpf,
+          passaporte: passaporte,
           isps: isps,
           funcao: funcao,
           local_embarque: localEmbarque,

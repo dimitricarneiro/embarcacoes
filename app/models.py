@@ -131,6 +131,7 @@ class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(255), nullable=False)
     cpf = db.Column(db.String(14), nullable=True)
+    passaporte = db.Column(db.String(50), nullable=True)
     isps = db.Column(db.String(8), nullable=True)
     funcao = db.Column(db.String(255), nullable=True)           # Função da pessoa
     local_embarque = db.Column(db.String(255), nullable=True)     # Local de embarque

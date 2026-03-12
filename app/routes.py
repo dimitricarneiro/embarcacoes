@@ -418,6 +418,7 @@ def gerenciar_pedidos():
             for pessoa_data in data["pessoas"]:
                 nome_pessoa = pessoa_data.get("nome", "").strip()
                 cpf_pessoa = pessoa_data.get("cpf", "").strip()
+                passaporte = pessoa_data.get("passaporte", "").strip()
 
                 # Valida o CPF de cada pessoa (apenas se informado)
                 if cpf_pessoa and not validar_cpf(cpf_pessoa):
@@ -429,7 +430,7 @@ def gerenciar_pedidos():
                 local_desembarque = pessoa_data.get("local_desembarque", "").strip()
 
                 # Se todos os campos da pessoa estiverem vazios, ignora este bloco
-                if not any([nome_pessoa, cpf_pessoa, isps, funcao, local_embarque, local_desembarque]):
+                if not any([nome_pessoa, cpf_pessoa, passaporte, isps, funcao, local_embarque, local_desembarque]):
                     continue
 
                 # Nome é obrigatório se algum campo da pessoa foi preenchido
@@ -443,6 +444,7 @@ def gerenciar_pedidos():
                         pessoa = Pessoa(
                             nome=nome_pessoa,
                             cpf=cpf_pessoa,
+                            passaporte=passaporte,
                             isps=isps,
                             funcao=funcao,
                             local_embarque=local_embarque,
@@ -450,6 +452,8 @@ def gerenciar_pedidos():
                         )
                         db.session.add(pessoa)
                     else:
+                        if passaporte:
+                            pessoa.passaporte = passaporte
                         if isps:
                             pessoa.isps = isps
                         if funcao:
@@ -463,6 +467,7 @@ def gerenciar_pedidos():
                     pessoa = Pessoa(
                         nome=nome_pessoa,
                         cpf=None,
+                        passaporte=passaporte,
                         isps=isps,
                         funcao=funcao,
                         local_embarque=local_embarque,
@@ -731,13 +736,14 @@ def atualizar_pedido_api(pedido_id):
         for pessoa_data in data.get("pessoas", []):
             nome = pessoa_data.get("nome", "").strip()
             cpf = pessoa_data.get("cpf", "").strip()
+            passaporte = pessoa_data.get("passaporte", "").strip()
             isps = pessoa_data.get("isps", "").strip()
             funcao = pessoa_data.get("funcao", "").strip()
             local_embarque = pessoa_data.get("local_embarque", "").strip()
             local_desembarque = pessoa_data.get("local_desembarque", "").strip()
 
             # Se todos os campos estiverem vazios, ignora este bloco
-            if not any([nome, cpf, isps, funcao, local_embarque, local_desembarque]):
+            if not any([nome, cpf, passaporte, isps, funcao, local_embarque, local_desembarque]):
                 continue
 
             # Nome é obrigatório se algum campo foi preenchido
@@ -755,6 +761,7 @@ def atualizar_pedido_api(pedido_id):
                     pessoa = Pessoa(
                         nome=nome,
                         cpf=cpf,
+                        passaporte=passaporte,
                         isps=isps,
                         funcao=funcao,
                         local_embarque=local_embarque,
@@ -762,6 +769,8 @@ def atualizar_pedido_api(pedido_id):
                     )
                     db.session.add(pessoa)
                 else:
+                    if passaporte:
+                        pessoa.passaporte = passaporte
                     if isps:
                         pessoa.isps = isps
                     if funcao:
@@ -775,6 +784,7 @@ def atualizar_pedido_api(pedido_id):
                 pessoa = Pessoa(
                     nome=nome,
                     cpf=None,
+                    passaporte=passaporte,
                     isps=isps,
                     funcao=funcao,
                     local_embarque=local_embarque,
@@ -1588,6 +1598,7 @@ def exportar_pdf_completo():
                 data.extend([
                     [Paragraph("Nome:", label_style), Paragraph(ps.nome, normal)],
                     [Paragraph("CPF:", label_style), Paragraph(fmt_cpf(ps.cpf), normal)],
+                    [Paragraph("Passaporte:", label_style), Paragraph(ps.passaporte or "–", normal)],
                     [Paragraph("ISPS:", label_style), Paragraph(ps.isps or "–", normal)],
                     [Paragraph("Função:", label_style), Paragraph(ps.funcao or "–", normal)],
                     [Paragraph("Local de Embarque:", label_style), Paragraph(ps.local_embarque or "–", normal)],
@@ -1805,6 +1816,7 @@ def consultar_pessoa_por_cpf():
         "id": pessoa.id,
         "nome": pessoa.nome,
         "cpf": pessoa.cpf,
+        "passaporte": pessoa.passaporte or "",
         "isps": pessoa.isps or "",
         "funcao": pessoa.funcao or ""
     }), 200
