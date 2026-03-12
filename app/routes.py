@@ -302,8 +302,8 @@ def gerenciar_pedidos():
                 return jsonify({"error": "Formato de data inválido. Use 'YYYY-MM-DD'."}), 400
 
             hoje = datetime.today().date()
-            if data_inicio < hoje:
-                return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
+            #if data_inicio < hoje:
+            #    return jsonify({"error": "A data de início deve ser hoje ou uma data futura."}), 400
             
             # Verifica se a data de início está dentro dos próximos 90 dias
             if data_inicio > hoje + timedelta(days=90):
